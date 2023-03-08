@@ -1,1 +1,112 @@
-<mxfile host="app.diagrams.net" modified="2023-03-08T09:49:42.169Z" agent="5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36" etag="NEBjG4TRVhMN-UWVysbT" version="20.3.6" type="github"><diagram id="3i0xiaOuH_V0iHMaKWK_" name="Page-1">7Vpbb5swFP41eVwEmOvjSput0ipF6rZujy44gQ0wcpwm7NfPBpubm5S0LKTSWqnlHF/A3/l8/GEzA366/0RgHt3hECUzQwv3M3A9MwwdGA77xz1F5XGBWznWJA4rl9Y47uM/SLSU3m0coo3wVS6KcULjvOsMcJahgHZ8kBC861Zb4STsOHK4RorjPoCJ6n2IQxoJr65pTcFnFK8jcWvXEgUplJWFYxPBEO9aLnAzAz7BmFZX6d5HCQevi8viQGn9YARldEiD7ztg3y1v6cM371O+fVhf397cfbCqXp5gshUDvs2ecBwg8cy0kEAQvM1CxPvSZ+BqF8UU3ecw4KU7Fnrmi2iaiOJVnCQ+TjAp24LVCtlBwPwbSvBv1CoJHe+RQQmuxHMgQtH+4AD1GjbGN4RTREnBqogGwBNNBNV0F1T2rhU4GY2oFTNb+KDgyrruuoGTXQhET0DXVtBdkhJb7Uu8oe8RYtfrQGxMjbCjIDwzbJhyrBJajrltxRlFZMURle51p5K0ysqPhF2VnluK0lGDFULkrp4Nlh246HE1TrAMzbysYOm2giIKWbYVJiY0wmucweSm8V41OHMON3W+YJwLdH8hSguxdMAtxV3sq3vyGx3HkT0X3pIAHRmAWLooJGtEX8qqalwISiCNn7rPMTrKrpp0YJHysb6JwiMQ0nKMC0vQuvPOGekNZKQ7JSONSeY9w5IUP0T70vjJjbklzet9u/C6ENYE0dGnDc8kk+A9hcebNDzu//AcDY8x6XLrHV5utTvEcA8vbt0FmjH1uqspqKkkz8KP/AWeWWEMU5yFX6M4KwkXLmJ+P0E/uWtgmF3kunOgJrR+GqHRPqY/WtetVsxqGnFDthn8brZY+L7n1SVyhwGMO5HsgRPJeZ5FbZZIRgyeW6K7JY7LGSHfI63uq4kOQLeLakyiVXtTo9eRpb/QUTVopaOStfUY30BkVW37cBNNPuUdKa0vR2qridKHZPrk2Edq+uRomApSH4OAwTLyjpHFf7kfZ7Tlr36UbJXhjAuLkLG7viE3lpBSRLLSw3cc+rlspJ2nfpgsU5s6TOreqU+KnAmp/1GSUTJlF9NF6Rl9RnC4DcadTOfZ0ZNnJxeTqoCq4+4ReRr7/OBc+6X6pcGrHiAouLZk8mOCg9/92X9ILevGILWszc0yzbQUs+fWjkOamVtLRGIGAyJ9IT03pXqu+tN056ia5ka/M4UIAHjeYjGubpbsviDhzN7lOhzVpaw6VTgbPeFsn1c3g+cObs7D7JqGHRYeZeBZ2GYM3e84H9t00+qyzbFeyTajyzZnGNtY+GHRqpbzCpt/wkf1Pe4YH0fdkNDmjtXOsPpL2fX970hYF0d15WRbfyXVQY/qSkfTc12VxF/hnjl8mARbjiLO3ibfRhBj/T3LyQ+vTVXqftuoMreVJHCOMnVh6ixhA1Yp70Sx1GSVk5NKX2RNMOHBgaOWfzDjTbv3uZD3yj1I0/LmrDMLuNXfnkTrd/tqZcXM5muxqnrzzR24+Qs=</diagram></mxfile>
+<mxfile host="app.diagrams.net" modified="2023-03-08T10:02:17.406Z" agent="5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36" etag="lvke0nvfUouOxYW_9vZh" version="20.3.6" type="github">
+  <diagram id="3i0xiaOuH_V0iHMaKWK_" name="Page-1">
+    <mxGraphModel dx="1327" dy="838" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="850" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="Vw36MPItWU9GpuWgDIEM-5" value="Invoice" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
+          <mxGeometry x="391" y="183" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="Vw36MPItWU9GpuWgDIEM-6" value="Price List" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
+          <mxGeometry x="389" y="23" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="Vw36MPItWU9GpuWgDIEM-7" value="&amp;lt;&amp;lt;interface&amp;gt;&amp;gt;&lt;br&gt;Item" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
+          <mxGeometry x="204" y="23" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="Vw36MPItWU9GpuWgDIEM-16" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="Vw36MPItWU9GpuWgDIEM-8" target="Vw36MPItWU9GpuWgDIEM-5" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Vw36MPItWU9GpuWgDIEM-8" value="Payment" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
+          <mxGeometry x="572" y="183" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="Vw36MPItWU9GpuWgDIEM-9" value="Payment Method" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
+          <mxGeometry x="572" y="302" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="Vw36MPItWU9GpuWgDIEM-10" value="" style="endArrow=diamondThin;endFill=0;endSize=24;html=1;rounded=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;fillColor=#ffe6cc;strokeColor=#FFCC99;strokeWidth=3;" parent="1" source="Vw36MPItWU9GpuWgDIEM-6" target="Vw36MPItWU9GpuWgDIEM-7" edge="1">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="354" y="133" as="sourcePoint" />
+            <mxPoint x="514" y="133" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Vw36MPItWU9GpuWgDIEM-18" value="Cash" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
+          <mxGeometry x="351" y="482" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="Vw36MPItWU9GpuWgDIEM-19" value="Card" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
+          <mxGeometry x="500" y="482" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="Vw36MPItWU9GpuWgDIEM-24" value="Account" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=none;dashed=1;dashPattern=1 4;strokeWidth=0;" parent="1" vertex="1">
+          <mxGeometry x="649" y="482" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="Vw36MPItWU9GpuWgDIEM-25" value="Crypto" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=none;dashed=1;dashPattern=1 4;strokeWidth=0;" parent="1" vertex="1">
+          <mxGeometry x="798" y="482" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="Vw36MPItWU9GpuWgDIEM-29" value="Product" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
+          <mxGeometry x="38" y="302" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="Vw36MPItWU9GpuWgDIEM-30" value="Service" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
+          <mxGeometry x="201" y="302" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="Vw36MPItWU9GpuWgDIEM-36" value="" style="endArrow=block;dashed=1;endFill=0;endSize=12;html=1;rounded=0;entryX=0.433;entryY=0.983;entryDx=0;entryDy=0;entryPerimeter=0;exitX=0.45;exitY=0.017;exitDx=0;exitDy=0;exitPerimeter=0;strokeColor=#3399FF;" parent="1" source="Vw36MPItWU9GpuWgDIEM-30" target="Vw36MPItWU9GpuWgDIEM-7" edge="1">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="257" y="119" as="sourcePoint" />
+            <mxPoint x="214" y="63" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Vw36MPItWU9GpuWgDIEM-37" value="" style="endArrow=block;dashed=1;endFill=0;endSize=12;html=1;rounded=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;strokeColor=#3399FF;" parent="1" source="Vw36MPItWU9GpuWgDIEM-29" target="Vw36MPItWU9GpuWgDIEM-7" edge="1">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="145" y="175" as="sourcePoint" />
+            <mxPoint x="224" y="73" as="targetPoint" />
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Vw36MPItWU9GpuWgDIEM-38" value="" style="endArrow=diamondThin;endFill=0;endSize=24;html=1;rounded=0;entryX=0.75;entryY=1;entryDx=0;entryDy=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;fillColor=#ffe6cc;strokeColor=#FFCC99;strokeWidth=3;" parent="1" source="Vw36MPItWU9GpuWgDIEM-5" target="Vw36MPItWU9GpuWgDIEM-7" edge="1">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="389" y="215" as="sourcePoint" />
+            <mxPoint x="324" y="215" as="targetPoint" />
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Vw36MPItWU9GpuWgDIEM-39" value="Tax Calculation" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="572" y="23" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="Vw36MPItWU9GpuWgDIEM-40" value="Use" style="endArrow=open;endSize=12;dashed=1;html=1;rounded=0;exitX=0.95;exitY=0.017;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;exitPerimeter=0;" parent="1" source="Vw36MPItWU9GpuWgDIEM-5" target="Vw36MPItWU9GpuWgDIEM-39" edge="1">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="461" y="193" as="sourcePoint" />
+            <mxPoint x="459.46153846153857" y="93" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="_GLyHsmW3R6zjuWkOuWw-1" value="Use" style="endArrow=open;endSize=12;dashed=1;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="Vw36MPItWU9GpuWgDIEM-8" target="Vw36MPItWU9GpuWgDIEM-9">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="515" y="194.01999999999998" as="sourcePoint" />
+            <mxPoint x="642" y="93" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="_GLyHsmW3R6zjuWkOuWw-2" value="" style="endArrow=block;endSize=16;endFill=0;html=1;rounded=0;strokeColor=#82b366;strokeWidth=3;fillColor=#d5e8d4;exitX=0.5;exitY=0;exitDx=0;exitDy=0;" edge="1" parent="1" source="Vw36MPItWU9GpuWgDIEM-19" target="Vw36MPItWU9GpuWgDIEM-9">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="469" y="410" as="sourcePoint" />
+            <mxPoint x="629" y="410" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="_GLyHsmW3R6zjuWkOuWw-3" value="" style="endArrow=block;endSize=16;endFill=0;html=1;rounded=0;strokeColor=#82b366;strokeWidth=3;fillColor=#d5e8d4;entryX=0.075;entryY=1;entryDx=0;entryDy=0;entryPerimeter=0;exitX=0.467;exitY=0.017;exitDx=0;exitDy=0;exitPerimeter=0;" edge="1" parent="1" source="Vw36MPItWU9GpuWgDIEM-18" target="Vw36MPItWU9GpuWgDIEM-9">
+          <mxGeometry x="0.1283" y="-71" width="160" relative="1" as="geometry">
+            <mxPoint x="430" y="477" as="sourcePoint" />
+            <mxPoint x="702" y="341.20529801324506" as="targetPoint" />
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="_GLyHsmW3R6zjuWkOuWw-4" value="" style="endArrow=block;endSize=16;endFill=0;html=1;rounded=0;strokeColor=#E6E6E6;strokeWidth=3;fillColor=#d5e8d4;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.883;entryY=1;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="Vw36MPItWU9GpuWgDIEM-25" target="Vw36MPItWU9GpuWgDIEM-9">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="803" y="350" as="sourcePoint" />
+            <mxPoint x="712" y="351.20529801324506" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="_GLyHsmW3R6zjuWkOuWw-5" value="" style="endArrow=block;endSize=16;endFill=0;html=1;rounded=0;strokeColor=#E6E6E6;strokeWidth=3;fillColor=#d5e8d4;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.592;entryY=1.033;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="Vw36MPItWU9GpuWgDIEM-24" target="Vw36MPItWU9GpuWgDIEM-9">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="813" y="360" as="sourcePoint" />
+            <mxPoint x="651" y="369" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
