@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import './features/get_started/presentation/pages/select_workplace.dart';
+import 'features/get_started/presentation/widgets/select_workplace.dart';
 
 void main() {
   runApp(const CashierApp());

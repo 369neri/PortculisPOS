@@ -17,6 +17,6 @@ class SelectWorkplace extends StatelessWidget {
           ),
         )    
       ]
-        );
+    );
   }
 }
