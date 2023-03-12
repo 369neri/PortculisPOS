@@ -1,16 +1,18 @@
 import 'item.dart';
 
 class Service implements Item {
-  final String? _sku = null;
-  final String? _label = null;
-  final double _unitPrice = 0.0;
+  final String _sku;
+  final String _label;
+  final BigInt _unitPrice;
+
+  Service(this._sku, this._label, this._unitPrice) : super();
 
   @override
-  String? get sku => _sku;
+  String get sku => _sku;
 
   @override
-  String? get label => _label;
+  String get label => _label;
   
   @override
-  double get unitPrice => _unitPrice;
+  BigInt get unitPrice => _unitPrice;
 }

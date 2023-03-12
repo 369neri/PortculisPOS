@@ -1,4 +1,4 @@
-import 'items.dart';
+import 'package:cashier_app/features/items/domain/entities/item.dart';
 
 class Items {
   final List<Item> _items = [];
