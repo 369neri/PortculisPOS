@@ -6,6 +6,7 @@ class Invoice {
 
   // ignore: unused_field
   Status _status = Status.active;
+  Status get status => _status;
 
   Invoice() : super();
 

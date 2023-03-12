@@ -1,13 +1,19 @@
 import 'package:cashier_app/features/items/domain/entities/price.dart';
+import 'package:cashier_app/features/items/domain/entities/item.dart';
 
-abstract class Item {
+class ServiceItem implements Item {
   final String _sku;
   final String _label;
   final Price _unitPrice;
 
-  Item(this._sku, this._label, this._unitPrice) : super();
+  ServiceItem(this._sku, this._label, this._unitPrice) : super();
 
+  @override
   String get sku => _sku;
+
+  @override
   String get label => _label;
+  
+  @override
   Price get unitPrice => _unitPrice;
 }
