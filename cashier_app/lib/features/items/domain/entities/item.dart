@@ -1,13 +1,7 @@
 import 'package:cashier_app/features/items/domain/entities/price.dart';
 
 abstract class Item {
-  final String _sku;
-  final String _label;
-  final Price _unitPrice;
-
-  Item(this._sku, this._label, this._unitPrice) : super();
-
-  String get sku => _sku;
-  String get label => _label;
-  Price get unitPrice => _unitPrice;
+  String get sku;
+  String get label;
+  Price get unitPrice;
 }
