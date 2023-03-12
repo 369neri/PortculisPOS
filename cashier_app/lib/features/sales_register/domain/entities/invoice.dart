@@ -4,6 +4,7 @@ import 'package:cashier_app/features/sales_register/domain/entities/invoice_item
 class Invoice {
   final List<InvoiceItem> _items = [];
 
+  // ignore: unused_field
   Status _status = Status.active;
 
   Invoice() : super();
