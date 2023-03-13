@@ -4,7 +4,7 @@ import 'package:test/test.dart';
 void main() {
   group('Price', () {
     test('Negative prices should throw error', () {
-      expect(() => Price.from(-10), throwsArgumentError);
+      expect(() => Price.from(-10), throwsFormatException);
     });
 
     test('Can create price from integer', () {

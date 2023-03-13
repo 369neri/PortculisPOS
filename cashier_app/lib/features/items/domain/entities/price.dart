@@ -5,7 +5,7 @@ class Price {
   BigInt get value => _value;
 
   Price(this._value) : super() {
-    throwIf(_value.isNegative, ArgumentError('prices cannot be negative values'));
+    throwIf(_value.isNegative, const FormatException('prices cannot be negative values'));
   }
 
   factory Price.from(num price) {
