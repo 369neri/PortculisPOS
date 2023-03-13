@@ -235,6 +235,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.1"
+  gtin_toolkit:
+    dependency: "direct main"
+    description:
+      name: gtin_toolkit
+      sha256: "31f0c0d1180288f3999b91b8a62d2853827f12898cd45b16fd7d38a894890892"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.4"
   http_multi_server:
     dependency: transitive
     description:
