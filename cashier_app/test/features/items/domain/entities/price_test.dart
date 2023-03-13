@@ -9,12 +9,12 @@ void main() {
 
     test('Can create price from integer', () {
       var price = Price.from(10);
-      expect(price.value, BigInt.from(10));
+      expect(price.value, equals(BigInt.from(10)));
     });
 
     test('Can create price from double', () {
       var price = Price.from(10.00);
-      expect(price.value, BigInt.from(10.00));
+      expect(price.value, equals(BigInt.from(10.00)));
     });
   });
 }
