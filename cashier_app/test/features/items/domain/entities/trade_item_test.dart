@@ -4,18 +4,26 @@ import 'package:test/test.dart';
 import 'package:cashier_app/features/items/domain/entities/trade_item.dart';
 
 main() {
-  test('should validate valid GTIN as true', () {
-    String validGtin = generateGTIN(gtinLength: 12);
-    var item = TradeItem('mysku', 'Test item', Price(BigInt.from(120)), validGtin);
+  group('TradeItem', () {
+    test('should throw FormatException on invalid price', () {
+      expect(() => TradeItem('', '', Price.from(-20), null), throwsFormatException); 
+    });
+    
+    test('should validate valid GTIN as true', () {
+      String validGtin = generateGTIN(gtinLength: 12);
 
-    expect(item.validateGtin(), equals(true));
-  });
+      var item = TradeItem('', '', Price.from(120), validGtin);
 
-  test('should validate invalid GTIN as false', () {
-    String validGtin = generateGTIN(gtinLength: 12);
-    String invalidGtin = validGtin.padRight(10).padRight(13, '1');
-    var item = TradeItem('mysku', 'Test item', Price(BigInt.from(120)), invalidGtin);
+      expect(item.validateGtin(), equals(true));
+    });
 
-    expect(item.validateGtin(), equals(false));
+    test('should validate invalid GTIN as false', () {
+      String validGtin = generateGTIN(gtinLength: 12);
+      String invalidGtin = validGtin.padRight(10).padRight(13, '1');
+    
+      var item = TradeItem('', '', Price.from(120), invalidGtin);
+
+      expect(item.validateGtin(), equals(false));
+    });
   });
 }
