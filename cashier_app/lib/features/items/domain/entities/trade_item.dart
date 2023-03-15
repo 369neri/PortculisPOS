@@ -9,9 +9,9 @@ class TradeItem implements Item {
   final Price _unitPrice;
 
   // Fields specific to trade items
-  final String? _gtin; // GTIN: Global Trade Item Number (barcodes)
+  final String? gtin; // GTIN: Global Trade Item Number (barcodes)
 
-  TradeItem(this._sku, this._label, this._unitPrice, this._gtin) : super();
+  TradeItem(this._sku, this._label, this._unitPrice, {this.gtin}) : super();
 
   @override
   String get sku => _sku;
@@ -22,9 +22,7 @@ class TradeItem implements Item {
   @override
   Price get unitPrice => _unitPrice;
 
-  String? get gtin => _gtin;
-
   bool validateGtin() {
-    return gtinTool.parseAndValidate(_gtin);
+    return gtinTool.parseAndValidate(gtin);
   }
 }

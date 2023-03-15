@@ -3,21 +3,21 @@ import 'package:test/test.dart';
 
 void main() {
   group('Price', () {
-    test('Negative prices should throw FormatException', () {
+    test('Should throw FormatException when price is negative', () {
       expect(() => Price.from(-10), throwsFormatException);
     });
 
-    test('Can create price from integer using named constructor Price.from', () {
+    test('Should create price from integer value using named constructor Price.from', () {
       var price = Price.from(10);
       expect(price.value, equals(BigInt.from(10)));
     });
 
-    test('Can create price from double using named constructor Price.from', () {
+    test('Should create price from double value using named constructor Price.from', () {
       var price = Price.from(10.00);
       expect(price.value, equals(BigInt.from(10.00)));
     });
 
-    test('Can create price with BigInt using default constructor', () {
+    test('Should create price with BigInt value using default constructor', () {
       var price = Price(BigInt.from(1000));
       expect(price.value, equals(BigInt.from(1000)));
     });
