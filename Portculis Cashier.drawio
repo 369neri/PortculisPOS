@@ -1,4 +1,4 @@
-<mxfile host="app.diagrams.net" modified="2023-03-13T09:07:00.463Z" agent="5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36" etag="WJ8ZTzDR24Ua8IsoJT0V" version="21.0.6" type="github">
+<mxfile host="app.diagrams.net" modified="2023-03-16T07:15:27.306Z" agent="5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36" etag="QJBnIKCFX2kmO-aaw_7J" version="21.0.6" type="github">
   <diagram id="3i0xiaOuH_V0iHMaKWK_" name="Business Objects">
     <mxGraphModel dx="1372" dy="840" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="850" background="#FFFFFF" math="0" shadow="0">
       <root>
@@ -137,10 +137,10 @@
         <mxCell id="_GLyHsmW3R6zjuWkOuWw-16" value="Price Calculator" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="865" y="365" width="120" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="_GLyHsmW3R6zjuWkOuWw-17" value="Calculate&lt;br&gt;price" style="endArrow=open;endSize=12;dashed=1;html=1;rounded=0;" parent="1" source="Vw36MPItWU9GpuWgDIEM-8" target="_GLyHsmW3R6zjuWkOuWw-16" edge="1">
+        <mxCell id="_GLyHsmW3R6zjuWkOuWw-17" value="Calculate total&lt;br&gt;price" style="endArrow=open;endSize=12;dashed=1;html=1;rounded=0;" parent="1" edge="1">
           <mxGeometry x="0.0047" width="160" relative="1" as="geometry">
-            <mxPoint x="692.5" y="375" as="sourcePoint" />
-            <mxPoint x="692.5" y="274" as="targetPoint" />
+            <mxPoint x="754" y="396.48275862068954" as="sourcePoint" />
+            <mxPoint x="866" y="395.51724137931024" as="targetPoint" />
             <mxPoint as="offset" />
           </mxGeometry>
         </mxCell>
@@ -161,19 +161,21 @@
         <mxCell id="M_Cg0aHmBz7Elar7-rgQ-1" value="Price" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
           <mxGeometry x="459" y="41" width="120" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="M_Cg0aHmBz7Elar7-rgQ-2" value="Use" style="endArrow=open;endSize=12;dashed=1;html=1;rounded=0;" parent="1" source="Vw36MPItWU9GpuWgDIEM-7" target="M_Cg0aHmBz7Elar7-rgQ-1" edge="1">
-          <mxGeometry width="160" relative="1" as="geometry">
-            <mxPoint x="356" y="181" as="sourcePoint" />
-            <mxPoint x="516" y="181" as="targetPoint" />
+        <mxCell id="M_Cg0aHmBz7Elar7-rgQ-2" value="unitPrice" style="endArrow=open;endSize=12;dashed=1;html=1;rounded=0;" parent="1" edge="1">
+          <mxGeometry x="0.1065" y="-2" width="160" relative="1" as="geometry">
+            <mxPoint x="360.06024096385545" y="206" as="sourcePoint" />
+            <mxPoint x="483.93975903614455" y="100" as="targetPoint" />
+            <mxPoint as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="6JNJRzapjXi7Hg5yzvpx-1" value="Global Trade Item Number" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+        <mxCell id="6JNJRzapjXi7Hg5yzvpx-1" value="Global Trade Item Number" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="69" y="531" width="120" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="6JNJRzapjXi7Hg5yzvpx-2" value="Use" style="endArrow=open;endSize=12;dashed=1;html=1;rounded=0;" edge="1" parent="1" source="Vw36MPItWU9GpuWgDIEM-29" target="6JNJRzapjXi7Hg5yzvpx-1">
-          <mxGeometry width="160" relative="1" as="geometry">
+        <mxCell id="6JNJRzapjXi7Hg5yzvpx-2" value="Validate GTIN" style="endArrow=open;endSize=12;dashed=1;html=1;rounded=0;" parent="1" source="Vw36MPItWU9GpuWgDIEM-29" target="6JNJRzapjXi7Hg5yzvpx-1" edge="1">
+          <mxGeometry x="-0.1569" width="160" relative="1" as="geometry">
             <mxPoint x="155" y="190" as="sourcePoint" />
             <mxPoint x="279" y="84" as="targetPoint" />
+            <mxPoint as="offset" />
           </mxGeometry>
         </mxCell>
       </root>
