@@ -1,19 +1,21 @@
 import 'package:cashier_app/features/items/domain/entities/price.dart';
 import 'package:cashier_app/features/items/domain/entities/item.dart';
+import 'package:equatable/equatable.dart';
 
-class ServiceItem implements Item {
-  final String _sku;
-  final String _label;
-  final Price _unitPrice;
+class ServiceItem extends Equatable implements Item {
+  @override
+  final String sku;
+  @override
+  final String label;
+  @override
+  final Price unitPrice;
 
-  ServiceItem(this._sku, this._label, this._unitPrice) : super();
+  ServiceItem({
+    required this.sku, 
+    required this.label, 
+    required this.unitPrice
+  }) : super();
 
   @override
-  String get sku => _sku;
-
-  @override
-  String get label => _label;
-  
-  @override
-  Price get unitPrice => _unitPrice;
+  List<Object?> get props => [sku, label, unitPrice];
 }
