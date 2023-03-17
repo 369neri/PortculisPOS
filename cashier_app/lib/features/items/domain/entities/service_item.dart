@@ -10,12 +10,12 @@ class ServiceItem extends Equatable implements Item {
   @override
   final Price unitPrice;
 
-  ServiceItem({
+  const ServiceItem({
     required this.sku, 
     required this.label, 
     required this.unitPrice
   }) : super();
 
-  @override
+  @override // equatable fields
   List<Object?> get props => [sku, label, unitPrice];
 }

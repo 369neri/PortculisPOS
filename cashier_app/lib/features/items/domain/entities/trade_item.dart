@@ -15,14 +15,14 @@ class TradeItem extends Equatable implements Item {
   // Fields specific to trade items
   final String? gtin; // GTIN: Global Trade Item Number (barcodes)
 
-  TradeItem({
+  const TradeItem({
     required this.sku, 
     required this.label,
     required this.unitPrice, 
     this.gtin
   }) : super();
 
-  @override
+  @override // equatable fields
   List<Object?> get props => [sku, label, unitPrice, gtin];
 
   bool validateGtin() {
