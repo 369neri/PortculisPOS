@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:gtin_toolkit/gtin_toolkit.dart' as gtinTool;
+import 'package:gtin_toolkit/gtin_toolkit.dart' as gtin_tool;
 import 'package:cashier_app/features/items/domain/entities/price.dart';
 import 'package:cashier_app/features/items/domain/entities/item.dart';
 
@@ -26,6 +26,6 @@ class TradeItem extends Equatable implements Item {
   List<Object?> get props => [sku, label, unitPrice, gtin];
 
   bool validateGtin() {
-    return gtinTool.parseAndValidate(gtin);
+    return gtin_tool.parseAndValidate(gtin);
   }
 }
