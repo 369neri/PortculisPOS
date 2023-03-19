@@ -1,6 +1,7 @@
+
 // ignore_for_file: unused_field
 
-import 'package:cashier_app/features/items/domain/entities/item.dart';
+import '../../../items/domain/entities/item.dart';
 
 class InvoiceItem {
   final Item _item;

@@ -1,5 +1,5 @@
-import 'package:cashier_app/features/items/domain/entities/price.dart';
-import 'package:cashier_app/features/items/domain/entities/item.dart';
+import 'price.dart';
+import 'item.dart';
 import 'package:equatable/equatable.dart';
 
 import '../../../../core/validation_result.dart';

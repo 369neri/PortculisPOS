@@ -1,4 +1,4 @@
-import 'package:cashier_app/features/items/domain/entities/price.dart';
+import 'price.dart';
 
 import '../../../../core/validation_result.dart';
 

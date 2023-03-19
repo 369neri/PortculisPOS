@@ -1,4 +1,4 @@
-import 'package:cashier_app/core/validation_result.dart';
+import '../../../../core/validation_result.dart';
 
 class Price {
   final BigInt _value;

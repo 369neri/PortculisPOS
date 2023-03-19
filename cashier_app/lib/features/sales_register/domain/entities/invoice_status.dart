@@ -1,4 +1,4 @@
-enum Status {
+enum InvoiceStatus {
     active,
     pending,
     processed,

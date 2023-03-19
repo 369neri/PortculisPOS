@@ -1,12 +1,12 @@
-import 'package:cashier_app/features/sales_register/domain/entities/status.dart';
-import 'package:cashier_app/features/sales_register/domain/entities/invoice_item.dart';
+import 'invoice_item.dart';
+import 'invoice_status.dart';
 
 class Invoice {
   final List<InvoiceItem> _items = [];
 
   // ignore: unused_field
-  Status _status = Status.active;
-  Status get status => _status;
+  InvoiceStatus _status = InvoiceStatus.active;
+  InvoiceStatus get status => _status;
 
   Invoice() : super();
 
@@ -15,10 +15,10 @@ class Invoice {
   }
 
   void suspend() {
-    _status = Status.pending;
+    _status = InvoiceStatus.pending;
   }
 
   void activate() {
-    _status = Status.active;
+    _status = InvoiceStatus.active;
   }
 }

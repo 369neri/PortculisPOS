@@ -1,8 +1,9 @@
-import 'package:cashier_app/core/validation_result.dart';
 import 'package:equatable/equatable.dart';
 import 'package:gtin_toolkit/gtin_toolkit.dart' as gtin_tool;
-import 'package:cashier_app/features/items/domain/entities/price.dart';
-import 'package:cashier_app/features/items/domain/entities/item.dart';
+
+import '../../../../core/validation_result.dart';
+import 'item.dart';
+import 'price.dart';
 
 class TradeItem extends Equatable implements Item {
   // Item fields overrides

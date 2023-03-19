@@ -1,7 +1,8 @@
-import 'package:cashier_app/core/validation_result.dart';
-import 'package:cashier_app/features/items/domain/entities/item.dart';
-import 'package:cashier_app/features/items/domain/entities/price.dart';
 import 'package:equatable/equatable.dart';
+
+import '../../../../core/validation_result.dart';
+import 'item.dart';
+import 'price.dart';
 
 // A keyed-price item is manually keyed into the transaction on the keypad
 // There is no sku code or label.
