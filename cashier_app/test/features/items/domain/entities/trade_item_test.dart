@@ -1,4 +1,3 @@
-import 'package:cashier_app/core/validation_result.dart';
 import 'package:cashier_app/features/items/domain/entities/price.dart';
 import 'package:gtin_toolkit/generator.dart';
 import 'package:test/test.dart';

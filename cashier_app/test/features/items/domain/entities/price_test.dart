@@ -3,8 +3,9 @@ import 'package:test/test.dart';
 
 void main() {
   group('Price', () {
-    test('Should throw FormatException when price is negative', () {
-      expect(() => Price.from(-10), throwsFormatException);
+    test('Should validate as false when price is negative', () {
+      var price = Price.from(-10).validate();
+      expect(price.isValid, equals(false));
     });
 
     test('Should create price from integer value using named constructor Price.from', () {
