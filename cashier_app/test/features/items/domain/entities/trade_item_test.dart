@@ -52,6 +52,11 @@ main() {
       expect(item.validate().isValid, equals(false));
     });
 
+    test('Should create same hashcode for two equatable items', () {
+      var item1 = TradeItem(sku: 'sku', label: 'My item', unitPrice: Price.from(10));
+      var item2 = TradeItem(sku: 'sku', label: 'My item', unitPrice: Price.from(10));
 
+      expect(item1.hashCode, equals(item2.hashCode));
+    });
   });
 }

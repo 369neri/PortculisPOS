@@ -22,5 +22,12 @@ void main() {
       var price = Price(BigInt.from(1000));
       expect(price.value, equals(BigInt.from(1000)));
     });
+
+    test('Should create same hashcode for two equatable prices', () {
+      var price1 = Price.from(210);
+      var price2 = Price.from(210);
+
+      expect(price1.hashCode, equals(price2.hashCode));
+    });
   });
 }
