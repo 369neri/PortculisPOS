@@ -1,3 +1,4 @@
+import 'package:cashier_app/core/validation_result.dart';
 import 'package:equatable/equatable.dart';
 import 'package:gtin_toolkit/gtin_toolkit.dart' as gtin_tool;
 import 'package:cashier_app/features/items/domain/entities/price.dart';
@@ -25,7 +26,22 @@ class TradeItem extends Equatable implements Item {
   @override // equatable fields
   List<Object?> get props => [sku, label, unitPrice, gtin];
 
-  bool validateGtin() {
-    return gtin_tool.parseAndValidate(gtin);
+  @override
+  ValidationResult validate() {
+    // Validate the price field
+    var price = unitPrice.validate();
+    if (!price.isValid) return price;
+    
+
+    // Validate the GTIN field if present
+    if (gtin != null) {
+      var isValid = gtin_tool.parseAndValidate(gtin);
+      if (isValid) return ValidationResult(true);
+      return ValidationResult(
+        false, 
+        field: Field.gtin, 
+        message: 'the GTIN is invalid');
+    }
+    return ValidationResult(true);
   }
 }

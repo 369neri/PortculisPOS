@@ -1,3 +1,4 @@
+import 'package:cashier_app/core/validation_result.dart';
 import 'package:cashier_app/features/items/domain/entities/price.dart';
 import 'package:gtin_toolkit/generator.dart';
 import 'package:test/test.dart';
@@ -5,14 +6,24 @@ import 'package:cashier_app/features/items/domain/entities/trade_item.dart';
 
 main() {
   group('TradeItem', () {
-    test('should throw FormatException on invalid price', () {
-      expect(() => TradeItem(
+    test('should validate valid price as true', () {
+      var item = TradeItem(
+        sku: '', 
+        label: '', 
+        unitPrice: Price.from(20)
+      );
+      
+      expect(item.validate().isValid, equals(true));
+    });
+    
+    test('should validate invalid price as false', () {
+      var item = TradeItem(
         sku: '', 
         label: '', 
         unitPrice: Price.from(-20)
-        ),
-        throwsFormatException
-      ); 
+      );
+      
+      expect(item.validate().isValid, equals(false));
     });
 
     test('should validate valid GTIN as true', () {
@@ -25,7 +36,7 @@ main() {
         gtin: validGtin
       );
 
-      expect(item.validateGtin(), equals(true));
+      expect(item.validate().isValid, equals(true));
     });
 
     test('should validate invalid GTIN as false', () {
@@ -39,7 +50,9 @@ main() {
         gtin: invalidGtin
       );
 
-      expect(item.validateGtin(), equals(false));
+      expect(item.validate().isValid, equals(false));
     });
+
+
   });
 }

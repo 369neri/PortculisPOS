@@ -2,6 +2,8 @@ import 'package:cashier_app/features/items/domain/entities/price.dart';
 import 'package:cashier_app/features/items/domain/entities/item.dart';
 import 'package:equatable/equatable.dart';
 
+import '../../../../core/validation_result.dart';
+
 class ServiceItem extends Equatable implements Item {
   @override
   final String sku;
@@ -18,4 +20,13 @@ class ServiceItem extends Equatable implements Item {
 
   @override // equatable fields
   List<Object?> get props => [sku, label, unitPrice];
+
+  @override
+  ValidationResult validate() {
+    if (unitPrice.validate().isValid) return ValidationResult(true);
+    return ValidationResult(
+      false, 
+      field: Field.price, 
+      message: 'price cannot be negative');
+  }
 }

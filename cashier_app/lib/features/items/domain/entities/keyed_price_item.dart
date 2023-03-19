@@ -1,3 +1,4 @@
+import 'package:cashier_app/core/validation_result.dart';
 import 'package:cashier_app/features/items/domain/entities/item.dart';
 import 'package:cashier_app/features/items/domain/entities/price.dart';
 import 'package:equatable/equatable.dart';
@@ -20,5 +21,10 @@ class KeyedPriceItem extends Equatable implements Item {
   
   @override // equatable fields
   List<Object?> get props => [unitPrice];
+
+  @override
+  ValidationResult validate() {
+    return unitPrice.validate();
+  }
 
 }
