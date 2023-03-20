@@ -8,15 +8,15 @@ class Price extends Equatable {
   final BigInt _value;
   BigInt get value => _value;
 
+  @override // equatable
+  List<Object> get props => [value];
+
   // fractional unit - to support cryptocurrency with larger fractional units (1M)
   // e.g. there are 100 cents to the USD Log(num of cents) = 2
   // e.g. there are 1M Sats to the Bitcoin Log(num of sats) = 6
   // the default value for the fractional is 2 (two decimal places) 
   final int fractional;
   static const int defaultFractional = 2;
-
-  @override
-  List<Object> get props => [value];
 
   const Price(this._value, {this.fractional = defaultFractional}) : super();
 

@@ -1,11 +1,14 @@
+import 'currency.dart';
 import 'item.dart';
 
-class Items {
+class PriceList {
   final List<Item> _items = [];
+  final Currency _currency;
+  Currency get currency => _currency;
 
-  Items() : super();
+  PriceList(this._currency) : super();
 
-  int count() {
+  int countItems() {
     return _items.length;
   }
 

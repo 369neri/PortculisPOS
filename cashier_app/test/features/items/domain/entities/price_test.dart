@@ -45,5 +45,11 @@ void main() {
 
       expect(price.toString(), equals('32.000000'));
     });
+
+    test('Should support zero fractional prices', () {
+      var price = Price.from(20488596, fractional: 0);
+
+      expect(price.toString(), equals('20488596')); 
+    });
   });
 }
