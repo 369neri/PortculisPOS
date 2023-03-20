@@ -29,5 +29,21 @@ void main() {
 
       expect(price1.hashCode, equals(price2.hashCode));
     });
+
+    test('Should accept zero as a valid price', () {
+      expect(Price.from(0).validate().isValid, equals(true));
+    });
+
+    test('Should print string representation as currency', () {
+      var price = Price.from(12023);
+
+      expect(price.toString(), equals('120.23'));
+    });
+
+    test('Should print crypto fractional prices', () {
+      var price = Price.from(32000000, fractional: 6); // Bitcoin satoshis or Cardano lovelaces, etc.
+
+      expect(price.toString(), equals('32.000000'));
+    });
   });
 }
