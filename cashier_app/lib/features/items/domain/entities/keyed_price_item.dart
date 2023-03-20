@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-import '../../../../core/validation_result.dart';
+import 'validation_result.dart';
 import 'item.dart';
 import 'price.dart';
 

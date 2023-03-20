@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:gtin_toolkit/gtin_toolkit.dart' as gtin_tool;
 
-import '../../../../core/validation_result.dart';
+import 'validation_result.dart';
 import 'item.dart';
 import 'price.dart';
 

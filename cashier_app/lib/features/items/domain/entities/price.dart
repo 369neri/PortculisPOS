@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-import '../../../../core/validation_result.dart';
+import 'validation_result.dart';
 
 class Price extends Equatable {
   final BigInt _value;

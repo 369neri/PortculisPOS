@@ -2,7 +2,7 @@ import 'price.dart';
 import 'item.dart';
 import 'package:equatable/equatable.dart';
 
-import '../../../../core/validation_result.dart';
+import 'validation_result.dart';
 
 class ServiceItem extends Equatable implements Item {
   @override
