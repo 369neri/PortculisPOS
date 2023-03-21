@@ -1,4 +1,4 @@
-<mxfile host="app.diagrams.net" modified="2023-03-16T07:15:27.306Z" agent="5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36" etag="QJBnIKCFX2kmO-aaw_7J" version="21.0.6" type="github">
+<mxfile host="app.diagrams.net" modified="2023-03-21T08:04:52.922Z" agent="5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36" etag="iJSYEDIm_iaWc23jK794" version="21.0.6" type="github">
   <diagram id="3i0xiaOuH_V0iHMaKWK_" name="Business Objects">
     <mxGraphModel dx="1372" dy="840" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="850" background="#FFFFFF" math="0" shadow="0">
       <root>
@@ -103,7 +103,7 @@
             <mxPoint x="712" y="553" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="_GLyHsmW3R6zjuWkOuWw-7" value="Receipt" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=0;fillColor=#e1d5e7;strokeColor=#9673a6;" parent="1" vertex="1">
+        <mxCell id="_GLyHsmW3R6zjuWkOuWw-7" value="Proof of Purchase" style="rounded=1;whiteSpace=wrap;html=1;strokeWidth=0;fillColor=#e1d5e7;strokeColor=#9673a6;" parent="1" vertex="1">
           <mxGeometry x="544" y="207" width="120" height="60" as="geometry" />
         </mxCell>
         <mxCell id="_GLyHsmW3R6zjuWkOuWw-8" value="Use" style="endArrow=open;endSize=12;dashed=1;html=1;rounded=0;" parent="1" source="Vw36MPItWU9GpuWgDIEM-8" target="Vw36MPItWU9GpuWgDIEM-5" edge="1">
@@ -175,6 +175,16 @@
           <mxGeometry x="-0.1569" width="160" relative="1" as="geometry">
             <mxPoint x="155" y="190" as="sourcePoint" />
             <mxPoint x="279" y="84" as="targetPoint" />
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PCb0baqORwpSU17qWP2p-1" value="Ciurrency" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="633" y="41" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="PCb0baqORwpSU17qWP2p-2" value="" style="endArrow=open;endSize=12;dashed=1;html=1;rounded=0;" edge="1" parent="1" source="M_Cg0aHmBz7Elar7-rgQ-1" target="PCb0baqORwpSU17qWP2p-1">
+          <mxGeometry x="-0.037" y="-62" width="160" relative="1" as="geometry">
+            <mxPoint x="563.0002409638555" y="218" as="sourcePoint" />
+            <mxPoint x="686.8797590361446" y="112" as="targetPoint" />
             <mxPoint as="offset" />
           </mxGeometry>
         </mxCell>
