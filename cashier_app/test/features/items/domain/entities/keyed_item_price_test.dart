@@ -1,6 +1,6 @@
 
 import 'package:cashier_app/features/items/domain/entities/keyed_price_item.dart';
-import 'package:cashier_app/features/items/domain/entities/price.dart';
+import 'package:cashier_app/features/pricing/domain/entities/price.dart';
 import 'package:test/test.dart';
 
 main() {

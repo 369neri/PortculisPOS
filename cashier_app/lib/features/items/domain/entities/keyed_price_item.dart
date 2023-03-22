@@ -2,7 +2,7 @@ import 'package:equatable/equatable.dart';
 
 import 'validation_result.dart';
 import 'item.dart';
-import 'price.dart';
+import '../../../pricing/domain/entities/price.dart';
 
 // A keyed-price item is manually keyed into the transaction on the keypad
 // There is no sku code or label.

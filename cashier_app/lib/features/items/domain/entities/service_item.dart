@@ -1,4 +1,4 @@
-import 'price.dart';
+import '../../../pricing/domain/entities/price.dart';
 import 'item.dart';
 import 'package:equatable/equatable.dart';
 

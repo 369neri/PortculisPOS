@@ -1,5 +1,5 @@
 
-import 'package:cashier_app/features/items/domain/entities/price.dart';
+import 'package:cashier_app/features/pricing/domain/entities/price.dart';
 import 'package:cashier_app/features/items/domain/entities/service_item.dart';
 import 'package:test/test.dart';
 

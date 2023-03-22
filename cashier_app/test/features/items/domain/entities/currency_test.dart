@@ -1,5 +1,5 @@
 
-import 'package:cashier_app/features/items/domain/entities/currency.dart';
+import 'package:cashier_app/features/pricing/domain/entities/currency.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 main() {

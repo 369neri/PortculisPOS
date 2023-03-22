@@ -1,4 +1,4 @@
-import 'price.dart';
+import '../../../pricing/domain/entities/price.dart';
 import 'validation_result.dart';
 
 abstract class Item {

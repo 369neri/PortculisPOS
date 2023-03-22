@@ -3,7 +3,7 @@ import 'package:gtin_toolkit/gtin_toolkit.dart' as gtin_tool;
 
 import 'validation_result.dart';
 import 'item.dart';
-import 'price.dart';
+import '../../../pricing/domain/entities/price.dart';
 
 class TradeItem extends Equatable implements Item {
   // Item fields overrides
