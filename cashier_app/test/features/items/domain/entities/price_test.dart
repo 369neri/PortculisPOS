@@ -41,13 +41,13 @@ void main() {
     });
 
     test('Should print crypto fractional prices', () {
-      var price = Price.from(32000000, fractional: 6); // Bitcoin satoshis or Cardano lovelaces, etc.
+      var price = Price.from(32000000, digits: 6); // Sats (Bitcoin), Lovelace (Cardano), etc.
 
       expect(price.toString(), equals('32.000000'));
     });
 
     test('Should support zero fractional prices', () {
-      var price = Price.from(20488596, fractional: 0);
+      var price = Price.from(20488596, digits: 0);
 
       expect(price.toString(), equals('20488596')); 
     });

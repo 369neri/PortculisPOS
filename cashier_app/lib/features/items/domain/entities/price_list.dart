@@ -1,4 +1,4 @@
-import 'currency.dart';
+import '../../../pricing/domain/entities/currency.dart';
 import 'item.dart';
 
 class PriceList {
@@ -19,5 +19,5 @@ class PriceList {
   void removeItem(Item item) => _items.remove(item);
   void removeItemAt(int index) => _items.removeAt(index);
 
-  void clearAllItems() => _items.clear();
+  void clearItems() => _items.clear();
 }
