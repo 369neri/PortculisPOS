@@ -6,11 +6,17 @@ class NumKey extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ElevatedButton(
-      autofocus: false,
-      clipBehavior: Clip.hardEdge,   
-      onPressed: () {}, 
-      child: Text(_numberString),
+    return Padding(
+      padding: const EdgeInsets.all(2.0),
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          minimumSize: const Size(80.0, 80.0)
+        ),
+        autofocus: false,
+        clipBehavior: Clip.hardEdge,   
+        onPressed: () {}, 
+        child: Text(_numberString, style: const TextStyle(fontSize: 20.0)),
+      ),
     );
   }
 }

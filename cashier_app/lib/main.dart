@@ -1,5 +1,5 @@
+import 'package:cashier_app/core/keypad/presentation/widgets/num_keypad.dart';
 import 'package:flutter/material.dart';
-import 'features/get_started/presentation/widgets/select_workplace.dart';
 
 void main() {
   runApp(const CashierApp());
@@ -30,28 +30,13 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
-  bool _workplaceSet = false;
-
-  void _setWorkplace() {
-    setState(() {
-      _workplaceSet = true;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
-    const Widget getStartedWidget = SelectWorkplace();
-
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
       ),
-      body: const Padding(
-        padding: EdgeInsets.all(8.0), 
-        child: Center(
-            child: getStartedWidget
-          ),
-        )
-    );
+      body: const NumKeypad());
   }
 }

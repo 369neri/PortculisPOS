@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'fun_key.dart';
 import 'num_key.dart';
 
 class NumKeypad extends StatelessWidget {
@@ -8,34 +9,54 @@ class NumKeypad extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return
-      Row(
+      Column(
+        mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          Column(
+          Row(
             children: const [
               NumKey('1'),
               NumKey('2'),
               NumKey('3'),
+              FunKey(
+                label: 'times',
+                icon: Icons.numbers,
+              ),
             ],
           ),
-          Column(
+          Row(
             children: const [
               NumKey('4'),
               NumKey('5'),
               NumKey('6'),
+              FunKey(
+                label: 'cancel',
+                icon: Icons.cancel_outlined,
+                backgroundColor: Colors.red,
+              ),
             ],
           ),
-          Column(
+          Row(
             children: const [
               NumKey('7'),
               NumKey('8'),
               NumKey('9'),
+              FunKey(
+                label: 'back',
+                icon: Icons.arrow_back,
+                backgroundColor: Colors.amber,
+              ),
             ],
           ),
-          Column(
+          Row(
             children: const [
               NumKey('0'),
               NumKey('00'),
               NumKey('000'),
+              FunKey(
+                label: 'enter',
+                icon: Icons.keyboard_return,
+                backgroundColor: Colors.green,
+              ),
             ],
           ),
         ],
