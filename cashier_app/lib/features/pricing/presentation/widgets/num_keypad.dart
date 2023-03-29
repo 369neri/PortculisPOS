@@ -6,9 +6,7 @@ import 'command_key.dart';
 import 'num_key.dart';
 
 class NumKeypad extends StatelessWidget {
-  NumKeypad({super.key});
-
-  final streamController = StreamController<String>();
+  const NumKeypad({super.key});
 
   @override
   Widget build(BuildContext context) {
