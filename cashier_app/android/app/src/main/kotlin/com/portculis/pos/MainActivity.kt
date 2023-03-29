@@ -1,4 +1,4 @@
-package com.example.cashier_app
+package com.portculis.pos
 
 import io.flutter.embedding.android.FlutterActivity
 

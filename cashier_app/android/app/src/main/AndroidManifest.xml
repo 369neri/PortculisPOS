@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.cashier_app">
+    package="com.portculis.pos">
    <application
         android:label="cashier_app"
         android:name="${applicationName}"
