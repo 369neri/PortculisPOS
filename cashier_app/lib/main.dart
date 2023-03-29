@@ -1,5 +1,6 @@
-import 'package:cashier_app/core/keypad/presentation/widgets/num_keypad.dart';
 import 'package:flutter/material.dart';
+
+import 'core/keypad/presentation/widgets/num_keypad.dart';
 
 void main() {
   runApp(const CashierApp());
@@ -37,6 +38,6 @@ class _MainPageState extends State<MainPage> {
       appBar: AppBar(
         title: Text(widget.title),
       ),
-      body: const NumKeypad());
+      body: NumKeypad());
   }
 }

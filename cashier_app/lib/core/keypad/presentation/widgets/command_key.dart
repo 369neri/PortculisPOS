@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
-class FunKey extends StatelessWidget {
+class CommandKey extends StatelessWidget {
   final String label;
   final IconData icon;
   final Color backgroundColor;
   final Color? textColor;
   
-  const FunKey({ 
+  const CommandKey({ 
     required this.label,
     required this.icon,
     this.backgroundColor = Colors.white,

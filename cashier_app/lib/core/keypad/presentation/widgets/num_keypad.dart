@@ -1,10 +1,14 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
-import 'fun_key.dart';
+import 'command_key.dart';
 import 'num_key.dart';
 
 class NumKeypad extends StatelessWidget {
-  const NumKeypad({super.key});
+  NumKeypad({super.key});
+
+  final streamController = StreamController<String>();
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +21,7 @@ class NumKeypad extends StatelessWidget {
               NumKey('1'),
               NumKey('2'),
               NumKey('3'),
-              FunKey(
+              CommandKey(
                 label: 'times',
                 icon: Icons.numbers,
               ),
@@ -28,7 +32,7 @@ class NumKeypad extends StatelessWidget {
               NumKey('4'),
               NumKey('5'),
               NumKey('6'),
-              FunKey(
+              CommandKey(
                 label: 'cancel',
                 icon: Icons.cancel_outlined,
                 backgroundColor: Colors.red,
@@ -40,7 +44,7 @@ class NumKeypad extends StatelessWidget {
               NumKey('7'),
               NumKey('8'),
               NumKey('9'),
-              FunKey(
+              CommandKey(
                 label: 'back',
                 icon: Icons.arrow_back,
                 backgroundColor: Colors.amber,
@@ -52,7 +56,7 @@ class NumKeypad extends StatelessWidget {
               NumKey('0'),
               NumKey('00'),
               NumKey('000'),
-              FunKey(
+              CommandKey(
                 label: 'enter',
                 icon: Icons.keyboard_return,
                 backgroundColor: Colors.green,
