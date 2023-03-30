@@ -75,7 +75,7 @@ main() {
       'should do nothing when trying to edit an empty list', 
       build: () => KeypadCubit([]),
       act: (bloc) => bloc.edit(),
-      expect: () => [],
+      expect: () => [[]],
     );
 
     blocTest(

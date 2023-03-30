@@ -4,34 +4,30 @@ class KeypadCubit extends Cubit<List<int>> {
   KeypadCubit(List<int> initState) : super(initState);
 
   void add(String number) {
-    if (number == '00') {
-      state.add(0);
-      state.add(0);
+  
+    // Handle zero keys "00" and "000".
+    if (number.startsWith('0')) {
+      for (var i = 1; i <= number.length; i++) {
+        state.add(0);
+      }
       emit(state);
       return;
     }
 
-    if (number == '000') {
-      state.add(0);
-      state.add(0);
-      state.add(0);
-      emit(state);
-      return;
-    }
-
+    // Handle regular number keys.
     var val = int.tryParse(number);
-
     if (val != null) {
       state.add(val);
-      emit(state);
     }
+
+    emit(state);
   }
 
   void edit() {
     if (state.isNotEmpty) {
       state.removeLast();
-      emit(state);
     }
+    emit(state);
   }
 
   void clear() => emit(<int>[]);
