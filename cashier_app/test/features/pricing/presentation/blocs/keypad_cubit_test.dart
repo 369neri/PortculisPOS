@@ -68,5 +68,15 @@ main() {
       act: (bloc) => bloc.clear(),
       expect: () => [KeypadState([])],
     );
+
+    blocTest('should store value and clear buffer when {times} command is entered', 
+      build: () => KeypadCubit(KeypadState([1,2,3])),
+      act: (bloc) => bloc.add('{times}'),
+      expect: () => [KeypadState([])],
+      verify: (bloc) {
+        expect(bloc.state.stored, BigInt.from(123));
+        expect(bloc.state.command, '{times}');
+      }
+    );
   });
 }
