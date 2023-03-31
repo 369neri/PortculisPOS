@@ -1,15 +1,16 @@
+import 'package:cashier_app/features/pricing/presentation/blocs/keypad_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-class KeypadCubit extends Cubit<List<int>> {
-  KeypadCubit(List<int> initState) : super(initState);
+class KeypadCubit extends Cubit<KeypadState> {
+  KeypadCubit(KeypadState initState) : super(initState);
 
   void add(String number) {
   
     // Handle zero keys: "0", "00" and "000".
     if (number.startsWith('0')) {
-      if (state.isNotEmpty) {
+      if (state.buffer.isNotEmpty) {
         for (var i = 1; i <= number.length; i++) {
-          state.add(0);
+          state.buffer.add(0);
         }
       }
       emit(state);
@@ -19,19 +20,19 @@ class KeypadCubit extends Cubit<List<int>> {
     // Handle regular number keys.
     var val = int.tryParse(number);
     if (val != null) {
-      state.add(val);
+      state.buffer.add(val);
     }
 
     emit(state);
   }
 
   void edit() {
-    if (state.isNotEmpty) {
-      state.removeLast();
+    if (state.buffer.isNotEmpty) {
+      state.buffer.removeLast();
     }
     emit(state);
   }
 
-  void clear() => emit(<int>[]);
+  void clear() => emit(KeypadState([]));
 
 }
