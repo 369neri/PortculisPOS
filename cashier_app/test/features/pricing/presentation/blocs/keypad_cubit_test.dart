@@ -1,5 +1,4 @@
 import 'package:cashier_app/features/pricing/presentation/blocs/keypad_cubit.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -37,28 +36,21 @@ main() {
     );
 
     blocTest(
-      'should emit [0,0] on "00" key input', 
+      'should not allow a state leading with zero',
       build: () => KeypadCubit([]),
-      act: (bloc) => bloc.add('00'),
-      expect: () => [[0,0]],
+      act: (bloc) => bloc.add('0'),
+      expect: () => [[]],
     );
 
     blocTest(
-      'should emit [0,0,0] on "000" key input', 
-      build: () => KeypadCubit([]),
-      act: (bloc) => bloc.add('000'),
-      expect: () => [[0,0,0]],
-    );
-
-    blocTest(
-      'should emit [1,0,0] on "1" + "00" key sequence',
+      'should emit [1,0,0] on "1" + "00" key code sequence',
       build: () => KeypadCubit([1]),
       act: (bloc) => bloc.add('00'),
       expect: () => [[1,0,0]],
     );
 
     blocTest(
-      'should emit [1,0,0,0] on "1" + "000" key sequence',
+      'should emit [1,0,0,0] on "1" + "000" key code sequence',
       build: () => KeypadCubit([1]),
       act: (bloc) => bloc.add('000'),
       expect: () => [[1,0,0,0]],

@@ -5,10 +5,12 @@ class KeypadCubit extends Cubit<List<int>> {
 
   void add(String number) {
   
-    // Handle zero keys "00" and "000".
+    // Handle zero keys: "0", "00" and "000".
     if (number.startsWith('0')) {
-      for (var i = 1; i <= number.length; i++) {
-        state.add(0);
+      if (state.isNotEmpty) {
+        for (var i = 1; i <= number.length; i++) {
+          state.add(0);
+        }
       }
       emit(state);
       return;
