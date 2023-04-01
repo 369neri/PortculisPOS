@@ -1,28 +1,13 @@
-import 'package:cashier_app/features/pricing/presentation/state/keypad_state.dart';
+import 'keypad_state.dart';
+import '../../../../core/extensions/bigint_extension.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class KeypadCubit extends Cubit<KeypadState> {
   KeypadCubit(KeypadState initState) : super(initState);
 
-  // Converts the buffer from list of ints to a BigInt. 
-  BigInt _convertToBigInt(List<int> buffer) {
-    String s = '';
-    for (var n in buffer) {
-      s += n.toString();
-    }
-
-    int? price = int.tryParse(s);
-
-    if (price != null) {
-      return BigInt.from(price);
-    } else {
-      throw Exception('cannot convert buffer to BigInt');
-    }
-  }
-
   // Handler for commands starting with "{".
   void _addCommand(String data) {
-    var priceNum = _convertToBigInt(state.buffer);
+    var priceNum = state.buffer.toBigInt(); // extension method
     emit(KeypadState(const [], stored: priceNum, command: data));
   }
 

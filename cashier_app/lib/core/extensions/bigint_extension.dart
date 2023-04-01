@@ -1,8 +1,8 @@
 
-extension PosBigInt on BigInt {
-  static BigInt fromList<T>(List<T> list) {
+extension PosBigInt on List<int> {
+  BigInt toBigInt() {
     String s = '';
-    for (var n in list) {
+    for (var n in this) {
       s += n.toString();
     }
 
