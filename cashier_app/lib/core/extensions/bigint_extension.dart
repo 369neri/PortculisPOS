@@ -1,17 +1,12 @@
 
-extension PosBigInt on List<num> {
+extension PosBigInt on String {
   BigInt toBigInt() {
-    String s = '';
-    for (var n in this) {
-      s += n.toString();
-    }
-
-    num? price = int.tryParse(s);
+    num? price = int.tryParse(this);
 
     if (price != null) {
       return BigInt.from(price);
     } else {
-      throw Exception('cannot convert list to BigInt');
+      throw Exception('cannot convert buffer string to BigInt');
     }
   }
 }
