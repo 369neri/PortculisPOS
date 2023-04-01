@@ -1,5 +1,5 @@
 import 'package:cashier_app/features/pricing/presentation/blocs/keypad_state.dart';
-import 'package:flutter/material.dart';
+import 'package:cashier_app/features/pricing/presentation/widgets/command_key.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class KeypadCubit extends Cubit<KeypadState> {
@@ -24,10 +24,8 @@ class KeypadCubit extends Cubit<KeypadState> {
   // Handler for commands starting with "{".
   void _addCommand(String data) {
     var priceNum = _convertToBigInt(state.buffer);
-    state.stored = priceNum;
-    state.buffer.clear();
-    state.command = data;
-    emit(state);
+    var cmdState = KeypadState(const [], stored: priceNum, command: data);
+    emit(cmdState);
   }
 
   // Handler for processing attempts to enter leading zeros.

@@ -69,7 +69,7 @@ main() {
       expect: () => [KeypadState([])],
     );
 
-    blocTest('should store value and clear buffer when {times} command is entered', 
+    blocTest('should store value and command when {times} command is entered', 
       build: () => KeypadCubit(KeypadState([1,2,3])),
       act: (bloc) => bloc.add('{times}'),
       expect: () => [KeypadState([])],

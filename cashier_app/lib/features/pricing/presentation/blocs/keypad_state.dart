@@ -6,10 +6,10 @@ class KeypadState extends Equatable {
   set buffer (val) => _buffer;
 
   /// Store for previously entered price
-  late BigInt? stored;
-  late String? command;
+  final BigInt? stored;
+  final String? command;
 
-  KeypadState(this._buffer);
+  const KeypadState(this._buffer, {this.stored, this.command});
   
   @override
   List<Object?> get props => [buffer];
