@@ -1,5 +1,4 @@
-import 'package:cashier_app/features/pricing/presentation/blocs/keypad_state.dart';
-import 'package:cashier_app/features/pricing/presentation/widgets/command_key.dart';
+import 'package:cashier_app/features/pricing/presentation/state/keypad_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class KeypadCubit extends Cubit<KeypadState> {
@@ -24,15 +23,16 @@ class KeypadCubit extends Cubit<KeypadState> {
   // Handler for commands starting with "{".
   void _addCommand(String data) {
     var priceNum = _convertToBigInt(state.buffer);
-    var cmdState = KeypadState(const [], stored: priceNum, command: data);
-    emit(cmdState);
+    emit(KeypadState(const [], stored: priceNum, command: data));
   }
 
-  // Handler for processing attempts to enter leading zeros.
-  void _addLeadingZero(String data) {
+  // Handler for adding multiple zeros.
+  void _addZeros(String data) {
     if (state.buffer.isNotEmpty) {
+      var newState = List<int>.from(state.buffer);
       for (var i = 1; i <= data.length; i++) {
-        state.buffer.add(0);
+        newState.add(0);
+        emit(KeypadState(newState));
       }
     }
     emit(state);
@@ -41,10 +41,16 @@ class KeypadCubit extends Cubit<KeypadState> {
   // Handler for number entries.
   void _addNumber(String data) {
     var val = int.tryParse(data);
+    List<int> newState;
     if (val != null) {
-      state.buffer.add(val);
+      if (state.buffer.isEmpty) {
+        newState = [];
+      } else {
+        newState = state.buffer;
+      }
+      newState.add(val);
+      emit(KeypadState(newState));
     }
-    emit(state);
   }
 
   /// Add and handle entered key codes.
@@ -54,7 +60,7 @@ class KeypadCubit extends Cubit<KeypadState> {
         _addCommand(data);
         break;
       case '0':
-        _addLeadingZero(data);
+        _addZeros(data);
         break;
       default:
         _addNumber(data);
@@ -65,12 +71,14 @@ class KeypadCubit extends Cubit<KeypadState> {
   /// Remove the last number entered in the number buffer.
   void edit() {
     if (state.buffer.isNotEmpty) {
-      state.buffer.removeLast();
+      var newState = List<int>.from(state.buffer);
+      newState.removeLast();
+      emit(KeypadState(newState));
     }
     emit(state);
   }
 
   /// Clear/empty the number buffer.
-  void clear() => emit(KeypadState([]));
+  void clear() => emit(const KeypadState([]));
 
 }
