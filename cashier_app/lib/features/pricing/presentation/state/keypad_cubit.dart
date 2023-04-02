@@ -1,5 +1,7 @@
-import 'keypad_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../../../../core/extensions/bigint_extension.dart';
+import 'keypad_state.dart';
 
 class KeypadCubit extends Cubit<KeypadState> {
   KeypadCubit(KeypadState initState) : super(initState);
@@ -59,8 +61,29 @@ class KeypadCubit extends Cubit<KeypadState> {
     emit(state);
   }
 
+  BigInt _times() {
+    var multiplicand = state.stored?.toBigInt();
+    var multiplier = state.buffer.toBigInt();
+    if (multiplicand != null) {
+      return multiplicand * multiplier;
+    }
+    throw Exception('Attempting to multiply by null');
+  }
+
   /// Respond to presses of the enter/return key.
   void enter() {
 
+    // Handle calculations with command.
+    if (state.isCommand() && state.stored != '') {
+      try {
+        emit(KeypadState.result(_times()));
+      } catch (e) {
+        emit(KeypadState.error(e as Exception));
+      }
+      return;    
+    }
+
+    // Handle basic price entries.
+    emit(KeypadState.result(state.buffer.toBigInt()));
   }
 }
