@@ -116,4 +116,22 @@ main() {
       ],
     );
   });
+
+  blocTest(
+    'should calculate result of price #times quantity', 
+    build: () => KeypadCubit(const KeypadState('3', stored: '123', command: '#times')),
+    act: (bloc) => bloc.enter(),
+    expect: () => [
+      KeypadState.result(BigInt.from(369)),
+    ],
+  );
+
+  blocTest(
+    'should yield result of basic price entry', 
+    build: () => KeypadCubit(const KeypadState('4302')),
+    act: (bloc) => bloc.enter(),
+    expect: () => [
+      KeypadState.result(BigInt.from(4302)),
+    ],
+  );
 }
