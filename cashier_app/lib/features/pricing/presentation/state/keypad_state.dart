@@ -6,7 +6,7 @@ class KeypadState extends Equatable {
   set buffer (val) => _buffer;
 
   /// Store for previously entered price
-  final BigInt? stored;
+  final String? stored;
   final String? command;
 
   const KeypadState(this._buffer, {this.stored, this.command});
@@ -15,12 +15,13 @@ class KeypadState extends Equatable {
   @override
   List<Object?> get props => [buffer, stored, command];
 
+  /// Test whether the state is in the command state.
   bool isCommand() {
     return (command != null);
   }
 
+  /// Cancel a command sequence and restore the number buffer.
   KeypadState cancelCommand() {
-    buffer = stored.toString();
-    return KeypadState(buffer, stored: null, command: null);
+    return KeypadState(stored ?? '', stored: null, command: null);
   }
 }

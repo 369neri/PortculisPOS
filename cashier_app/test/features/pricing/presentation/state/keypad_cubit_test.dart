@@ -81,9 +81,9 @@ main() {
     blocTest('should store value and clear buffer when #times command is entered', 
       build: () => KeypadCubit(const KeypadState('123')),
       act: (bloc) => bloc.add('#times'),
-      expect: () => [KeypadState('', stored: BigInt.from(123), command: '#times')],
+      expect: () => [const KeypadState('', stored: '123', command: '#times')],
       verify: (bloc) {
-        expect(bloc.state.stored, BigInt.from(123));
+        expect(bloc.state.stored, '123');
         expect(bloc.state.command, '#times');
       }
     );
@@ -96,23 +96,23 @@ main() {
         bloc.add('3');
       },
       expect: () => [
-        KeypadState('', stored: BigInt.from(123), command: '#times'),
-        KeypadState('3', stored: BigInt.from(123), command: '#times'),
+        const KeypadState('', stored: '123', command: '#times'),
+        const KeypadState('3', stored: '123', command: '#times'),
       ],
     );
 
     blocTest(
       'should propagate values of command and stored number on current buffer', 
-      build: () => KeypadCubit(KeypadState('', stored: BigInt.from(123), command: '#times')),
+      build: () => KeypadCubit(const KeypadState('', stored: '123', command: '#times')),
       act: (bloc) {
         bloc.add('1');
         bloc.add('0');
         bloc.add('1');
       },
       expect: () => [
-        KeypadState('1', stored: BigInt.from(123), command: '#times'),
-        KeypadState('10', stored: BigInt.from(123), command: '#times'),
-        KeypadState('101', stored: BigInt.from(123), command: '#times'),
+        const KeypadState('1', stored: '123', command: '#times'),
+        const KeypadState('10', stored: '123', command: '#times'),
+        const KeypadState('101', stored: '123', command: '#times'),
       ],
     );
   });
