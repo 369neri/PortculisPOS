@@ -8,13 +8,21 @@ class KeypadCubit extends Cubit<KeypadState> {
   // Handler for commands starting with "#".
   void _addCommand(String data) {
     var priceNum = state.buffer.toBigInt(); // extension method
-    emit(KeypadState('', stored: priceNum, command: data));
+    emit(KeypadState(
+      '', 
+      stored: priceNum, 
+      command: data,
+    ));
   }
 
   // Handler for adding multiple zeros.
   void _addZeros(String data) {
     if (state.buffer != '') {
-      emit(KeypadState('${state.buffer}$data'));
+      emit(KeypadState(
+          '${state.buffer}$data', 
+          stored: state.stored, 
+          command: state.command,
+      ));
     }
     emit(state);
   }
@@ -29,13 +37,25 @@ class KeypadCubit extends Cubit<KeypadState> {
         _addZeros(data);
         break;
       default:
-        emit(KeypadState('${state.buffer}$data'));
+        emit(KeypadState(
+          '${state.buffer}$data', 
+          stored: state.stored, 
+          command: state.command,
+        ));
         break;
     }
   }
 
+  /// Clear/empty the number buffer.
+  void clear() => emit(const KeypadState.nil());
+
   /// Remove the last number entered in the number buffer.
   void edit() {
+    if (state.isCommand()) {
+      emit(state.cancelCommand());
+      return;
+    }
+
     if (state.buffer != '' && state.buffer[0] != '#') {
       var newBuffer = state.buffer.substring(0, state.buffer.length - 1);
       emit(KeypadState(newBuffer));
@@ -43,8 +63,4 @@ class KeypadCubit extends Cubit<KeypadState> {
     }
     emit(state);
   }
-
-  /// Clear/empty the number buffer.
-  void clear() => emit(const KeypadState.nil());
-
 }

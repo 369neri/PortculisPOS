@@ -1,4 +1,3 @@
-
 import 'package:cashier_app/features/pricing/presentation/state/keypad_cubit.dart';
 import 'package:cashier_app/features/pricing/presentation/state/keypad_state.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -59,7 +58,7 @@ main() {
     );
 
     blocTest(
-      'should remove last integer from list on edit action', 
+      'should remove last digit from buffer on edit action', 
       build: () => KeypadCubit(const KeypadState('12')),
       act: (bloc) => bloc.edit(),
       expect: () => [const KeypadState('1')],
@@ -79,14 +78,42 @@ main() {
       expect: () => [const KeypadState.nil()],
     );
 
-    blocTest('should store value and clear buffer when {times} command is entered', 
+    blocTest('should store value and clear buffer when #times command is entered', 
       build: () => KeypadCubit(const KeypadState('123')),
       act: (bloc) => bloc.add('#times'),
-      expect: () => [const KeypadState('')],
+      expect: () => [KeypadState('', stored: BigInt.from(123), command: '#times')],
       verify: (bloc) {
         expect(bloc.state.stored, BigInt.from(123));
         expect(bloc.state.command, '#times');
       }
+    );
+
+    blocTest(
+      'should emit the result of calculation with #times function in buffer string', 
+      build: () => KeypadCubit(const KeypadState('123')),
+      act: (bloc) {
+        bloc.add('#times');
+        bloc.add('3');
+      },
+      expect: () => [
+        KeypadState('', stored: BigInt.from(123), command: '#times'),
+        KeypadState('3', stored: BigInt.from(123), command: '#times'),
+      ],
+    );
+
+    blocTest(
+      'should propagate values of command and stored number on current buffer', 
+      build: () => KeypadCubit(KeypadState('', stored: BigInt.from(123), command: '#times')),
+      act: (bloc) {
+        bloc.add('1');
+        bloc.add('0');
+        bloc.add('1');
+      },
+      expect: () => [
+        KeypadState('1', stored: BigInt.from(123), command: '#times'),
+        KeypadState('10', stored: BigInt.from(123), command: '#times'),
+        KeypadState('101', stored: BigInt.from(123), command: '#times'),
+      ],
     );
   });
 }

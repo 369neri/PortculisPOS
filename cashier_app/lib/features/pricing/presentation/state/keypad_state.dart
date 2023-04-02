@@ -13,5 +13,14 @@ class KeypadState extends Equatable {
   const KeypadState.nil() : _buffer = '', stored = null, command = null;
   
   @override
-  List<Object?> get props => [buffer];
+  List<Object?> get props => [buffer, stored, command];
+
+  bool isCommand() {
+    return (command != null);
+  }
+
+  KeypadState cancelCommand() {
+    buffer = stored.toString();
+    return KeypadState(buffer, stored: null, command: null);
+  }
 }
