@@ -48,7 +48,7 @@ class KeypadCubit extends Cubit<KeypadState> {
 
     // Handle editing commands first.
     if (state.isCommand()) {
-      emit(state.cancelCommand());
+      emit(state.voidCommand());
       return;
     }
 

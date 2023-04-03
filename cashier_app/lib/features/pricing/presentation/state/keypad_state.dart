@@ -25,17 +25,20 @@ class KeypadState extends Equatable {
     this.error,    
   });
 
+  /// Constructor to create a new state with empty buffer.
   const KeypadState.nil() : _buffer = '', 
     stored = null, 
     command = null, 
     result = null, 
     error = null;
   
+  /// Constructor to create result state.
   const KeypadState.result(this.result) : _buffer = '', 
     stored = null, 
     command = null, 
     error = null;
   
+  /// Constructor to create an error state.
   const KeypadState.error(this.error) : _buffer = '', 
     stored = null, 
     command = null, 
@@ -50,7 +53,11 @@ class KeypadState extends Equatable {
   }
 
   /// Cancel a command sequence and restore the number buffer.
-  KeypadState cancelCommand() {
-    return KeypadState(stored ?? '', stored: null, command: null);
+  KeypadState voidCommand() {
+    return KeypadState(stored ?? '', 
+      stored: null, 
+      command: null, 
+      result: null, 
+      error: null);
   }
 }
