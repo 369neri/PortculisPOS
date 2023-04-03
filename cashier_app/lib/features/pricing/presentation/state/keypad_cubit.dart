@@ -20,24 +20,28 @@ class KeypadCubit extends Cubit<KeypadState> {
 
   /// Add and handle entered key codes.
   void add(String data) {
-    switch (data[0]) {
-      case '#': 
-        emit(KeypadState('',
-          stored: state.buffer,
-          command: data,
-        ));
-        break;
-      case '0':
-        _addZeros(data);
-        break;
-      default:
-        emit(KeypadState(
-          '${state.buffer}$data', 
-          stored: state.stored, 
-          command: state.command,
-        ));
-        break;
+
+    // Handle command starting with a '#' character.
+    if (data.startsWith('#')) {
+      emit(KeypadState('',
+        stored: state.buffer,
+        command: data,
+      ));
+      return;
     }
+  
+    // Special handling to deal with leading zeroes.
+    if (data.startsWith('0')) {
+      _addZeros(data);
+      return;
+    }
+    
+    // Handle non-zero numbers.
+    emit(KeypadState(
+      '${state.buffer}$data', 
+      stored: state.stored, 
+      command: state.command,
+    ));
   }
 
   /// Clear/empty the number buffer.
