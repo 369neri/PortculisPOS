@@ -14,6 +14,7 @@ class KeypadCubit extends Cubit<KeypadState> {
           stored: state.stored, 
           command: state.command,
       ));
+      return;
     }
     emit(state);
   }
