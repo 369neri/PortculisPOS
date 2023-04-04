@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:flutter/widgets.dart';
 
 import 'validation_result.dart';
 import 'item.dart';
@@ -6,6 +7,7 @@ import '../../../pricing/domain/entities/price.dart';
 
 // A keyed-price item is manually keyed into the transaction on the keypad
 // There is no sku code or label.
+@immutable
 class KeyedPriceItem extends Equatable implements Item {
   final Price _unitPrice;
 

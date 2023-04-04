@@ -1,9 +1,11 @@
 import 'dart:math';
 
 import 'package:equatable/equatable.dart';
+import 'package:flutter/widgets.dart';
 
 import '../../../items/domain/entities/validation_result.dart';
 
+@immutable
 class Price extends Equatable {
   final BigInt _value;
   BigInt get value => _value;
@@ -32,13 +34,13 @@ class Price extends Equatable {
 
   ValidationResult validate() {
     if (_value.isNegative) {
-      return ValidationResult(
+      return const ValidationResult(
         false, 
         field: Field.price, 
         message: 'Price cannot be negative'
       );
     }
-    return ValidationResult(true);
+    return const ValidationResult(true);
   }
 
 }

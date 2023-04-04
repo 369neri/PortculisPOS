@@ -1,10 +1,12 @@
 import 'package:equatable/equatable.dart';
+import 'package:flutter/widgets.dart';
 import 'package:gtin_toolkit/gtin_toolkit.dart' as gtin_tool;
 
 import 'validation_result.dart';
 import 'item.dart';
 import '../../../pricing/domain/entities/price.dart';
 
+@immutable
 class TradeItem extends Equatable implements Item {
   // Item fields overrides
   @override
@@ -37,12 +39,12 @@ class TradeItem extends Equatable implements Item {
     // Validate the GTIN field if present
     if (gtin != null) {
       var isValid = gtin_tool.parseAndValidate(gtin);
-      if (isValid) return ValidationResult(true);
-      return ValidationResult(
+      if (isValid) return const ValidationResult(true);
+      return const ValidationResult(
         false, 
         field: Field.gtin, 
         message: 'the GTIN is invalid');
     }
-    return ValidationResult(true);
+    return const ValidationResult(true);
   }
 }
