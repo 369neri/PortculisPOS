@@ -1,36 +1,25 @@
+import 'keypad_cubit_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/extensions/bigint_extension.dart';
-import 'keypad_state.dart';
 
 class KeypadCubit extends Cubit<KeypadState> {
   KeypadCubit(KeypadState initState) : super(initState);
 
+  /// Store commands like #times for later calculations.
+  KeypadCmdState? _storedCommand;
+
   // Handler for adding multiple zeros.
   void _addZeros(String data) {
-    if (state.buffer != '') {
-      emit(KeypadState(
-          '${state.buffer}$data', 
-          stored: state.stored, 
-          command: state.command,
-      ));
+    if (state.value.isNotEmpty) {
+      emit(KeypadNumState('${state.value}$data'));
       return;
     }
     emit(state);
   }
 
-  /// Add and handle entered key codes.
-  void add(String data) {
-
-    // Handle command starting with a '#' character.
-    if (data.startsWith('#')) {
-      emit(KeypadState('',
-        stored: state.buffer,
-        command: data,
-      ));
-      return;
-    }
-  
+  /// Add and handle numbers entered as key codes.
+  void addNumber(String data) {
     // Special handling to deal with leading zeroes.
     if (data.startsWith('0')) {
       _addZeros(data);
@@ -38,57 +27,59 @@ class KeypadCubit extends Cubit<KeypadState> {
     }
     
     // Handle non-zero numbers.
-    emit(KeypadState(
-      '${state.buffer}$data', 
-      stored: state.stored, 
-      command: state.command,
-    ));
+    emit(KeypadNumState('${state.value}$data'));
+  }
+
+  /// Store commands and data as a cubit stored value.
+  void addCommand(String data) {
+    _storedCommand = KeypadCmdState(state.value, data);
+    emit(const KeypadInitialState());
   }
 
   /// Clear/empty the number buffer.
-  void clear() => emit(const KeypadState.nil());
+  void clear() => emit(const KeypadInitialState());
 
   /// Remove the last number entered in the number buffer.
   void edit() {
-
     // Handle editing commands first.
-    if (state.isCommand()) {
-      emit(state.voidCommand());
+    if (state is KeypadCmdState) {
+      emit(KeypadNumState(state.value));
       return;
     }
 
     // Handle editing numbers in the number buffer.
-    if (state.buffer != '') {
-      var newBuffer = state.buffer.substring(0, state.buffer.length - 1);
-      emit(KeypadState(newBuffer));
+    if (state.value != '') {
+      var newBuffer = state.value.substring(0, state.value.length - 1);
+      emit(KeypadNumState(newBuffer));
       return;
     }
     emit(state);
   }
 
-  BigInt _times() {
-    var multiplicand = state.stored?.toBigInt();
-    var multiplier = state.buffer.toBigInt();
-    if (multiplicand != null) {
-      return multiplicand * multiplier;
+  String _times() {
+    if (state.value.isNotEmpty) {
+      var multiplicand = _storedCommand!.value.toBigInt();
+      var multiplier = state.value.toBigInt();
+      return (multiplicand * multiplier).toString();
     }
-    throw Exception('Attempting to multiply by null');
+    throw Exception('Attempting to multiply by empty value');
   }
 
   /// Respond to presses of the enter/return key.
   void enter() {
 
     // Handle calculations with command.
-    if (state.isCommand() && state.stored != '') {
+    if (_storedCommand != null) {
       try {
-        emit(KeypadState.result(_times()));
+        emit(KeypadResultState(_times()));
       } catch (e) {
-        emit(KeypadState.error(e as Exception));
+        emit(KeypadErrorState(e.toString()));
       }
+      _storedCommand = null;
       return;    
     }
 
     // Handle basic price entries.
-    emit(KeypadState.result(state.buffer.toBigInt()));
+    emit(KeypadResultState(state.value));
   }
 }
