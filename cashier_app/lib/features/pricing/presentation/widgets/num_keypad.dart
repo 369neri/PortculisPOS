@@ -19,6 +19,7 @@ class NumKeypad extends StatelessWidget {
               NumKey('3'),
               CommandKey(
                 label: 'times',
+                command: '#times',
                 icon: Icons.numbers,
               ),
             ],
@@ -30,6 +31,7 @@ class NumKeypad extends StatelessWidget {
               NumKey('6'),
               CommandKey(
                 label: 'cancel',
+                command: 'clear',
                 icon: Icons.cancel_outlined,
                 backgroundColor: Colors.red,
               ),
@@ -42,6 +44,7 @@ class NumKeypad extends StatelessWidget {
               NumKey('9'),
               CommandKey(
                 label: 'back',
+                command: 'edit',
                 icon: Icons.arrow_back,
                 backgroundColor: Colors.amber,
               ),
@@ -54,6 +57,7 @@ class NumKeypad extends StatelessWidget {
               NumKey('000'),
               CommandKey(
                 label: 'enter',
+                command: 'enter',
                 icon: Icons.keyboard_return,
                 backgroundColor: Colors.green,
               ),
