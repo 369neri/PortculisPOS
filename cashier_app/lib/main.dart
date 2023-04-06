@@ -1,4 +1,4 @@
-import 'package:cashier_app/features/pricing/presentation/pages/price_entry.dart';
+import 'package:cashier_app/features/navigation/presentation/pages/hidden_menu_page.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -27,10 +27,7 @@ class MainPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(title),
-      ),
-      body: const PriceEntryPage(key: Key('entry_page'),));
+    return const Scaffold(
+      body: HiddenMenu());
   }
 }
