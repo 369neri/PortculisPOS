@@ -30,7 +30,7 @@ class NumKeypad extends StatelessWidget {
               NumKey('5'),
               NumKey('6'),
               CommandKey(
-                label: 'cancel',
+                label: 'clear',
                 command: 'clear',
                 icon: Icons.cancel_outlined,
                 backgroundColor: Colors.red,

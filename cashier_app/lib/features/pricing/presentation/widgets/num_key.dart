@@ -4,23 +4,27 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../state/keypad_cubit.dart';
 
 class NumKey extends StatelessWidget {
-  final String _numberString;
+  final String _number;
 
-  const NumKey(this._numberString, {super.key});
+  static const double keysize = 65;
+  static const double padding = 2.5;
+  static const double fontsize = 20.0;
+
+  const NumKey(this._number, {super.key});
 
   @override
   Widget build(BuildContext context) {
     var keypadCubit = BlocProvider.of<KeypadCubit>(context);
     return Padding(
-      padding: const EdgeInsets.all(2.0),
+      padding: const EdgeInsets.all(padding),
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-          minimumSize: const Size(80.0, 80.0)
+          minimumSize: const Size(keysize, keysize)
         ),
         autofocus: false,
         clipBehavior: Clip.hardEdge,   
-        onPressed: () => keypadCubit.addNumber(_numberString), 
-        child: Text(_numberString, style: const TextStyle(fontSize: 20.0)),
+        onPressed: () => keypadCubit.addNumber(_number), 
+        child: Text(_number, style: const TextStyle(fontSize: fontsize)),
       ),
     );
   }

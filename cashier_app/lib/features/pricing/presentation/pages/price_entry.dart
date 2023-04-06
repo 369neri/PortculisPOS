@@ -13,7 +13,7 @@ class PriceEntryPage extends StatelessWidget {
     return BlocProvider(
       lazy: false,
       create: (context) => KeypadCubit(const KeypadInitialState()),
-      child: const NumKeypad(),
+      child: const Center(child: NumKeypad()),
     );
   }
 }

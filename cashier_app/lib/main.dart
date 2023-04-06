@@ -1,8 +1,6 @@
 import 'package:cashier_app/features/pricing/presentation/pages/price_entry.dart';
 import 'package:flutter/material.dart';
 
-import 'features/pricing/presentation/widgets/num_keypad.dart';
-
 void main() {
   runApp(const CashierApp());
 }

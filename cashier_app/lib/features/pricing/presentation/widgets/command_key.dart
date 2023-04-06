@@ -10,6 +10,11 @@ class CommandKey extends StatelessWidget {
   final Color backgroundColor;
   final Color? textColor;
   
+  static const double keyHeight = 65;
+  static const double keyWidth = 100;
+  static const double padding = 5.0;
+  static const double fontsize = 15.0;
+
   const CommandKey({ 
     required this.label,
     required this.command,
@@ -23,16 +28,16 @@ class CommandKey extends StatelessWidget {
   Widget build(BuildContext context) {
     var keypadCubit = BlocProvider.of<KeypadCubit>(context);
     return Padding(
-      padding: const EdgeInsets.all(2.0),
+      padding: const EdgeInsets.only(left: padding),
       child: ElevatedButton.icon(
         label: Text(label, style: const TextStyle(
-          fontSize: 20.0,
+          fontSize: fontsize,
         )),
         icon: Icon(icon),
         style: ElevatedButton.styleFrom(
           backgroundColor: backgroundColor,
           foregroundColor: textColor,
-          fixedSize: const Size(120.0, 80.0)
+          fixedSize: const Size(keyWidth, keyHeight)
         ),
         autofocus: false,
         clipBehavior: Clip.hardEdge,
