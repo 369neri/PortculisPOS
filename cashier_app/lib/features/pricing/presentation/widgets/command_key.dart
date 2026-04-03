@@ -1,19 +1,9 @@
+import 'package:cashier_app/features/pricing/presentation/state/keypad_command.dart';
+import 'package:cashier_app/features/pricing/presentation/state/keypad_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../state/keypad_cubit.dart';
-
 class CommandKey extends StatelessWidget {
-  final String label;
-  final String command;
-  final IconData icon;
-  final Color backgroundColor;
-  final Color? textColor;
-  
-  static const double keyHeight = 65;
-  static const double keyWidth = 100;
-  static const double padding = 5.0;
-  static const double fontsize = 15.0;
 
   const CommandKey({ 
     required this.label,
@@ -23,38 +13,43 @@ class CommandKey extends StatelessWidget {
     this.textColor = Colors.black,
     super.key,
   });
+  final String label;
+  final KeypadCommand command;
+  final IconData icon;
+  final Color backgroundColor;
+  final Color? textColor;
+  
+  static const double keyHeight = 65;
+  static const double keyWidth = 100;
+  static const double padding = 5;
+  static const double fontsize = 15;
 
   @override
   Widget build(BuildContext context) {
-    var keypadCubit = BlocProvider.of<KeypadCubit>(context);
+    final keypadCubit = BlocProvider.of<KeypadCubit>(context);
     return Padding(
       padding: const EdgeInsets.only(left: padding),
       child: ElevatedButton.icon(
         label: Text(label, style: const TextStyle(
           fontSize: fontsize,
-        )),
+        ),),
         icon: Icon(icon),
         style: ElevatedButton.styleFrom(
           backgroundColor: backgroundColor,
           foregroundColor: textColor,
-          fixedSize: const Size(keyWidth, keyHeight)
+          fixedSize: const Size(keyWidth, keyHeight),
         ),
-        autofocus: false,
         clipBehavior: Clip.hardEdge,
         onPressed: () {
           switch (command) {
-            case 'clear':
+            case KeypadCommand.clear:
               keypadCubit.clear();
-              break;
-            case 'edit':
+            case KeypadCommand.edit:
               keypadCubit.edit();
-              break;
-            case 'enter':
+            case KeypadCommand.enter:
               keypadCubit.enter();
-              break;
-            default:
+            case KeypadCommand.times:
               keypadCubit.addCommand(command);
-              break;
           }
         }, 
 

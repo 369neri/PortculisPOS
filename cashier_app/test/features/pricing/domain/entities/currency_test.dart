@@ -1,13 +1,12 @@
 
 import 'package:cashier_app/features/pricing/data/datasources/currencies.dart';
-import 'package:cashier_app/features/pricing/domain/entities/currency.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-main() {
+void main() {
   group('Currencies', () {
     test('Should lookup by ISO 4217 currency code for USD', () async {
-      Future<Currency?> currency = Currencies.lookupByCode('USD');
-      var cur = await currency;
+      final currency = Currencies.lookupByCode('USD');
+      final cur = await currency;
 
       expect(cur!.code, equals('USD'));
       expect(cur.name, equals('US Dollar'));
@@ -16,7 +15,7 @@ main() {
     });
 
     test('Should return null when the code does not exist', () async {
-      Future<Currency?> currency = Currencies.lookupByCode('_ZZZ');
+      final currency = Currencies.lookupByCode('_ZZZ');
 
       expect(await currency, isNull);
     });

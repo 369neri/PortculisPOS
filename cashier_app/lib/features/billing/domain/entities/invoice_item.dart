@@ -1,15 +1,24 @@
+import 'package:cashier_app/features/items/domain/entities/item.dart';
+import 'package:cashier_app/features/pricing/domain/entities/price.dart';
+import 'package:equatable/equatable.dart';
+import 'package:flutter/widgets.dart';
 
-// ignore_for_file: unused_field
+@immutable
+class InvoiceItem extends Equatable {
+  const InvoiceItem({required this.item, this.quantity = 1});
 
-import '../../../items/domain/entities/item.dart';
+  final Item item;
+  final int quantity;
 
-class InvoiceItem {
-  final Item _item;
-  int _quantity;
+  Price get lineTotal => Price(item.unitPrice.value * BigInt.from(quantity));
 
-  InvoiceItem(this._item, this._quantity) : super();
-
-  void updateQuantity(int value) {
-    _quantity = value;
+  InvoiceItem copyWith({Item? item, int? quantity}) {
+    return InvoiceItem(
+      item: item ?? this.item,
+      quantity: quantity ?? this.quantity,
+    );
   }
+
+  @override
+  List<Object?> get props => [item, quantity];
 }

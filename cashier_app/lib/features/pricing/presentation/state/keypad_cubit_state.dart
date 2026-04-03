@@ -1,11 +1,12 @@
+import 'package:cashier_app/features/pricing/presentation/state/keypad_command.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/widgets.dart';
 
 @immutable
 abstract class KeypadState extends Equatable {
-  final String value;
 
   const KeypadState(this.value) : super();
+  final String value;
 
   @override
   List<Object?> get props => [value];
@@ -16,26 +17,26 @@ class KeypadInitialState extends KeypadState {
 }
 
 class KeypadNumState extends KeypadState {
-  final String buffer;
 
   const KeypadNumState(this.buffer) : super(buffer);
+  final String buffer;
 }
 
 class KeypadCmdState extends KeypadState {
-  final String stored;
-  final String command;
 
   const KeypadCmdState(this.stored, this.command) : super(stored);
+  final String stored;
+  final KeypadCommand command;
 }
 
 class KeypadResultState extends KeypadState {
-  final String total;
 
   const KeypadResultState(this.total) : super(total);
+  final String total;
 }
 
 class KeypadErrorState extends KeypadState {
-  final String message;
 
   const KeypadErrorState(this.message) : super(message);
+  final String message;
 }

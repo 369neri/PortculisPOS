@@ -1,17 +1,12 @@
-import 'package:equatable/equatable.dart';
-import 'package:flutter/widgets.dart';
+part of 'item.dart';
 
-import 'validation_result.dart';
-import 'item.dart';
-import '../../../pricing/domain/entities/price.dart';
-
-// A keyed-price item is manually keyed into the transaction on the keypad
+// A keyed-price item is manually keyed into the transaction on the keypad.
 // There is no sku code or label.
 @immutable
-class KeyedPriceItem extends Equatable implements Item {
-  final Price _unitPrice;
+final class KeyedPriceItem extends Item {
+  const KeyedPriceItem(this._unitPrice);
 
-  const KeyedPriceItem(this._unitPrice) : super();
+  final Price _unitPrice;
 
   @override
   String? get sku => null;
@@ -21,13 +16,12 @@ class KeyedPriceItem extends Equatable implements Item {
 
   @override
   Price get unitPrice => _unitPrice;
-  
-  @override // equatable fields
+
+  @override
   List<Object?> get props => [unitPrice];
 
   @override
   ValidationResult validate() {
     return unitPrice.validate();
   }
-
 }

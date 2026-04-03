@@ -1,0 +1,36 @@
+import 'package:cashier_app/core/persistence/app_database.dart';
+import 'package:cashier_app/features/settings/domain/entities/app_settings.dart';
+import 'package:cashier_app/features/settings/domain/repositories/settings_repository.dart';
+import 'package:drift/drift.dart';
+
+class LocalSettingsDatasource implements SettingsRepository {
+  LocalSettingsDatasource(this._dao);
+
+  final SettingsDao _dao;
+
+  @override
+  Future<AppSettings> getSettings() async {
+    final row = await _dao.getOrCreate();
+    return AppSettings(
+      businessName: row.businessName,
+      taxRate: row.taxRate,
+      currencySymbol: row.currencySymbol,
+      receiptFooter: row.receiptFooter,
+      lastZReportAt: row.lastZReportAt != null
+          ? DateTime.tryParse(row.lastZReportAt!)
+          : null,
+    );
+  }
+
+  @override
+  Future<void> saveSettings(AppSettings settings) => _dao.save(
+        SettingsTableCompanion(
+          id: const Value(1),
+          businessName: Value(settings.businessName),
+          taxRate: Value(settings.taxRate),
+          currencySymbol: Value(settings.currencySymbol),
+          receiptFooter: Value(settings.receiptFooter),
+          lastZReportAt: Value(settings.lastZReportAt?.toIso8601String()),
+        ),
+      );
+}

@@ -1,9 +1,9 @@
 
-import '../../../pricing/domain/entities/currency.dart';
+import 'package:cashier_app/features/pricing/domain/entities/currency.dart';
 
 class Currencies {
   static final Map<String, Currency?> _table = {
-    'USD': Currency('USD', name: 'US Dollar', symbol: '\$', numeric: 840, minorUnit: 2),
+    'USD': Currency('USD', name: 'US Dollar', symbol: r'$', numeric: 840, minorUnit: 2),
   };
 
   static Future<Currency?> lookupByCode(String code) async {

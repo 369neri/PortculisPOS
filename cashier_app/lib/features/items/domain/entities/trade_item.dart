@@ -1,14 +1,14 @@
-import 'package:equatable/equatable.dart';
-import 'package:flutter/widgets.dart';
-import 'package:gtin_toolkit/gtin_toolkit.dart' as gtin_tool;
-
-import 'validation_result.dart';
-import 'item.dart';
-import '../../../pricing/domain/entities/price.dart';
+part of 'item.dart';
 
 @immutable
-class TradeItem extends Equatable implements Item {
-  // Item fields overrides
+final class TradeItem extends Item {
+  const TradeItem({
+    required this.sku,
+    required this.label,
+    required this.unitPrice,
+    this.gtin,
+  });
+
   @override
   final String sku;
   @override
@@ -16,35 +16,26 @@ class TradeItem extends Equatable implements Item {
   @override
   final Price unitPrice;
 
-  // Fields specific to trade items
-  final String? gtin; // GTIN: Global Trade Item Number (barcodes)
+  // GTIN: Global Trade Item Number (barcodes)
+  final String? gtin;
 
-  const TradeItem({
-    required this.sku, 
-    required this.label,
-    required this.unitPrice, 
-    this.gtin
-  }) : super();
-
-  @override // equatable fields
+  @override
   List<Object?> get props => [sku, label, unitPrice, gtin];
 
   @override
   ValidationResult validate() {
-    // Validate the price field
-    var price = unitPrice.validate();
+    final price = unitPrice.validate();
     if (!price.isValid) return price;
-    
 
-    // Validate the GTIN field if present
     if (gtin != null) {
-      var isValid = gtin_tool.parseAndValidate(gtin);
-      if (isValid) return const ValidationResult(true);
+      final isValid = gtin_tool.parseAndValidate(gtin);
+      if (isValid) return const ValidationResult(isValid: true);
       return const ValidationResult(
-        false, 
-        field: Field.gtin, 
-        message: 'the GTIN is invalid');
+        isValid: false,
+        field: Field.gtin,
+        message: 'the GTIN is invalid',
+      );
     }
-    return const ValidationResult(true);
+    return const ValidationResult(isValid: true);
   }
 }

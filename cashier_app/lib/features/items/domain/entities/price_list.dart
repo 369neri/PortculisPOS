@@ -1,23 +1,47 @@
-import '../../../pricing/domain/entities/currency.dart';
-import 'item.dart';
+import 'dart:collection';
 
-class PriceList {
-  final List<Item> _items = [];
-  final Currency _currency;
-  Currency get currency => _currency;
+import 'package:cashier_app/features/items/domain/entities/item.dart';
+import 'package:cashier_app/features/pricing/domain/entities/currency.dart';
+import 'package:equatable/equatable.dart';
+import 'package:flutter/widgets.dart';
 
-  PriceList(this._currency) : super();
+@immutable
+class PriceList extends Equatable {
+  const PriceList({required this.currency, this.items = const []});
 
-  int countItems() => _items.length;
+  final Currency currency;
+  final List<Item> items;
 
-  void addItem(Item item) => _items.add(item);
-  void addItems(List<Item> items) => _items.addAll(items);
+  UnmodifiableListView<Item> get unmodifiableItems =>
+      UnmodifiableListView(items);
 
-  void insertItem(int index, Item item) => _items.insert(index, item);
-  void insertItems(int index, List<Item> items) => _items.insertAll(index, items);
+  int get count => items.length;
 
-  void removeItem(Item item) => _items.remove(item);
-  void removeItemAt(int index) => _items.removeAt(index);
+  Item? findBySku(String sku) {
+    for (final item in items) {
+      if (item.sku == sku) return item;
+    }
+    return null;
+  }
 
-  void clearItems() => _items.clear();
+  PriceList addItem(Item item) => copyWith(items: [...items, item]);
+
+  PriceList addItems(List<Item> newItems) =>
+      copyWith(items: [...items, ...newItems]);
+
+  PriceList removeItem(Item item) =>
+      copyWith(items: items.where((i) => i != item).toList());
+
+  PriceList removeItemAt(int index) =>
+      copyWith(items: [...items]..removeAt(index));
+
+  PriceList copyWith({Currency? currency, List<Item>? items}) {
+    return PriceList(
+      currency: currency ?? this.currency,
+      items: items ?? this.items,
+    );
+  }
+
+  @override
+  List<Object?> get props => [currency, items];
 }

@@ -1,13 +1,13 @@
-import 'package:flutter/widgets.dart';
-
-import '../../../pricing/domain/entities/price.dart';
-import 'item.dart';
-import 'package:equatable/equatable.dart';
-
-import 'validation_result.dart';
+part of 'item.dart';
 
 @immutable
-class ServiceItem extends Equatable implements Item {
+final class ServiceItem extends Item {
+  const ServiceItem({
+    required this.sku,
+    required this.label,
+    required this.unitPrice,
+  });
+
   @override
   final String sku;
   @override
@@ -15,21 +15,16 @@ class ServiceItem extends Equatable implements Item {
   @override
   final Price unitPrice;
 
-  const ServiceItem({
-    required this.sku, 
-    required this.label, 
-    required this.unitPrice
-  }) : super();
-
-  @override // equatable fields
+  @override
   List<Object?> get props => [sku, label, unitPrice];
 
   @override
   ValidationResult validate() {
-    if (unitPrice.validate().isValid) return const ValidationResult(true);
+    if (unitPrice.validate().isValid) return const ValidationResult(isValid: true);
     return const ValidationResult(
-      false, 
-      field: Field.price, 
-      message: 'price cannot be negative');
+      isValid: false,
+      field: Field.price,
+      message: 'price cannot be negative',
+    );
   }
 }

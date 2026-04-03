@@ -1,24 +1,51 @@
-import 'invoice_item.dart';
-import 'invoice_status.dart';
+import 'package:cashier_app/features/billing/domain/entities/invoice_item.dart';
+import 'package:cashier_app/features/billing/domain/entities/invoice_status.dart';
+import 'package:cashier_app/features/pricing/domain/entities/price.dart';
+import 'package:equatable/equatable.dart';
+import 'package:flutter/widgets.dart';
 
-class Invoice {
-  final List<InvoiceItem> _items = [];
+@immutable
+class Invoice extends Equatable {
+  const Invoice({
+    this.items = const [],
+    this.status = InvoiceStatus.active,
+  });
 
-  // ignore: unused_field
-  InvoiceStatus _status = InvoiceStatus.active;
-  InvoiceStatus get status => _status;
+  final List<InvoiceItem> items;
+  final InvoiceStatus status;
 
-  Invoice() : super();
+  Price get total => items.fold(
+        Price.from(0),
+        (sum, item) => Price(sum.value + item.lineTotal.value),
+      );
 
-  void addInvoiceItem(InvoiceItem item) {
-    _items.add(item);
+  Invoice addItem(InvoiceItem item) =>
+      copyWith(items: [...items, item]);
+
+  Invoice removeItemAt(int index) =>
+      copyWith(items: [...items]..removeAt(index));
+
+  Invoice updateItemQuantity(int index, int quantity) {
+    final updated = [...items];
+    updated[index] = updated[index].copyWith(quantity: quantity);
+    return copyWith(items: updated);
   }
 
-  void suspend() {
-    _status = InvoiceStatus.pending;
+  Invoice suspend() => copyWith(status: InvoiceStatus.pending);
+  Invoice activate() => copyWith(status: InvoiceStatus.active);
+  Invoice process() => copyWith(status: InvoiceStatus.processed);
+  Invoice cancel() => copyWith(status: InvoiceStatus.cancelled);
+
+  Invoice copyWith({
+    List<InvoiceItem>? items,
+    InvoiceStatus? status,
+  }) {
+    return Invoice(
+      items: items ?? this.items,
+      status: status ?? this.status,
+    );
   }
 
-  void activate() {
-    _status = InvoiceStatus.active;
-  }
+  @override
+  List<Object?> get props => [items, status];
 }

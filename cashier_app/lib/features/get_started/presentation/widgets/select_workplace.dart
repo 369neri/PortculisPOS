@@ -5,18 +5,18 @@ class SelectWorkplace extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return const Column(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: const [
+      children: [
         TextField(
           decoration: InputDecoration(
             hintText: 'Enter your workplace code',
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.all(Radius.circular(10))
-            )
+              borderRadius: BorderRadius.all(Radius.circular(10)),
+            ),
           ),
-        )    
-      ]
+        ),    
+      ],
     );
   }
 }

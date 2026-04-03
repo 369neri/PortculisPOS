@@ -1,12 +1,15 @@
-import 'dart:math';
-
+import 'package:cashier_app/features/items/domain/entities/validation_result.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/widgets.dart';
 
-import '../../../items/domain/entities/validation_result.dart';
-
 @immutable
 class Price extends Equatable {
+
+  const Price(this._value, {this.digits = defaultDigits}) : super();
+
+  factory Price.from(num price, {int digits = defaultDigits}) {
+    return Price(BigInt.from(price), digits: digits);
+  }
   final BigInt _value;
   BigInt get value => _value;
 
@@ -18,29 +21,27 @@ class Price extends Equatable {
   static const int defaultDigits = 2;
 
   @override // equatable
-  List<Object> get props => [value];
-
-  const Price(this._value, {this.digits = defaultDigits}) : super();
-
-  factory Price.from(num price, {digits = defaultDigits}) {
-    return Price(BigInt.from(price), digits: digits);
-  }
+  List<Object> get props => [value, digits];
 
   @override
-  String toString() { 
-    double val = _value / BigInt.from(pow(10, digits)); // $1 fractions to 100 cents
-    return val.toStringAsFixed(digits); // show dollar and cents format ($1.10)
+  String toString() {
+    if (digits == 0) return _value.toString();
+    final divisor = BigInt.from(10).pow(digits);
+    final whole = (_value ~/ divisor).abs();
+    final remainder = _value.remainder(divisor).abs();
+    final sign = _value.isNegative ? '-' : '';
+    return '$sign$whole.${remainder.toString().padLeft(digits, '0')}';
   }
 
   ValidationResult validate() {
     if (_value.isNegative) {
       return const ValidationResult(
-        false, 
+        isValid: false,
         field: Field.price, 
-        message: 'Price cannot be negative'
+        message: 'Price cannot be negative',
       );
     }
-    return const ValidationResult(true);
+    return const ValidationResult(isValid: true);
   }
 
 }

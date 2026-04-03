@@ -1,60 +1,60 @@
+import 'package:cashier_app/features/items/domain/entities/item.dart';
 import 'package:cashier_app/features/pricing/domain/entities/price.dart';
 import 'package:gtin_toolkit/generator.dart';
 import 'package:test/test.dart';
-import 'package:cashier_app/features/items/domain/entities/trade_item.dart';
 
-main() {
+void main() {
   group('TradeItem', () {
     test('should validate valid price as true', () {
-      var item = TradeItem(
+      final item = TradeItem(
         sku: '', 
         label: '', 
-        unitPrice: Price.from(20)
+        unitPrice: Price.from(20),
       );
       
       expect(item.validate().isValid, equals(true));
     });
     
     test('should validate invalid price as false', () {
-      var item = TradeItem(
+      final item = TradeItem(
         sku: '', 
         label: '', 
-        unitPrice: Price.from(-20)
+        unitPrice: Price.from(-20),
       );
       
       expect(item.validate().isValid, equals(false));
     });
 
     test('should validate valid GTIN as true', () {
-      String validGtin = generateGTIN(gtinLength: 12);
+      final validGtin = generateGTIN(gtinLength: 12);
 
-      var item = TradeItem(
+      final item = TradeItem(
         sku: '', 
         label: '', 
         unitPrice: Price.from(120), 
-        gtin: validGtin
+        gtin: validGtin,
       );
 
       expect(item.validate().isValid, equals(true));
     });
 
     test('should validate invalid GTIN as false', () {
-      String validGtin = generateGTIN(gtinLength: 12);
-      String invalidGtin = validGtin.padRight(10).padRight(13, '1');
+      final validGtin = generateGTIN(gtinLength: 12);
+      final invalidGtin = validGtin.padRight(10).padRight(13, '1');
     
-      var item = TradeItem(
+      final item = TradeItem(
         sku: '', 
         label: '', 
         unitPrice: Price.from(120), 
-        gtin: invalidGtin
+        gtin: invalidGtin,
       );
 
       expect(item.validate().isValid, equals(false));
     });
 
     test('Should create same hashcode for two equatable items', () {
-      var item1 = TradeItem(sku: 'sku', label: 'My item', unitPrice: Price.from(10));
-      var item2 = TradeItem(sku: 'sku', label: 'My item', unitPrice: Price.from(10));
+      final item1 = TradeItem(sku: 'sku', label: 'My item', unitPrice: Price.from(10));
+      final item2 = TradeItem(sku: 'sku', label: 'My item', unitPrice: Price.from(10));
 
       expect(item1.hashCode, equals(item2.hashCode));
     });

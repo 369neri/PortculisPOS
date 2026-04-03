@@ -1,12 +1,12 @@
-import 'keypad_cubit_state.dart';
+import 'package:cashier_app/core/extensions/bigint_extension.dart';
+import 'package:cashier_app/features/pricing/presentation/state/keypad_command.dart';
+import 'package:cashier_app/features/pricing/presentation/state/keypad_cubit_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../core/extensions/bigint_extension.dart';
-
 class KeypadCubit extends Cubit<KeypadState> {
-  KeypadCubit(KeypadState initState) : super(initState);
+  KeypadCubit(super.initState);
 
-  /// Store commands like #times for later calculations.
+  /// Store commands like times for later calculations.
   KeypadCmdState? _storedCommand;
 
   // Handler for adding multiple zeros.
@@ -31,8 +31,8 @@ class KeypadCubit extends Cubit<KeypadState> {
   }
 
   /// Store commands and data as a cubit stored value.
-  void addCommand(String data) {
-    _storedCommand = KeypadCmdState(state.value, data);
+  void addCommand(KeypadCommand command) {
+    _storedCommand = KeypadCmdState(state.value, command);
     emit(const KeypadInitialState());
   }
 
@@ -49,7 +49,7 @@ class KeypadCubit extends Cubit<KeypadState> {
 
     // Handle editing numbers in the number buffer.
     if (state.value != '') {
-      var newBuffer = state.value.substring(0, state.value.length - 1);
+      final newBuffer = state.value.substring(0, state.value.length - 1);
       emit(KeypadNumState(newBuffer));
       return;
     }
@@ -58,8 +58,8 @@ class KeypadCubit extends Cubit<KeypadState> {
 
   String _times() {
     if (state.value.isNotEmpty) {
-      var multiplicand = _storedCommand!.value.toBigInt();
-      var multiplier = state.value.toBigInt();
+      final multiplicand = _storedCommand!.value.toBigInt();
+      final multiplier = state.value.toBigInt();
       return (multiplicand * multiplier).toString();
     }
     throw Exception('Attempting to multiply by empty value');
@@ -71,8 +71,13 @@ class KeypadCubit extends Cubit<KeypadState> {
     // Handle calculations with command.
     if (_storedCommand != null) {
       try {
-        emit(KeypadResultState(_times()));
-      } catch (e) {
+        switch (_storedCommand!.command) {
+          case KeypadCommand.times:
+            emit(KeypadResultState(_times()));
+          case _:
+            emit(KeypadErrorState('Unknown command: ${_storedCommand!.command}'));
+        }
+      } on Exception catch (e) {
         emit(KeypadErrorState(e.toString()));
       }
       _storedCommand = null;
