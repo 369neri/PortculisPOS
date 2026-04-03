@@ -3,10 +3,12 @@ import 'package:cashier_app/features/checkout/domain/entities/transaction.dart';
 import 'package:cashier_app/features/checkout/domain/entities/transaction_status.dart';
 import 'package:cashier_app/features/checkout/presentation/state/transaction_history_cubit.dart';
 import 'package:cashier_app/features/checkout/presentation/state/transaction_history_state.dart';
+import 'package:cashier_app/features/receipts/receipt_pdf_builder.dart';
 import 'package:cashier_app/features/settings/domain/entities/app_settings.dart';
 import 'package:cashier_app/features/settings/presentation/state/settings_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:printing/printing.dart';
 
 class TransactionHistoryPage extends StatelessWidget {
   const TransactionHistoryPage({super.key});
@@ -310,6 +312,21 @@ class _TransactionDetailSheet extends StatelessWidget {
                   ],
                 ),
               ],
+              OutlinedButton.icon(
+                onPressed: () async {
+                  final bytes = await ReceiptPdfBuilder.build(
+                    transaction,
+                    settings,
+                  );
+                  await Printing.layoutPdf(
+                    name: 'Receipt',
+                    onLayout: (_) async => bytes,
+                  );
+                },
+                icon: const Icon(Icons.print_outlined),
+                label: const Text('Print Receipt'),
+              ),
+              const SizedBox(height: 8),
               const SizedBox(height: 24),
               // Void button (completed only)
               if (!isVoided)

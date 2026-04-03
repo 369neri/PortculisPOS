@@ -20,6 +20,8 @@ dependencies:
   gtin_toolkit: ^1.0.4
   path: ^1.9.1
   path_provider: ^2.1.5
+  pdf: ^3.11.0
+  printing: ^5.13.0
   sqlite3_flutter_libs: ^0.5.0
 
 dev_dependencies:

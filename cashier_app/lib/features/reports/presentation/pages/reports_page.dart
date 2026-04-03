@@ -4,6 +4,7 @@ import 'package:cashier_app/features/checkout/domain/entities/payment_method.dar
 import 'package:cashier_app/features/checkout/presentation/state/transaction_history_cubit.dart';
 import 'package:cashier_app/features/checkout/presentation/state/transaction_history_state.dart';
 import 'package:cashier_app/features/pricing/domain/entities/price.dart';
+import 'package:cashier_app/features/receipts/report_pdf_builder.dart';
 import 'package:cashier_app/features/reports/domain/entities/sales_report.dart';
 import 'package:cashier_app/features/reports/presentation/state/reports_cubit.dart';
 import 'package:cashier_app/features/reports/presentation/state/reports_state.dart';
@@ -11,6 +12,7 @@ import 'package:cashier_app/features/settings/domain/entities/app_settings.dart'
 import 'package:cashier_app/features/settings/presentation/state/settings_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:printing/printing.dart';
 
 class ReportsPage extends StatelessWidget {
   const ReportsPage({super.key});
@@ -432,6 +434,22 @@ class _ReportSheet extends StatelessWidget {
                 icon: const Icon(Icons.lock),
                 label: const Text('Confirm — Close Day'),
               ),
+            const SizedBox(height: 8),
+            OutlinedButton.icon(
+              onPressed: () async {
+                final bytes = await ReportPdfBuilder.build(
+                  report,
+                  settings,
+                  isZ: isZ,
+                );
+                await Printing.layoutPdf(
+                  name: isZ ? 'Z Report' : 'X Report',
+                  onLayout: (_) async => bytes,
+                );
+              },
+              icon: const Icon(Icons.print_outlined),
+              label: const Text('Print'),
+            ),
             const SizedBox(height: 8),
             OutlinedButton(
               onPressed: () => Navigator.of(context).pop(),

@@ -5,10 +5,12 @@ import 'package:cashier_app/features/checkout/domain/entities/transaction.dart';
 import 'package:cashier_app/features/checkout/presentation/state/checkout_cubit.dart';
 import 'package:cashier_app/features/checkout/presentation/state/checkout_state.dart';
 import 'package:cashier_app/features/pricing/domain/entities/price.dart';
+import 'package:cashier_app/features/receipts/receipt_pdf_builder.dart';
 import 'package:cashier_app/features/settings/domain/entities/app_settings.dart';
 import 'package:cashier_app/features/settings/presentation/state/settings_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:printing/printing.dart';
 
 /// Shows a modal bottom sheet to collect payments, then displays the receipt.
 Future<bool> showCheckoutSheet(
@@ -241,6 +243,22 @@ class _ReceiptBody extends StatelessWidget {
             style: Theme.of(context).textTheme.bodySmall,
           ),
           const SizedBox(height: 24),
+          OutlinedButton.icon(
+            onPressed: () async {
+              final bytes = await ReceiptPdfBuilder.build(
+                tx,
+                settings,
+                taxRate: taxRate,
+              );
+              await Printing.layoutPdf(
+                name: 'Receipt',
+                onLayout: (_) async => bytes,
+              );
+            },
+            icon: const Icon(Icons.print_outlined),
+            label: const Text('Print Receipt'),
+          ),
+          const SizedBox(height: 8),
           FilledButton.icon(
             onPressed: () => Navigator.of(context).pop(true),
             icon: const Icon(Icons.check_circle_outline),
