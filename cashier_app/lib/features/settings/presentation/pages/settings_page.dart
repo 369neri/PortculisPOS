@@ -16,6 +16,7 @@ class _SettingsPageState extends State<SettingsPage> {
   final _taxRateCtrl = TextEditingController();
   final _currencyCtrl = TextEditingController();
   final _footerCtrl = TextEditingController();
+  String _themeMode = 'system';
   bool _populated = false;
 
   @override
@@ -40,10 +41,12 @@ class _SettingsPageState extends State<SettingsPage> {
     if (_populated) return;
     _populated = true;
     _businessNameCtrl.text = s.businessName;
-    _taxRateCtrl.text =
-        s.taxRate == s.taxRate.truncate() ? s.taxRate.toStringAsFixed(0) : s.taxRate.toString();
+    _taxRateCtrl.text = s.taxRate == s.taxRate.truncate()
+        ? s.taxRate.toStringAsFixed(0)
+        : s.taxRate.toString();
     _currencyCtrl.text = s.currencySymbol;
     _footerCtrl.text = s.receiptFooter;
+    _themeMode = s.themeMode;
   }
 
   void _save() {
@@ -56,6 +59,7 @@ class _SettingsPageState extends State<SettingsPage> {
             taxRate: taxRate,
             currencySymbol: _currencyCtrl.text.trim(),
             receiptFooter: _footerCtrl.text.trim(),
+            themeMode: _themeMode,
           ),
         );
     ScaffoldMessenger.of(context)
@@ -129,6 +133,11 @@ class _SettingsPageState extends State<SettingsPage> {
                   maxLines: 2,
                 ),
                 const SizedBox(height: 24),
+                _ThemeModeSelector(
+                  value: _themeMode,
+                  onChanged: (mode) => setState(() => _themeMode = mode),
+                ),
+                const SizedBox(height: 24),
                 FilledButton(
                   onPressed: _save,
                   child: const Text('Save settings'),
@@ -138,6 +147,48 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _ThemeModeSelector extends StatelessWidget {
+  const _ThemeModeSelector({
+    required this.value,
+    required this.onChanged,
+  });
+
+  final String value;
+  final ValueChanged<String> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Appearance', style: Theme.of(context).textTheme.titleSmall),
+        const SizedBox(height: 8),
+        SegmentedButton<String>(
+          segments: const [
+            ButtonSegment(
+              value: 'system',
+              icon: Icon(Icons.brightness_auto),
+              label: Text('System'),
+            ),
+            ButtonSegment(
+              value: 'light',
+              icon: Icon(Icons.light_mode),
+              label: Text('Light'),
+            ),
+            ButtonSegment(
+              value: 'dark',
+              icon: Icon(Icons.dark_mode),
+              label: Text('Dark'),
+            ),
+          ],
+          selected: {value},
+          onSelectionChanged: (s) => onChanged(s.first),
+        ),
+      ],
     );
   }
 }

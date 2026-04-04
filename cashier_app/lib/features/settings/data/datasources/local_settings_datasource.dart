@@ -19,6 +19,7 @@ class LocalSettingsDatasource implements SettingsRepository {
       lastZReportAt: row.lastZReportAt != null
           ? DateTime.tryParse(row.lastZReportAt!)
           : null,
+      themeMode: row.themeMode,
     );
   }
 
@@ -31,6 +32,7 @@ class LocalSettingsDatasource implements SettingsRepository {
           currencySymbol: Value(settings.currencySymbol),
           receiptFooter: Value(settings.receiptFooter),
           lastZReportAt: Value(settings.lastZReportAt?.toIso8601String()),
+          themeMode: Value(settings.themeMode),
         ),
       );
 }

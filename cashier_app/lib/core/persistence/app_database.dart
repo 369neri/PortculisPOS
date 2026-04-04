@@ -80,6 +80,8 @@ class SettingsTable extends Table {
   TextColumn get receiptFooter =>
       text().withDefault(const Constant('Thank you for your business!'))();
   TextColumn get lastZReportAt => text().nullable()();
+  TextColumn get themeMode =>
+      text().withDefault(const Constant('system'))();
 
   @override
   Set<Column<Object>> get primaryKey => {id};
@@ -261,7 +263,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration {
@@ -289,6 +291,9 @@ class AppDatabase extends _$AppDatabase {
         }
         if (from < 6) {
           await m.createTable(cashDrawerSessionsTable);
+        }
+        if (from < 7) {
+          await m.addColumn(settingsTable, settingsTable.themeMode);
         }
       },
     );

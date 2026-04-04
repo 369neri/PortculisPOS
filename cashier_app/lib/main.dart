@@ -1,4 +1,5 @@
 import 'package:cashier_app/core/di/service_locator.dart';
+import 'package:cashier_app/core/layout/responsive_layout.dart';
 import 'package:cashier_app/features/archive/presentation/pages/archive_page.dart';
 import 'package:cashier_app/features/billing/presentation/pages/sales_register_page.dart';
 import 'package:cashier_app/features/billing/presentation/state/sales_register_cubit.dart';
@@ -10,6 +11,7 @@ import 'package:cashier_app/features/items/presentation/state/item_lookup_cubit.
 import 'package:cashier_app/features/pricing/presentation/state/keypad_cubit.dart';
 import 'package:cashier_app/features/reports/presentation/pages/reports_page.dart';
 import 'package:cashier_app/features/reports/presentation/state/reports_cubit.dart';
+import 'package:cashier_app/features/settings/domain/entities/app_settings.dart';
 import 'package:cashier_app/features/settings/presentation/pages/settings_page.dart';
 import 'package:cashier_app/features/settings/presentation/state/settings_cubit.dart';
 import 'package:flutter/material.dart';
@@ -23,6 +25,16 @@ void main() {
 
 class PortculisApp extends StatelessWidget {
   const PortculisApp({super.key});
+
+  static const _seedColor = Colors.indigo;
+
+  static ThemeMode _resolveThemeMode(AppSettings settings) {
+    return switch (settings.themeMode) {
+      'light' => ThemeMode.light,
+      'dark' => ThemeMode.dark,
+      _ => ThemeMode.system,
+    };
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,13 +59,35 @@ class PortculisApp extends StatelessWidget {
           create: (_) => sl<CashDrawerCubit>(),
         ),
       ],
-      child: MaterialApp(
-        title: 'Portculis POS',
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
-          useMaterial3: true,
-        ),
-        home: const _AppShell(),
+      child: BlocBuilder<SettingsCubit, SettingsState>(
+        buildWhen: (prev, curr) {
+          if (prev is SettingsReady && curr is SettingsReady) {
+            return prev.settings.themeMode != curr.settings.themeMode;
+          }
+          return true;
+        },
+        builder: (context, settingsState) {
+          final themeMode = settingsState is SettingsReady
+              ? _resolveThemeMode(settingsState.settings)
+              : ThemeMode.system;
+
+          return MaterialApp(
+            title: 'Portculis POS',
+            themeMode: themeMode,
+            theme: ThemeData(
+              colorScheme: ColorScheme.fromSeed(seedColor: _seedColor),
+              useMaterial3: true,
+            ),
+            darkTheme: ThemeData(
+              colorScheme: ColorScheme.fromSeed(
+                seedColor: _seedColor,
+                brightness: Brightness.dark,
+              ),
+              useMaterial3: true,
+            ),
+            home: const _AppShell(),
+          );
+        },
       ),
     );
   }
@@ -77,48 +111,77 @@ class _AppShellState extends State<_AppShell> {
     ArchivePage(),
   ];
 
+  static const _destinations = <({IconData icon, IconData selectedIcon, String label})>[
+    (icon: Icons.point_of_sale_outlined, selectedIcon: Icons.point_of_sale, label: 'Register'),
+    (icon: Icons.inventory_2_outlined, selectedIcon: Icons.inventory_2, label: 'Catalog'),
+    (icon: Icons.bar_chart_outlined, selectedIcon: Icons.bar_chart, label: 'Reports'),
+    (icon: Icons.settings_outlined, selectedIcon: Icons.settings, label: 'Settings'),
+    (icon: Icons.folder_outlined, selectedIcon: Icons.folder, label: 'Archive'),
+  ];
+
+  void _onDestinationSelected(int index) {
+    setState(() => _selectedIndex = index);
+    if (index == 2) {
+      context.read<TransactionHistoryCubit>().load();
+      context.read<ReportsCubit>().load();
+      context.read<CashDrawerCubit>().load();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final wide = isWideScreen(context);
+
     return Scaffold(
-      body: _pages[_selectedIndex],
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _selectedIndex,
-        onDestinationSelected: (i) {
-          setState(() => _selectedIndex = i);
-          if (i == 2) {
-            context.read<TransactionHistoryCubit>().load();
-            context.read<ReportsCubit>().load();
-            context.read<CashDrawerCubit>().load();
-          }
-        },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.point_of_sale_outlined),
-            selectedIcon: Icon(Icons.point_of_sale),
-            label: 'Register',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.inventory_2_outlined),
-            selectedIcon: Icon(Icons.inventory_2),
-            label: 'Catalog',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.bar_chart_outlined),
-            selectedIcon: Icon(Icons.bar_chart),
-            label: 'Reports',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.settings_outlined),
-            selectedIcon: Icon(Icons.settings),
-            label: 'Settings',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.folder_outlined),
-            selectedIcon: Icon(Icons.folder),
-            label: 'Archive',
-          ),
-        ],
+      body: wide ? _buildRailLayout() : _buildPageBody(),
+      bottomNavigationBar: wide ? null : _buildBottomBar(),
+    );
+  }
+
+  Widget _buildPageBody() {
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 250),
+      child: KeyedSubtree(
+        key: ValueKey(_selectedIndex),
+        child: _pages[_selectedIndex],
       ),
+    );
+  }
+
+  Widget _buildBottomBar() {
+    return NavigationBar(
+      selectedIndex: _selectedIndex,
+      onDestinationSelected: _onDestinationSelected,
+      destinations: [
+        for (final d in _destinations)
+          NavigationDestination(
+            icon: Icon(d.icon),
+            selectedIcon: Icon(d.selectedIcon),
+            label: d.label,
+          ),
+      ],
+    );
+  }
+
+  Widget _buildRailLayout() {
+    return Row(
+      children: [
+        NavigationRail(
+          selectedIndex: _selectedIndex,
+          onDestinationSelected: _onDestinationSelected,
+          labelType: NavigationRailLabelType.all,
+          destinations: [
+            for (final d in _destinations)
+              NavigationRailDestination(
+                icon: Icon(d.icon),
+                selectedIcon: Icon(d.selectedIcon),
+                label: Text(d.label),
+              ),
+          ],
+        ),
+        const VerticalDivider(thickness: 1, width: 1),
+        Expanded(child: _buildPageBody()),
+      ],
     );
   }
 }

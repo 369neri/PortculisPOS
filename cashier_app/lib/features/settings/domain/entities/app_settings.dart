@@ -9,6 +9,7 @@ class AppSettings extends Equatable {
     this.currencySymbol = r'$',
     this.receiptFooter = 'Thank you for your business!',
     this.lastZReportAt,
+    this.themeMode = 'system',
   });
 
   final String businessName;
@@ -22,6 +23,9 @@ class AppSettings extends Equatable {
   /// When the last Z report was run; null = no Z ever.
   final DateTime? lastZReportAt;
 
+  /// Theme mode: 'system', 'light', or 'dark'.
+  final String themeMode;
+
   AppSettings copyWith({
     String? businessName,
     double? taxRate,
@@ -29,6 +33,7 @@ class AppSettings extends Equatable {
     String? receiptFooter,
     DateTime? lastZReportAt,
     bool clearLastZReportAt = false,
+    String? themeMode,
   }) =>
       AppSettings(
         businessName: businessName ?? this.businessName,
@@ -37,9 +42,16 @@ class AppSettings extends Equatable {
         receiptFooter: receiptFooter ?? this.receiptFooter,
         lastZReportAt:
             clearLastZReportAt ? null : (lastZReportAt ?? this.lastZReportAt),
+        themeMode: themeMode ?? this.themeMode,
       );
 
   @override
-  List<Object?> get props =>
-      [businessName, taxRate, currencySymbol, receiptFooter, lastZReportAt];
+  List<Object?> get props => [
+        businessName,
+        taxRate,
+        currencySymbol,
+        receiptFooter,
+        lastZReportAt,
+        themeMode,
+      ];
 }

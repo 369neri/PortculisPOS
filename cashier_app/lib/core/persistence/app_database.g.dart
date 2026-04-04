@@ -1034,9 +1034,24 @@ class $SettingsTableTable extends SettingsTable
   late final GeneratedColumn<String> lastZReportAt = GeneratedColumn<String>(
       'last_z_report_at', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _themeModeMeta =
+      const VerificationMeta('themeMode');
   @override
-  List<GeneratedColumn> get $columns =>
-      [id, businessName, taxRate, currencySymbol, receiptFooter, lastZReportAt];
+  late final GeneratedColumn<String> themeMode = GeneratedColumn<String>(
+      'theme_mode', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('system'));
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        businessName,
+        taxRate,
+        currencySymbol,
+        receiptFooter,
+        lastZReportAt,
+        themeMode
+      ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -1078,6 +1093,10 @@ class $SettingsTableTable extends SettingsTable
           lastZReportAt.isAcceptableOrUnknown(
               data['last_z_report_at']!, _lastZReportAtMeta));
     }
+    if (data.containsKey('theme_mode')) {
+      context.handle(_themeModeMeta,
+          themeMode.isAcceptableOrUnknown(data['theme_mode']!, _themeModeMeta));
+    }
     return context;
   }
 
@@ -1099,6 +1118,8 @@ class $SettingsTableTable extends SettingsTable
           .read(DriftSqlType.string, data['${effectivePrefix}receipt_footer'])!,
       lastZReportAt: attachedDatabase.typeMapping.read(
           DriftSqlType.string, data['${effectivePrefix}last_z_report_at']),
+      themeMode: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}theme_mode'])!,
     );
   }
 
@@ -1116,13 +1137,15 @@ class SettingsTableData extends DataClass
   final String currencySymbol;
   final String receiptFooter;
   final String? lastZReportAt;
+  final String themeMode;
   const SettingsTableData(
       {required this.id,
       required this.businessName,
       required this.taxRate,
       required this.currencySymbol,
       required this.receiptFooter,
-      this.lastZReportAt});
+      this.lastZReportAt,
+      required this.themeMode});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -1134,6 +1157,7 @@ class SettingsTableData extends DataClass
     if (!nullToAbsent || lastZReportAt != null) {
       map['last_z_report_at'] = Variable<String>(lastZReportAt);
     }
+    map['theme_mode'] = Variable<String>(themeMode);
     return map;
   }
 
@@ -1147,6 +1171,7 @@ class SettingsTableData extends DataClass
       lastZReportAt: lastZReportAt == null && nullToAbsent
           ? const Value.absent()
           : Value(lastZReportAt),
+      themeMode: Value(themeMode),
     );
   }
 
@@ -1160,6 +1185,7 @@ class SettingsTableData extends DataClass
       currencySymbol: serializer.fromJson<String>(json['currencySymbol']),
       receiptFooter: serializer.fromJson<String>(json['receiptFooter']),
       lastZReportAt: serializer.fromJson<String?>(json['lastZReportAt']),
+      themeMode: serializer.fromJson<String>(json['themeMode']),
     );
   }
   @override
@@ -1172,6 +1198,7 @@ class SettingsTableData extends DataClass
       'currencySymbol': serializer.toJson<String>(currencySymbol),
       'receiptFooter': serializer.toJson<String>(receiptFooter),
       'lastZReportAt': serializer.toJson<String?>(lastZReportAt),
+      'themeMode': serializer.toJson<String>(themeMode),
     };
   }
 
@@ -1181,7 +1208,8 @@ class SettingsTableData extends DataClass
           double? taxRate,
           String? currencySymbol,
           String? receiptFooter,
-          Value<String?> lastZReportAt = const Value.absent()}) =>
+          Value<String?> lastZReportAt = const Value.absent(),
+          String? themeMode}) =>
       SettingsTableData(
         id: id ?? this.id,
         businessName: businessName ?? this.businessName,
@@ -1190,6 +1218,7 @@ class SettingsTableData extends DataClass
         receiptFooter: receiptFooter ?? this.receiptFooter,
         lastZReportAt:
             lastZReportAt.present ? lastZReportAt.value : this.lastZReportAt,
+        themeMode: themeMode ?? this.themeMode,
       );
   SettingsTableData copyWithCompanion(SettingsTableCompanion data) {
     return SettingsTableData(
@@ -1207,6 +1236,7 @@ class SettingsTableData extends DataClass
       lastZReportAt: data.lastZReportAt.present
           ? data.lastZReportAt.value
           : this.lastZReportAt,
+      themeMode: data.themeMode.present ? data.themeMode.value : this.themeMode,
     );
   }
 
@@ -1218,14 +1248,15 @@ class SettingsTableData extends DataClass
           ..write('taxRate: $taxRate, ')
           ..write('currencySymbol: $currencySymbol, ')
           ..write('receiptFooter: $receiptFooter, ')
-          ..write('lastZReportAt: $lastZReportAt')
+          ..write('lastZReportAt: $lastZReportAt, ')
+          ..write('themeMode: $themeMode')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(
-      id, businessName, taxRate, currencySymbol, receiptFooter, lastZReportAt);
+  int get hashCode => Object.hash(id, businessName, taxRate, currencySymbol,
+      receiptFooter, lastZReportAt, themeMode);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1235,7 +1266,8 @@ class SettingsTableData extends DataClass
           other.taxRate == this.taxRate &&
           other.currencySymbol == this.currencySymbol &&
           other.receiptFooter == this.receiptFooter &&
-          other.lastZReportAt == this.lastZReportAt);
+          other.lastZReportAt == this.lastZReportAt &&
+          other.themeMode == this.themeMode);
 }
 
 class SettingsTableCompanion extends UpdateCompanion<SettingsTableData> {
@@ -1245,6 +1277,7 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsTableData> {
   final Value<String> currencySymbol;
   final Value<String> receiptFooter;
   final Value<String?> lastZReportAt;
+  final Value<String> themeMode;
   const SettingsTableCompanion({
     this.id = const Value.absent(),
     this.businessName = const Value.absent(),
@@ -1252,6 +1285,7 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsTableData> {
     this.currencySymbol = const Value.absent(),
     this.receiptFooter = const Value.absent(),
     this.lastZReportAt = const Value.absent(),
+    this.themeMode = const Value.absent(),
   });
   SettingsTableCompanion.insert({
     this.id = const Value.absent(),
@@ -1260,6 +1294,7 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsTableData> {
     this.currencySymbol = const Value.absent(),
     this.receiptFooter = const Value.absent(),
     this.lastZReportAt = const Value.absent(),
+    this.themeMode = const Value.absent(),
   });
   static Insertable<SettingsTableData> custom({
     Expression<int>? id,
@@ -1268,6 +1303,7 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsTableData> {
     Expression<String>? currencySymbol,
     Expression<String>? receiptFooter,
     Expression<String>? lastZReportAt,
+    Expression<String>? themeMode,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -1276,6 +1312,7 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsTableData> {
       if (currencySymbol != null) 'currency_symbol': currencySymbol,
       if (receiptFooter != null) 'receipt_footer': receiptFooter,
       if (lastZReportAt != null) 'last_z_report_at': lastZReportAt,
+      if (themeMode != null) 'theme_mode': themeMode,
     });
   }
 
@@ -1285,7 +1322,8 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsTableData> {
       Value<double>? taxRate,
       Value<String>? currencySymbol,
       Value<String>? receiptFooter,
-      Value<String?>? lastZReportAt}) {
+      Value<String?>? lastZReportAt,
+      Value<String>? themeMode}) {
     return SettingsTableCompanion(
       id: id ?? this.id,
       businessName: businessName ?? this.businessName,
@@ -1293,6 +1331,7 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsTableData> {
       currencySymbol: currencySymbol ?? this.currencySymbol,
       receiptFooter: receiptFooter ?? this.receiptFooter,
       lastZReportAt: lastZReportAt ?? this.lastZReportAt,
+      themeMode: themeMode ?? this.themeMode,
     );
   }
 
@@ -1317,6 +1356,9 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsTableData> {
     if (lastZReportAt.present) {
       map['last_z_report_at'] = Variable<String>(lastZReportAt.value);
     }
+    if (themeMode.present) {
+      map['theme_mode'] = Variable<String>(themeMode.value);
+    }
     return map;
   }
 
@@ -1328,7 +1370,8 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsTableData> {
           ..write('taxRate: $taxRate, ')
           ..write('currencySymbol: $currencySymbol, ')
           ..write('receiptFooter: $receiptFooter, ')
-          ..write('lastZReportAt: $lastZReportAt')
+          ..write('lastZReportAt: $lastZReportAt, ')
+          ..write('themeMode: $themeMode')
           ..write(')'))
         .toString();
   }
@@ -2436,6 +2479,7 @@ typedef $$SettingsTableTableCreateCompanionBuilder = SettingsTableCompanion
   Value<String> currencySymbol,
   Value<String> receiptFooter,
   Value<String?> lastZReportAt,
+  Value<String> themeMode,
 });
 typedef $$SettingsTableTableUpdateCompanionBuilder = SettingsTableCompanion
     Function({
@@ -2445,6 +2489,7 @@ typedef $$SettingsTableTableUpdateCompanionBuilder = SettingsTableCompanion
   Value<String> currencySymbol,
   Value<String> receiptFooter,
   Value<String?> lastZReportAt,
+  Value<String> themeMode,
 });
 
 class $$SettingsTableTableFilterComposer
@@ -2474,6 +2519,9 @@ class $$SettingsTableTableFilterComposer
 
   ColumnFilters<String> get lastZReportAt => $composableBuilder(
       column: $table.lastZReportAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get themeMode => $composableBuilder(
+      column: $table.themeMode, builder: (column) => ColumnFilters(column));
 }
 
 class $$SettingsTableTableOrderingComposer
@@ -2506,6 +2554,9 @@ class $$SettingsTableTableOrderingComposer
   ColumnOrderings<String> get lastZReportAt => $composableBuilder(
       column: $table.lastZReportAt,
       builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get themeMode => $composableBuilder(
+      column: $table.themeMode, builder: (column) => ColumnOrderings(column));
 }
 
 class $$SettingsTableTableAnnotationComposer
@@ -2534,6 +2585,9 @@ class $$SettingsTableTableAnnotationComposer
 
   GeneratedColumn<String> get lastZReportAt => $composableBuilder(
       column: $table.lastZReportAt, builder: (column) => column);
+
+  GeneratedColumn<String> get themeMode =>
+      $composableBuilder(column: $table.themeMode, builder: (column) => column);
 }
 
 class $$SettingsTableTableTableManager extends RootTableManager<
@@ -2568,6 +2622,7 @@ class $$SettingsTableTableTableManager extends RootTableManager<
             Value<String> currencySymbol = const Value.absent(),
             Value<String> receiptFooter = const Value.absent(),
             Value<String?> lastZReportAt = const Value.absent(),
+            Value<String> themeMode = const Value.absent(),
           }) =>
               SettingsTableCompanion(
             id: id,
@@ -2576,6 +2631,7 @@ class $$SettingsTableTableTableManager extends RootTableManager<
             currencySymbol: currencySymbol,
             receiptFooter: receiptFooter,
             lastZReportAt: lastZReportAt,
+            themeMode: themeMode,
           ),
           createCompanionCallback: ({
             Value<int> id = const Value.absent(),
@@ -2584,6 +2640,7 @@ class $$SettingsTableTableTableManager extends RootTableManager<
             Value<String> currencySymbol = const Value.absent(),
             Value<String> receiptFooter = const Value.absent(),
             Value<String?> lastZReportAt = const Value.absent(),
+            Value<String> themeMode = const Value.absent(),
           }) =>
               SettingsTableCompanion.insert(
             id: id,
@@ -2592,6 +2649,7 @@ class $$SettingsTableTableTableManager extends RootTableManager<
             currencySymbol: currencySymbol,
             receiptFooter: receiptFooter,
             lastZReportAt: lastZReportAt,
+            themeMode: themeMode,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
