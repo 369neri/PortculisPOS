@@ -1,4 +1,5 @@
 import 'package:cashier_app/core/di/service_locator.dart';
+import 'package:cashier_app/features/archive/presentation/pages/archive_page.dart';
 import 'package:cashier_app/features/billing/presentation/pages/sales_register_page.dart';
 import 'package:cashier_app/features/billing/presentation/state/sales_register_cubit.dart';
 import 'package:cashier_app/features/checkout/presentation/state/checkout_cubit.dart';
@@ -69,6 +70,7 @@ class _AppShellState extends State<_AppShell> {
     ItemCatalogPage(),
     ReportsPage(),
     SettingsPage(),
+    ArchivePage(),
   ];
 
   @override
@@ -104,6 +106,11 @@ class _AppShellState extends State<_AppShell> {
             icon: Icon(Icons.settings_outlined),
             selectedIcon: Icon(Icons.settings),
             label: 'Settings',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.folder_outlined),
+            selectedIcon: Icon(Icons.folder),
+            label: 'Archive',
           ),
         ],
       ),

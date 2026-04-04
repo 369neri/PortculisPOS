@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:cashier_app/core/di/service_locator.dart';
+import 'package:cashier_app/features/archive/domain/services/archive_service.dart';
 import 'package:cashier_app/features/checkout/domain/entities/payment_method.dart';
 import 'package:cashier_app/features/checkout/presentation/state/transaction_history_cubit.dart';
 import 'package:cashier_app/features/checkout/presentation/state/transaction_history_state.dart';
@@ -449,6 +451,55 @@ class _ReportSheet extends StatelessWidget {
               },
               icon: const Icon(Icons.print_outlined),
               label: const Text('Print'),
+            ),
+            const SizedBox(height: 8),
+            OutlinedButton.icon(
+              onPressed: () async {
+                try {
+                  final bytes = await ReportPdfBuilder.build(
+                    report,
+                    settings,
+                    isZ: isZ,
+                  );
+                  await sl<ArchiveService>().saveReportPdf(
+                    bytes,
+                    report,
+                    isZ: isZ,
+                  );
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Saved to archive'),
+                      ),
+                    );
+                  }
+                } on Exception catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Save failed: $e')),
+                    );
+                  }
+                }
+              },
+              icon: const Icon(Icons.save_outlined),
+              label: const Text('Save to Archive'),
+            ),
+            const SizedBox(height: 8),
+            OutlinedButton.icon(
+              onPressed: () async {
+                final bytes = await ReportPdfBuilder.build(
+                  report,
+                  settings,
+                  isZ: isZ,
+                );
+                final prefix = isZ ? 'z' : 'x';
+                await Printing.sharePdf(
+                  bytes: bytes,
+                  filename: '${prefix}_report.pdf',
+                );
+              },
+              icon: const Icon(Icons.share_outlined),
+              label: const Text('Share / Email'),
             ),
             const SizedBox(height: 8),
             OutlinedButton(

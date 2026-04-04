@@ -1,3 +1,5 @@
+import 'package:cashier_app/core/di/service_locator.dart';
+import 'package:cashier_app/features/archive/domain/services/archive_service.dart';
 import 'package:cashier_app/features/billing/domain/entities/invoice.dart';
 import 'package:cashier_app/features/billing/domain/services/price_calculator.dart';
 import 'package:cashier_app/features/checkout/domain/entities/payment_method.dart';
@@ -257,6 +259,48 @@ class _ReceiptBody extends StatelessWidget {
             },
             icon: const Icon(Icons.print_outlined),
             label: const Text('Print Receipt'),
+          ),
+          const SizedBox(height: 8),
+          OutlinedButton.icon(
+            onPressed: () async {
+              try {
+                final bytes = await ReceiptPdfBuilder.build(
+                  tx,
+                  settings,
+                  taxRate: taxRate,
+                );
+                await sl<ArchiveService>().saveReceiptPdf(bytes, tx);
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Saved to archive')),
+                  );
+                }
+              } on Exception catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Save failed: $e')),
+                  );
+                }
+              }
+            },
+            icon: const Icon(Icons.save_outlined),
+            label: const Text('Save to Archive'),
+          ),
+          const SizedBox(height: 8),
+          OutlinedButton.icon(
+            onPressed: () async {
+              final bytes = await ReceiptPdfBuilder.build(
+                tx,
+                settings,
+                taxRate: taxRate,
+              );
+              await Printing.sharePdf(
+                bytes: bytes,
+                filename: 'receipt_${tx.invoiceNumber ?? tx.id.toString()}.pdf',
+              );
+            },
+            icon: const Icon(Icons.share_outlined),
+            label: const Text('Share / Email'),
           ),
           const SizedBox(height: 8),
           FilledButton.icon(

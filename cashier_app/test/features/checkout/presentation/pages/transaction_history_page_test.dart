@@ -142,6 +142,11 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Coffee'), findsOneWidget);
+
+      // Scroll to reveal buttons added below the fold.
+      await tester.drag(find.text('Coffee'), const Offset(0, -300));
+      await tester.pumpAndSettle();
+
       expect(find.text('Void Transaction'), findsOneWidget);
     });
 
@@ -162,6 +167,10 @@ void main() {
       );
 
       await tester.tap(find.text('INV-00001'));
+      await tester.pumpAndSettle();
+
+      // Scroll to reveal Close button below the fold.
+      await tester.drag(find.text('Coffee'), const Offset(0, -300));
       await tester.pumpAndSettle();
 
       expect(find.text('Close'), findsOneWidget);
