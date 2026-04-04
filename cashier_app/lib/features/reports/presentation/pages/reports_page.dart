@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:cashier_app/core/di/service_locator.dart';
 import 'package:cashier_app/features/archive/domain/services/archive_service.dart';
+import 'package:cashier_app/features/cash_drawer/presentation/pages/cash_drawer_page.dart';
 import 'package:cashier_app/features/checkout/domain/entities/payment_method.dart';
 import 'package:cashier_app/features/checkout/presentation/state/transaction_history_cubit.dart';
 import 'package:cashier_app/features/checkout/presentation/state/transaction_history_state.dart';
@@ -22,7 +23,7 @@ class ReportsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 2,
+      length: 3,
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Reports'),
@@ -30,6 +31,7 @@ class ReportsPage extends StatelessWidget {
             tabs: [
               Tab(icon: Icon(Icons.bar_chart), text: 'Summary'),
               Tab(icon: Icon(Icons.receipt_long), text: 'Transactions'),
+              Tab(icon: Icon(Icons.point_of_sale), text: 'Cash Drawer'),
             ],
           ),
         ),
@@ -37,6 +39,7 @@ class ReportsPage extends StatelessWidget {
           children: [
             _SummaryTab(),
             _TransactionsTab(),
+            CashDrawerPage(),
           ],
         ),
       ),

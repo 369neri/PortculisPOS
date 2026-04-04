@@ -2,6 +2,7 @@ import 'package:cashier_app/core/di/service_locator.dart';
 import 'package:cashier_app/features/archive/presentation/pages/archive_page.dart';
 import 'package:cashier_app/features/billing/presentation/pages/sales_register_page.dart';
 import 'package:cashier_app/features/billing/presentation/state/sales_register_cubit.dart';
+import 'package:cashier_app/features/cash_drawer/presentation/state/cash_drawer_cubit.dart';
 import 'package:cashier_app/features/checkout/presentation/state/checkout_cubit.dart';
 import 'package:cashier_app/features/checkout/presentation/state/transaction_history_cubit.dart';
 import 'package:cashier_app/features/items/presentation/pages/item_catalog_page.dart';
@@ -41,6 +42,9 @@ class PortculisApp extends StatelessWidget {
         ),
         BlocProvider<ReportsCubit>(
           create: (_) => sl<ReportsCubit>(),
+        ),
+        BlocProvider<CashDrawerCubit>(
+          create: (_) => sl<CashDrawerCubit>(),
         ),
       ],
       child: MaterialApp(
@@ -84,6 +88,7 @@ class _AppShellState extends State<_AppShell> {
           if (i == 2) {
             context.read<TransactionHistoryCubit>().load();
             context.read<ReportsCubit>().load();
+            context.read<CashDrawerCubit>().load();
           }
         },
         destinations: const [

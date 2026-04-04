@@ -44,6 +44,20 @@ class SettingsDaoManager {
       $$SettingsTableTableTableManager(_db.attachedDatabase, _db.settingsTable);
 }
 
+mixin _$CashDrawerDaoMixin on DatabaseAccessor<AppDatabase> {
+  $CashDrawerSessionsTableTable get cashDrawerSessionsTable =>
+      attachedDatabase.cashDrawerSessionsTable;
+  CashDrawerDaoManager get managers => CashDrawerDaoManager(this);
+}
+
+class CashDrawerDaoManager {
+  final _$CashDrawerDaoMixin _db;
+  CashDrawerDaoManager(this._db);
+  $$CashDrawerSessionsTableTableTableManager get cashDrawerSessionsTable =>
+      $$CashDrawerSessionsTableTableTableManager(
+          _db.attachedDatabase, _db.cashDrawerSessionsTable);
+}
+
 class $ItemsTableTable extends ItemsTable
     with TableInfo<$ItemsTableTable, ItemsTableData> {
   @override
@@ -1320,6 +1334,375 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsTableData> {
   }
 }
 
+class $CashDrawerSessionsTableTable extends CashDrawerSessionsTable
+    with TableInfo<$CashDrawerSessionsTableTable, CashDrawerSessionsTableData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $CashDrawerSessionsTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _openedAtMeta =
+      const VerificationMeta('openedAt');
+  @override
+  late final GeneratedColumn<DateTime> openedAt = GeneratedColumn<DateTime>(
+      'opened_at', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _closedAtMeta =
+      const VerificationMeta('closedAt');
+  @override
+  late final GeneratedColumn<DateTime> closedAt = GeneratedColumn<DateTime>(
+      'closed_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _openingBalanceSubunitsMeta =
+      const VerificationMeta('openingBalanceSubunits');
+  @override
+  late final GeneratedColumn<int> openingBalanceSubunits = GeneratedColumn<int>(
+      'opening_balance_subunits', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _closingBalanceSubunitsMeta =
+      const VerificationMeta('closingBalanceSubunits');
+  @override
+  late final GeneratedColumn<int> closingBalanceSubunits = GeneratedColumn<int>(
+      'closing_balance_subunits', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _notesMeta = const VerificationMeta('notes');
+  @override
+  late final GeneratedColumn<String> notes = GeneratedColumn<String>(
+      'notes', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        openedAt,
+        closedAt,
+        openingBalanceSubunits,
+        closingBalanceSubunits,
+        notes
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'cash_drawer_sessions';
+  @override
+  VerificationContext validateIntegrity(
+      Insertable<CashDrawerSessionsTableData> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('opened_at')) {
+      context.handle(_openedAtMeta,
+          openedAt.isAcceptableOrUnknown(data['opened_at']!, _openedAtMeta));
+    } else if (isInserting) {
+      context.missing(_openedAtMeta);
+    }
+    if (data.containsKey('closed_at')) {
+      context.handle(_closedAtMeta,
+          closedAt.isAcceptableOrUnknown(data['closed_at']!, _closedAtMeta));
+    }
+    if (data.containsKey('opening_balance_subunits')) {
+      context.handle(
+          _openingBalanceSubunitsMeta,
+          openingBalanceSubunits.isAcceptableOrUnknown(
+              data['opening_balance_subunits']!, _openingBalanceSubunitsMeta));
+    } else if (isInserting) {
+      context.missing(_openingBalanceSubunitsMeta);
+    }
+    if (data.containsKey('closing_balance_subunits')) {
+      context.handle(
+          _closingBalanceSubunitsMeta,
+          closingBalanceSubunits.isAcceptableOrUnknown(
+              data['closing_balance_subunits']!, _closingBalanceSubunitsMeta));
+    }
+    if (data.containsKey('notes')) {
+      context.handle(
+          _notesMeta, notes.isAcceptableOrUnknown(data['notes']!, _notesMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  CashDrawerSessionsTableData map(Map<String, dynamic> data,
+      {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return CashDrawerSessionsTableData(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      openedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}opened_at'])!,
+      closedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}closed_at']),
+      openingBalanceSubunits: attachedDatabase.typeMapping.read(
+          DriftSqlType.int,
+          data['${effectivePrefix}opening_balance_subunits'])!,
+      closingBalanceSubunits: attachedDatabase.typeMapping.read(
+          DriftSqlType.int, data['${effectivePrefix}closing_balance_subunits']),
+      notes: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}notes']),
+    );
+  }
+
+  @override
+  $CashDrawerSessionsTableTable createAlias(String alias) {
+    return $CashDrawerSessionsTableTable(attachedDatabase, alias);
+  }
+}
+
+class CashDrawerSessionsTableData extends DataClass
+    implements Insertable<CashDrawerSessionsTableData> {
+  final int id;
+  final DateTime openedAt;
+  final DateTime? closedAt;
+  final int openingBalanceSubunits;
+  final int? closingBalanceSubunits;
+  final String? notes;
+  const CashDrawerSessionsTableData(
+      {required this.id,
+      required this.openedAt,
+      this.closedAt,
+      required this.openingBalanceSubunits,
+      this.closingBalanceSubunits,
+      this.notes});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['opened_at'] = Variable<DateTime>(openedAt);
+    if (!nullToAbsent || closedAt != null) {
+      map['closed_at'] = Variable<DateTime>(closedAt);
+    }
+    map['opening_balance_subunits'] = Variable<int>(openingBalanceSubunits);
+    if (!nullToAbsent || closingBalanceSubunits != null) {
+      map['closing_balance_subunits'] = Variable<int>(closingBalanceSubunits);
+    }
+    if (!nullToAbsent || notes != null) {
+      map['notes'] = Variable<String>(notes);
+    }
+    return map;
+  }
+
+  CashDrawerSessionsTableCompanion toCompanion(bool nullToAbsent) {
+    return CashDrawerSessionsTableCompanion(
+      id: Value(id),
+      openedAt: Value(openedAt),
+      closedAt: closedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(closedAt),
+      openingBalanceSubunits: Value(openingBalanceSubunits),
+      closingBalanceSubunits: closingBalanceSubunits == null && nullToAbsent
+          ? const Value.absent()
+          : Value(closingBalanceSubunits),
+      notes:
+          notes == null && nullToAbsent ? const Value.absent() : Value(notes),
+    );
+  }
+
+  factory CashDrawerSessionsTableData.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return CashDrawerSessionsTableData(
+      id: serializer.fromJson<int>(json['id']),
+      openedAt: serializer.fromJson<DateTime>(json['openedAt']),
+      closedAt: serializer.fromJson<DateTime?>(json['closedAt']),
+      openingBalanceSubunits:
+          serializer.fromJson<int>(json['openingBalanceSubunits']),
+      closingBalanceSubunits:
+          serializer.fromJson<int?>(json['closingBalanceSubunits']),
+      notes: serializer.fromJson<String?>(json['notes']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'openedAt': serializer.toJson<DateTime>(openedAt),
+      'closedAt': serializer.toJson<DateTime?>(closedAt),
+      'openingBalanceSubunits': serializer.toJson<int>(openingBalanceSubunits),
+      'closingBalanceSubunits': serializer.toJson<int?>(closingBalanceSubunits),
+      'notes': serializer.toJson<String?>(notes),
+    };
+  }
+
+  CashDrawerSessionsTableData copyWith(
+          {int? id,
+          DateTime? openedAt,
+          Value<DateTime?> closedAt = const Value.absent(),
+          int? openingBalanceSubunits,
+          Value<int?> closingBalanceSubunits = const Value.absent(),
+          Value<String?> notes = const Value.absent()}) =>
+      CashDrawerSessionsTableData(
+        id: id ?? this.id,
+        openedAt: openedAt ?? this.openedAt,
+        closedAt: closedAt.present ? closedAt.value : this.closedAt,
+        openingBalanceSubunits:
+            openingBalanceSubunits ?? this.openingBalanceSubunits,
+        closingBalanceSubunits: closingBalanceSubunits.present
+            ? closingBalanceSubunits.value
+            : this.closingBalanceSubunits,
+        notes: notes.present ? notes.value : this.notes,
+      );
+  CashDrawerSessionsTableData copyWithCompanion(
+      CashDrawerSessionsTableCompanion data) {
+    return CashDrawerSessionsTableData(
+      id: data.id.present ? data.id.value : this.id,
+      openedAt: data.openedAt.present ? data.openedAt.value : this.openedAt,
+      closedAt: data.closedAt.present ? data.closedAt.value : this.closedAt,
+      openingBalanceSubunits: data.openingBalanceSubunits.present
+          ? data.openingBalanceSubunits.value
+          : this.openingBalanceSubunits,
+      closingBalanceSubunits: data.closingBalanceSubunits.present
+          ? data.closingBalanceSubunits.value
+          : this.closingBalanceSubunits,
+      notes: data.notes.present ? data.notes.value : this.notes,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CashDrawerSessionsTableData(')
+          ..write('id: $id, ')
+          ..write('openedAt: $openedAt, ')
+          ..write('closedAt: $closedAt, ')
+          ..write('openingBalanceSubunits: $openingBalanceSubunits, ')
+          ..write('closingBalanceSubunits: $closingBalanceSubunits, ')
+          ..write('notes: $notes')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, openedAt, closedAt,
+      openingBalanceSubunits, closingBalanceSubunits, notes);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is CashDrawerSessionsTableData &&
+          other.id == this.id &&
+          other.openedAt == this.openedAt &&
+          other.closedAt == this.closedAt &&
+          other.openingBalanceSubunits == this.openingBalanceSubunits &&
+          other.closingBalanceSubunits == this.closingBalanceSubunits &&
+          other.notes == this.notes);
+}
+
+class CashDrawerSessionsTableCompanion
+    extends UpdateCompanion<CashDrawerSessionsTableData> {
+  final Value<int> id;
+  final Value<DateTime> openedAt;
+  final Value<DateTime?> closedAt;
+  final Value<int> openingBalanceSubunits;
+  final Value<int?> closingBalanceSubunits;
+  final Value<String?> notes;
+  const CashDrawerSessionsTableCompanion({
+    this.id = const Value.absent(),
+    this.openedAt = const Value.absent(),
+    this.closedAt = const Value.absent(),
+    this.openingBalanceSubunits = const Value.absent(),
+    this.closingBalanceSubunits = const Value.absent(),
+    this.notes = const Value.absent(),
+  });
+  CashDrawerSessionsTableCompanion.insert({
+    this.id = const Value.absent(),
+    required DateTime openedAt,
+    this.closedAt = const Value.absent(),
+    required int openingBalanceSubunits,
+    this.closingBalanceSubunits = const Value.absent(),
+    this.notes = const Value.absent(),
+  })  : openedAt = Value(openedAt),
+        openingBalanceSubunits = Value(openingBalanceSubunits);
+  static Insertable<CashDrawerSessionsTableData> custom({
+    Expression<int>? id,
+    Expression<DateTime>? openedAt,
+    Expression<DateTime>? closedAt,
+    Expression<int>? openingBalanceSubunits,
+    Expression<int>? closingBalanceSubunits,
+    Expression<String>? notes,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (openedAt != null) 'opened_at': openedAt,
+      if (closedAt != null) 'closed_at': closedAt,
+      if (openingBalanceSubunits != null)
+        'opening_balance_subunits': openingBalanceSubunits,
+      if (closingBalanceSubunits != null)
+        'closing_balance_subunits': closingBalanceSubunits,
+      if (notes != null) 'notes': notes,
+    });
+  }
+
+  CashDrawerSessionsTableCompanion copyWith(
+      {Value<int>? id,
+      Value<DateTime>? openedAt,
+      Value<DateTime?>? closedAt,
+      Value<int>? openingBalanceSubunits,
+      Value<int?>? closingBalanceSubunits,
+      Value<String?>? notes}) {
+    return CashDrawerSessionsTableCompanion(
+      id: id ?? this.id,
+      openedAt: openedAt ?? this.openedAt,
+      closedAt: closedAt ?? this.closedAt,
+      openingBalanceSubunits:
+          openingBalanceSubunits ?? this.openingBalanceSubunits,
+      closingBalanceSubunits:
+          closingBalanceSubunits ?? this.closingBalanceSubunits,
+      notes: notes ?? this.notes,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (openedAt.present) {
+      map['opened_at'] = Variable<DateTime>(openedAt.value);
+    }
+    if (closedAt.present) {
+      map['closed_at'] = Variable<DateTime>(closedAt.value);
+    }
+    if (openingBalanceSubunits.present) {
+      map['opening_balance_subunits'] =
+          Variable<int>(openingBalanceSubunits.value);
+    }
+    if (closingBalanceSubunits.present) {
+      map['closing_balance_subunits'] =
+          Variable<int>(closingBalanceSubunits.value);
+    }
+    if (notes.present) {
+      map['notes'] = Variable<String>(notes.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CashDrawerSessionsTableCompanion(')
+          ..write('id: $id, ')
+          ..write('openedAt: $openedAt, ')
+          ..write('closedAt: $closedAt, ')
+          ..write('openingBalanceSubunits: $openingBalanceSubunits, ')
+          ..write('closingBalanceSubunits: $closingBalanceSubunits, ')
+          ..write('notes: $notes')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -1328,16 +1711,24 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       $TransactionsTableTable(this);
   late final $PaymentsTableTable paymentsTable = $PaymentsTableTable(this);
   late final $SettingsTableTable settingsTable = $SettingsTableTable(this);
+  late final $CashDrawerSessionsTableTable cashDrawerSessionsTable =
+      $CashDrawerSessionsTableTable(this);
   late final ItemsDao itemsDao = ItemsDao(this as AppDatabase);
   late final TransactionsDao transactionsDao =
       TransactionsDao(this as AppDatabase);
   late final SettingsDao settingsDao = SettingsDao(this as AppDatabase);
+  late final CashDrawerDao cashDrawerDao = CashDrawerDao(this as AppDatabase);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
-  List<DatabaseSchemaEntity> get allSchemaEntities =>
-      [itemsTable, transactionsTable, paymentsTable, settingsTable];
+  List<DatabaseSchemaEntity> get allSchemaEntities => [
+        itemsTable,
+        transactionsTable,
+        paymentsTable,
+        settingsTable,
+        cashDrawerSessionsTable
+      ];
 }
 
 typedef $$ItemsTableTableCreateCompanionBuilder = ItemsTableCompanion Function({
@@ -2224,6 +2615,199 @@ typedef $$SettingsTableTableProcessedTableManager = ProcessedTableManager<
     ),
     SettingsTableData,
     PrefetchHooks Function()>;
+typedef $$CashDrawerSessionsTableTableCreateCompanionBuilder
+    = CashDrawerSessionsTableCompanion Function({
+  Value<int> id,
+  required DateTime openedAt,
+  Value<DateTime?> closedAt,
+  required int openingBalanceSubunits,
+  Value<int?> closingBalanceSubunits,
+  Value<String?> notes,
+});
+typedef $$CashDrawerSessionsTableTableUpdateCompanionBuilder
+    = CashDrawerSessionsTableCompanion Function({
+  Value<int> id,
+  Value<DateTime> openedAt,
+  Value<DateTime?> closedAt,
+  Value<int> openingBalanceSubunits,
+  Value<int?> closingBalanceSubunits,
+  Value<String?> notes,
+});
+
+class $$CashDrawerSessionsTableTableFilterComposer
+    extends Composer<_$AppDatabase, $CashDrawerSessionsTableTable> {
+  $$CashDrawerSessionsTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get openedAt => $composableBuilder(
+      column: $table.openedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get closedAt => $composableBuilder(
+      column: $table.closedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get openingBalanceSubunits => $composableBuilder(
+      column: $table.openingBalanceSubunits,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get closingBalanceSubunits => $composableBuilder(
+      column: $table.closingBalanceSubunits,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get notes => $composableBuilder(
+      column: $table.notes, builder: (column) => ColumnFilters(column));
+}
+
+class $$CashDrawerSessionsTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $CashDrawerSessionsTableTable> {
+  $$CashDrawerSessionsTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get openedAt => $composableBuilder(
+      column: $table.openedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get closedAt => $composableBuilder(
+      column: $table.closedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get openingBalanceSubunits => $composableBuilder(
+      column: $table.openingBalanceSubunits,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get closingBalanceSubunits => $composableBuilder(
+      column: $table.closingBalanceSubunits,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get notes => $composableBuilder(
+      column: $table.notes, builder: (column) => ColumnOrderings(column));
+}
+
+class $$CashDrawerSessionsTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $CashDrawerSessionsTableTable> {
+  $$CashDrawerSessionsTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get openedAt =>
+      $composableBuilder(column: $table.openedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get closedAt =>
+      $composableBuilder(column: $table.closedAt, builder: (column) => column);
+
+  GeneratedColumn<int> get openingBalanceSubunits => $composableBuilder(
+      column: $table.openingBalanceSubunits, builder: (column) => column);
+
+  GeneratedColumn<int> get closingBalanceSubunits => $composableBuilder(
+      column: $table.closingBalanceSubunits, builder: (column) => column);
+
+  GeneratedColumn<String> get notes =>
+      $composableBuilder(column: $table.notes, builder: (column) => column);
+}
+
+class $$CashDrawerSessionsTableTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $CashDrawerSessionsTableTable,
+    CashDrawerSessionsTableData,
+    $$CashDrawerSessionsTableTableFilterComposer,
+    $$CashDrawerSessionsTableTableOrderingComposer,
+    $$CashDrawerSessionsTableTableAnnotationComposer,
+    $$CashDrawerSessionsTableTableCreateCompanionBuilder,
+    $$CashDrawerSessionsTableTableUpdateCompanionBuilder,
+    (
+      CashDrawerSessionsTableData,
+      BaseReferences<_$AppDatabase, $CashDrawerSessionsTableTable,
+          CashDrawerSessionsTableData>
+    ),
+    CashDrawerSessionsTableData,
+    PrefetchHooks Function()> {
+  $$CashDrawerSessionsTableTableTableManager(
+      _$AppDatabase db, $CashDrawerSessionsTableTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$CashDrawerSessionsTableTableFilterComposer(
+                  $db: db, $table: table),
+          createOrderingComposer: () =>
+              $$CashDrawerSessionsTableTableOrderingComposer(
+                  $db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$CashDrawerSessionsTableTableAnnotationComposer(
+                  $db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<DateTime> openedAt = const Value.absent(),
+            Value<DateTime?> closedAt = const Value.absent(),
+            Value<int> openingBalanceSubunits = const Value.absent(),
+            Value<int?> closingBalanceSubunits = const Value.absent(),
+            Value<String?> notes = const Value.absent(),
+          }) =>
+              CashDrawerSessionsTableCompanion(
+            id: id,
+            openedAt: openedAt,
+            closedAt: closedAt,
+            openingBalanceSubunits: openingBalanceSubunits,
+            closingBalanceSubunits: closingBalanceSubunits,
+            notes: notes,
+          ),
+          createCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            required DateTime openedAt,
+            Value<DateTime?> closedAt = const Value.absent(),
+            required int openingBalanceSubunits,
+            Value<int?> closingBalanceSubunits = const Value.absent(),
+            Value<String?> notes = const Value.absent(),
+          }) =>
+              CashDrawerSessionsTableCompanion.insert(
+            id: id,
+            openedAt: openedAt,
+            closedAt: closedAt,
+            openingBalanceSubunits: openingBalanceSubunits,
+            closingBalanceSubunits: closingBalanceSubunits,
+            notes: notes,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$CashDrawerSessionsTableTableProcessedTableManager
+    = ProcessedTableManager<
+        _$AppDatabase,
+        $CashDrawerSessionsTableTable,
+        CashDrawerSessionsTableData,
+        $$CashDrawerSessionsTableTableFilterComposer,
+        $$CashDrawerSessionsTableTableOrderingComposer,
+        $$CashDrawerSessionsTableTableAnnotationComposer,
+        $$CashDrawerSessionsTableTableCreateCompanionBuilder,
+        $$CashDrawerSessionsTableTableUpdateCompanionBuilder,
+        (
+          CashDrawerSessionsTableData,
+          BaseReferences<_$AppDatabase, $CashDrawerSessionsTableTable,
+              CashDrawerSessionsTableData>
+        ),
+        CashDrawerSessionsTableData,
+        PrefetchHooks Function()>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -2236,4 +2820,7 @@ class $AppDatabaseManager {
       $$PaymentsTableTableTableManager(_db, _db.paymentsTable);
   $$SettingsTableTableTableManager get settingsTable =>
       $$SettingsTableTableTableManager(_db, _db.settingsTable);
+  $$CashDrawerSessionsTableTableTableManager get cashDrawerSessionsTable =>
+      $$CashDrawerSessionsTableTableTableManager(
+          _db, _db.cashDrawerSessionsTable);
 }

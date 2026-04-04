@@ -135,6 +135,15 @@ class ReceiptPdfBuilder {
                 textAlign: pw.TextAlign.center,
               ),
             ),
+            pw.SizedBox(height: 8),
+            pw.Center(
+              child: pw.BarcodeWidget(
+                barcode: pw.Barcode.qrCode(),
+                data: '$label|$sym${PriceCalculator.grandTotal(transaction.invoice, taxRate: taxRate)}|${_fmtDate(transaction.createdAt)}',
+                width: 60,
+                height: 60,
+              ),
+            ),
           ],
         ),
       ),

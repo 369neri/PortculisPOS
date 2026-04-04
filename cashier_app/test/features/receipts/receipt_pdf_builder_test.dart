@@ -50,5 +50,13 @@ void main() {
 
       expect(bytes, isNotEmpty);
     });
+
+    test('receipt contains QR code (larger than minimal PDF)', () async {
+      final bytes = await ReceiptPdfBuilder.build(tx, settings);
+
+      // A PDF with a QR barcode is significantly larger than a text-only PDF.
+      // Minimal text-only receipt would be ~2-3 KB; with QR it is larger.
+      expect(bytes.length, greaterThan(3000));
+    });
   });
 }

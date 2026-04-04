@@ -86,6 +86,22 @@ class SettingsTable extends Table {
 }
 
 // ---------------------------------------------------------------------------
+// Cash drawer sessions table
+// ---------------------------------------------------------------------------
+
+class CashDrawerSessionsTable extends Table {
+  @override
+  String get tableName => 'cash_drawer_sessions';
+
+  IntColumn get id => integer().autoIncrement()();
+  DateTimeColumn get openedAt => dateTime()();
+  DateTimeColumn get closedAt => dateTime().nullable()();
+  IntColumn get openingBalanceSubunits => integer()();
+  IntColumn get closingBalanceSubunits => integer().nullable()();
+  TextColumn get notes => text().nullable()();
+}
+
+// ---------------------------------------------------------------------------
 // Items DAO
 // ---------------------------------------------------------------------------
 
@@ -186,18 +202,66 @@ class SettingsDao extends DatabaseAccessor<AppDatabase>
 }
 
 // ---------------------------------------------------------------------------
+// Cash drawer DAO
+// ---------------------------------------------------------------------------
+
+@DriftAccessor(tables: [CashDrawerSessionsTable])
+class CashDrawerDao extends DatabaseAccessor<AppDatabase>
+    with _$CashDrawerDaoMixin {
+  CashDrawerDao(super.db);
+
+  Future<int> openSession(int openingBalanceSubunits) =>
+      into(cashDrawerSessionsTable).insert(
+        CashDrawerSessionsTableCompanion.insert(
+          openedAt: DateTime.now(),
+          openingBalanceSubunits: openingBalanceSubunits,
+        ),
+      );
+
+  Future<void> closeSession(
+    int id,
+    int closingBalanceSubunits, {
+    String? notes,
+  }) =>
+      (update(cashDrawerSessionsTable)..where((t) => t.id.equals(id))).write(
+        CashDrawerSessionsTableCompanion(
+          closedAt: Value(DateTime.now()),
+          closingBalanceSubunits: Value(closingBalanceSubunits),
+          notes: Value(notes),
+        ),
+      );
+
+  Future<CashDrawerSessionsTableData?> getActiveSession() =>
+      (select(cashDrawerSessionsTable)
+            ..where((t) => t.closedAt.isNull())
+            ..limit(1))
+          .getSingleOrNull();
+
+  Future<List<CashDrawerSessionsTableData>> getAllSessions() =>
+      (select(cashDrawerSessionsTable)
+            ..orderBy([(t) => OrderingTerm.desc(t.openedAt)]))
+          .get();
+}
+
+// ---------------------------------------------------------------------------
 // Database
 // ---------------------------------------------------------------------------
 
 @DriftDatabase(
-  tables: [ItemsTable, TransactionsTable, PaymentsTable, SettingsTable],
-  daos: [ItemsDao, TransactionsDao, SettingsDao],
+  tables: [
+    ItemsTable,
+    TransactionsTable,
+    PaymentsTable,
+    SettingsTable,
+    CashDrawerSessionsTable,
+  ],
+  daos: [ItemsDao, TransactionsDao, SettingsDao, CashDrawerDao],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration {
@@ -222,6 +286,9 @@ class AppDatabase extends _$AppDatabase {
         }
         if (from < 5) {
           await m.addColumn(settingsTable, settingsTable.lastZReportAt);
+        }
+        if (from < 6) {
+          await m.createTable(cashDrawerSessionsTable);
         }
       },
     );
