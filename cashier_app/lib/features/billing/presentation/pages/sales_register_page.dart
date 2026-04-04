@@ -1,5 +1,6 @@
 import 'dart:async' show Timer, unawaited;
 
+import 'package:cashier_app/core/di/service_locator.dart';
 import 'package:cashier_app/core/layout/responsive_layout.dart';
 import 'package:cashier_app/features/billing/presentation/state/sales_register_cubit.dart';
 import 'package:cashier_app/features/billing/presentation/state/sales_register_state.dart';
@@ -8,6 +9,8 @@ import 'package:cashier_app/features/billing/presentation/widgets/invoice_summar
 import 'package:cashier_app/features/checkout/presentation/pages/checkout_page.dart';
 import 'package:cashier_app/features/checkout/presentation/state/checkout_cubit.dart';
 import 'package:cashier_app/features/checkout/presentation/state/transaction_history_cubit.dart';
+import 'package:cashier_app/features/items/domain/entities/item.dart';
+import 'package:cashier_app/features/items/domain/repositories/item_repository.dart';
 import 'package:cashier_app/features/items/presentation/state/item_lookup_cubit.dart';
 import 'package:cashier_app/features/pricing/domain/entities/price.dart';
 import 'package:cashier_app/features/pricing/presentation/state/keypad_cubit.dart';
@@ -125,6 +128,16 @@ class _SkuSearchBarState extends State<_SkuSearchBar> {
     context.read<ItemLookupCubit>().lookupBySku(query);
   }
 
+  Future<void> _showCatalogPicker(BuildContext context) async {
+    final item = await showDialog<Item>(
+      context: context,
+      builder: (_) => const _CatalogPickerDialog(),
+    );
+    if (item != null && context.mounted) {
+      context.read<SalesRegisterCubit>().addCatalogItem(item);
+    }
+  }
+
   /// Re-request focus so consecutive scans work seamlessly.
   void _refocus() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -200,18 +213,30 @@ class _SkuSearchBarState extends State<_SkuSearchBar> {
         },
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          child: TextField(
-            controller: _controller,
-            focusNode: _focusNode,
-            autofocus: true,
-            decoration: const InputDecoration(
-              prefixIcon: Icon(Icons.barcode_reader),
-              hintText: 'Scan barcode or enter SKU',
-              border: OutlineInputBorder(),
-              isDense: true,
-            ),
-            textInputAction: TextInputAction.search,
-            onSubmitted: _submit,
+          child: Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _controller,
+                  focusNode: _focusNode,
+                  autofocus: true,
+                  decoration: const InputDecoration(
+                    prefixIcon: Icon(Icons.barcode_reader),
+                    hintText: 'Scan barcode or enter SKU',
+                    border: OutlineInputBorder(),
+                    isDense: true,
+                  ),
+                  textInputAction: TextInputAction.search,
+                  onSubmitted: _submit,
+                ),
+              ),
+              const SizedBox(width: 8),
+              IconButton.filled(
+                onPressed: () => _showCatalogPicker(context),
+                icon: const Icon(Icons.inventory_2_outlined),
+                tooltip: 'Browse catalog',
+              ),
+            ],
           ),
         ),
       ),
@@ -243,6 +268,9 @@ class _InvoicePanel extends StatelessWidget {
                           onRemove: () => context
                               .read<SalesRegisterCubit>()
                               .removeItem(index),
+                          onQuantityChanged: (qty) => context
+                              .read<SalesRegisterCubit>()
+                              .updateQuantity(index, qty),
                         );
                       },
                     ),
@@ -304,6 +332,135 @@ class _KeypadPanel extends StatelessWidget {
           NumKeypad(),
         ],
       ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Catalog picker dialog
+// ---------------------------------------------------------------------------
+
+class _CatalogPickerDialog extends StatefulWidget {
+  const _CatalogPickerDialog();
+
+  @override
+  State<_CatalogPickerDialog> createState() => _CatalogPickerDialogState();
+}
+
+class _CatalogPickerDialogState extends State<_CatalogPickerDialog> {
+  final _searchController = TextEditingController();
+  List<Item> _allItems = [];
+  List<Item> _filtered = [];
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _load() async {
+    final items = await sl<ItemRepository>().getAll();
+    if (!mounted) return;
+    setState(() {
+      _allItems = items;
+      _filtered = items;
+      _loading = false;
+    });
+  }
+
+  void _filter(String query) {
+    final q = query.toLowerCase();
+    setState(() {
+      _filtered = q.isEmpty
+          ? _allItems
+          : _allItems.where((item) {
+              final label = item.label?.toLowerCase() ?? '';
+              final sku = item.sku?.toLowerCase() ?? '';
+              return label.contains(q) || sku.contains(q);
+            }).toList();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 400, maxHeight: 500),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Add from Catalog',
+                  style: Theme.of(context).textTheme.titleMedium,),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _searchController,
+                decoration: const InputDecoration(
+                  prefixIcon: Icon(Icons.search),
+                  hintText: 'Search items...',
+                  border: OutlineInputBorder(),
+                  isDense: true,
+                ),
+                onChanged: _filter,
+              ),
+              const SizedBox(height: 8),
+              Flexible(
+                child: _loading
+                    ? const Center(child: CircularProgressIndicator())
+                    : _filtered.isEmpty
+                        ? const Center(child: Text('No items found'))
+                        : ListView.builder(
+                            shrinkWrap: true,
+                            itemCount: _filtered.length,
+                            itemBuilder: (context, index) {
+                              final item = _filtered[index];
+                              return _CatalogPickerTile(
+                                item: item,
+                                onTap: () =>
+                                    Navigator.of(context).pop(item),
+                              );
+                            },
+                          ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CatalogPickerTile extends StatelessWidget {
+  const _CatalogPickerTile({required this.item, required this.onTap});
+
+  final Item item;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final icon = switch (item) {
+      TradeItem() => Icons.shopping_bag_outlined,
+      ServiceItem() => Icons.build_outlined,
+      KeyedPriceItem() => Icons.attach_money,
+    };
+
+    return ListTile(
+      leading: Icon(icon),
+      title: Text(item.label ?? item.sku ?? 'Unknown'),
+      subtitle: item.sku != null ? Text(item.sku!) : null,
+      trailing: Text(
+        item.unitPrice.toString(),
+        style: Theme.of(context).textTheme.bodyLarge,
+      ),
+      onTap: onTap,
     );
   }
 }
