@@ -1,4 +1,4 @@
-import 'dart:async' show unawaited;
+import 'dart:async' show Timer, unawaited;
 
 import 'package:cashier_app/core/layout/responsive_layout.dart';
 import 'package:cashier_app/features/billing/presentation/state/sales_register_cubit.dart';
@@ -16,6 +16,7 @@ import 'package:cashier_app/features/pricing/presentation/widgets/keypad_display
 import 'package:cashier_app/features/pricing/presentation/widgets/num_keypad.dart';
 import 'package:cashier_app/features/settings/presentation/state/settings_cubit.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class SalesRegisterPage extends StatelessWidget {
@@ -81,7 +82,7 @@ class _WideLayout extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// SKU search bar
+// SKU / barcode search bar with autofocus & global keyboard capture
 // ---------------------------------------------------------------------------
 
 class _SkuSearchBar extends StatefulWidget {
@@ -93,45 +94,125 @@ class _SkuSearchBar extends StatefulWidget {
 
 class _SkuSearchBarState extends State<_SkuSearchBar> {
   final _controller = TextEditingController();
+  final _focusNode = FocusNode();
+
+  /// Buffer for capturing barcode scanner keystrokes when the text field
+  /// does not have focus.  Scanners type very fast (< 50 ms between chars)
+  /// and terminate with Enter.
+  final _scanBuffer = StringBuffer();
+  Timer? _scanTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    // Auto-focus the search field on first build.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _focusNode.requestFocus();
+    });
+  }
 
   @override
   void dispose() {
+    _scanTimer?.cancel();
     _controller.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
   void _submit(String value) {
-    context.read<ItemLookupCubit>().lookupBySku(value);
+    final query = value.trim();
+    if (query.isEmpty) return;
+    context.read<ItemLookupCubit>().lookupBySku(query);
+  }
+
+  /// Re-request focus so consecutive scans work seamlessly.
+  void _refocus() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _focusNode.requestFocus();
+    });
+  }
+
+  // -----------------------------------------------------------------------
+  // Global keyboard handler – captures barcode input when the TextField
+  // does not have focus.
+  // -----------------------------------------------------------------------
+
+  KeyEventResult _onKeyEvent(FocusNode node, KeyEvent event) {
+    // Only act when the TextField itself does NOT have focus.
+    if (_focusNode.hasFocus) return KeyEventResult.ignored;
+
+    if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
+      return KeyEventResult.ignored;
+    }
+
+    final key = event.logicalKey;
+
+    // Enter → submit whatever is in the buffer.
+    if (key == LogicalKeyboardKey.enter ||
+        key == LogicalKeyboardKey.numpadEnter) {
+      if (_scanBuffer.isNotEmpty) {
+        _submit(_scanBuffer.toString());
+        _scanBuffer.clear();
+        _scanTimer?.cancel();
+        return KeyEventResult.handled;
+      }
+      return KeyEventResult.ignored;
+    }
+
+    // Accept printable characters.
+    final char = event.character;
+    if (char != null && char.length == 1) {
+      _scanBuffer.write(char);
+      // Reset the idle timer — if no keystroke arrives within 300 ms the
+      // buffer is cleared (the user was probably just pressing random keys,
+      // not using a scanner).
+      _scanTimer?.cancel();
+      _scanTimer = Timer(
+        const Duration(milliseconds: 300),
+        _scanBuffer.clear,
+      );
+      return KeyEventResult.handled;
+    }
+
+    return KeyEventResult.ignored;
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<ItemLookupCubit, ItemLookupState>(
-      listener: (context, state) {
-        if (state is ItemLookupFound) {
-          context.read<SalesRegisterCubit>().addCatalogItem(state.item);
-          _controller.clear();
-          context.read<ItemLookupCubit>().reset();
-        } else if (state is ItemLookupNotFound) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Item not found: ${state.query}')),
-          );
-          _controller.clear();
-          context.read<ItemLookupCubit>().reset();
-        }
-      },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        child: TextField(
-          controller: _controller,
-          decoration: const InputDecoration(
-            prefixIcon: Icon(Icons.search),
-            hintText: 'Scan barcode or enter SKU',
-            border: OutlineInputBorder(),
-            isDense: true,
+    return Focus(
+      onKeyEvent: _onKeyEvent,
+      child: BlocListener<ItemLookupCubit, ItemLookupState>(
+        listener: (context, state) {
+          if (state is ItemLookupFound) {
+            context.read<SalesRegisterCubit>().addCatalogItem(state.item);
+            _controller.clear();
+            context.read<ItemLookupCubit>().reset();
+            HapticFeedback.mediumImpact();
+            _refocus();
+          } else if (state is ItemLookupNotFound) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Item not found: ${state.query}')),
+            );
+            _controller.clear();
+            context.read<ItemLookupCubit>().reset();
+            _refocus();
+          }
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          child: TextField(
+            controller: _controller,
+            focusNode: _focusNode,
+            autofocus: true,
+            decoration: const InputDecoration(
+              prefixIcon: Icon(Icons.barcode_reader),
+              hintText: 'Scan barcode or enter SKU',
+              border: OutlineInputBorder(),
+              isDense: true,
+            ),
+            textInputAction: TextInputAction.search,
+            onSubmitted: _submit,
           ),
-          textInputAction: TextInputAction.search,
-          onSubmitted: _submit,
         ),
       ),
     );

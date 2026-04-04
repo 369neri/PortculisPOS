@@ -120,6 +120,10 @@ class ItemsDao extends DatabaseAccessor<AppDatabase> with _$ItemsDaoMixin {
       (select(itemsTable)..where((t) => t.sku.equals(sku)))
           .getSingleOrNull();
 
+  Future<ItemsTableData?> findByGtin(String gtin) =>
+      (select(itemsTable)..where((t) => t.gtin.equals(gtin)))
+          .getSingleOrNull();
+
   Future<int> upsertItem(ItemsTableCompanion companion) =>
       into(itemsTable).insert(
         companion,

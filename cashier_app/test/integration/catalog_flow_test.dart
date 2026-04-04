@@ -100,6 +100,51 @@ void main() {
       await catalog.close();
     });
 
+    test('lookup by GTIN finds item when SKU miss', () async {
+      final catalog = ItemCatalogCubit(deps.itemRepo);
+      final lookup = ItemLookupCubit(deps.itemRepo);
+
+      final item = TradeItem(
+        sku: 'GTIN-SKU-1',
+        label: 'Barcoded Widget',
+        unitPrice: Price.from(500),
+        gtin: '5901234123457',
+      );
+      await catalog.save(item);
+
+      // Lookup by GTIN (as if scanned from barcode).
+      await lookup.lookupBySku('5901234123457');
+      expect(lookup.state, isA<ItemLookupFound>());
+      final found = (lookup.state as ItemLookupFound).item;
+      expect(found.sku, 'GTIN-SKU-1');
+      expect(found.label, 'Barcoded Widget');
+
+      await catalog.close();
+      await lookup.close();
+    });
+
+    test('lookup by SKU still takes priority over GTIN', () async {
+      final catalog = ItemCatalogCubit(deps.itemRepo);
+      final lookup = ItemLookupCubit(deps.itemRepo);
+
+      // Item whose SKU happens to look like a GTIN
+      final item = TradeItem(
+        sku: '5901234123457',
+        label: 'SKU-priority',
+        unitPrice: Price.from(300),
+        gtin: '9780201379624',
+      );
+      await catalog.save(item);
+
+      await lookup.lookupBySku('5901234123457');
+      expect(lookup.state, isA<ItemLookupFound>());
+      final found = (lookup.state as ItemLookupFound).item;
+      expect(found.label, 'SKU-priority');
+
+      await catalog.close();
+      await lookup.close();
+    });
+
     test('upsert updates existing item by SKU', () async {
       final catalog = ItemCatalogCubit(deps.itemRepo);
 

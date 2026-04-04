@@ -11,6 +11,7 @@ import 'package:test/test.dart';
 
 class _FakeRepo implements ItemRepository {
   Item? result;
+  Item? gtinResult;
   bool throws = false;
 
   @override
@@ -20,6 +21,12 @@ class _FakeRepo implements ItemRepository {
   Future<Item?> findBySku(String sku) async {
     if (throws) throw Exception('db error');
     return result;
+  }
+
+  @override
+  Future<Item?> findByGtin(String gtin) async {
+    if (throws) throw Exception('db error');
+    return gtinResult;
   }
 
   @override
@@ -118,6 +125,29 @@ void main() {
         predicate<ItemLookupState>(
           (s) => s is ItemLookupFound && s.item.sku == 'SVC-1',
           'found with sku SVC-1',
+        ),
+      ],
+    );
+
+    blocTest<ItemLookupCubit, ItemLookupState>(
+      'SKU miss falls back to GTIN lookup',
+      build: () {
+        repo
+          ..result = null // SKU miss
+          ..gtinResult = TradeItem(
+          sku: 'GTIN-1',
+          label: 'Via GTIN',
+          unitPrice: Price.from(100),
+          gtin: '5901234123457',
+        );
+        return ItemLookupCubit(repo);
+      },
+      act: (c) => c.lookupBySku('5901234123457'),
+      expect: () => [
+        const ItemLookupLoading(),
+        predicate<ItemLookupState>(
+          (s) => s is ItemLookupFound && s.item.sku == 'GTIN-1',
+          'found via GTIN fallback',
         ),
       ],
     );

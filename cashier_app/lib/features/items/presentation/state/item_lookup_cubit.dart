@@ -53,18 +53,21 @@ class ItemLookupCubit extends Cubit<ItemLookupState> {
 
   final ItemRepository _repo;
 
+  /// Looks up an item by SKU first, then falls back to GTIN.
   Future<void> lookupBySku(String sku) async {
-    if (sku.trim().isEmpty) {
+    final query = sku.trim();
+    if (query.isEmpty) {
       emit(const ItemLookupIdle());
       return;
     }
     emit(const ItemLookupLoading());
     try {
-      final item = await _repo.findBySku(sku.trim());
+      var item = await _repo.findBySku(query);
+      item ??= await _repo.findByGtin(query);
       if (item != null) {
         emit(ItemLookupFound(item));
       } else {
-        emit(ItemLookupNotFound(sku.trim()));
+        emit(ItemLookupNotFound(query));
       }
     } on Exception catch (e) {
       emit(ItemLookupError(e.toString()));

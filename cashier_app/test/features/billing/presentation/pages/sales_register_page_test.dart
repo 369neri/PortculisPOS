@@ -20,6 +20,9 @@ class _StubItemRepo implements ItemRepository {
   Future<List<Item>> getAll() async => [];
   @override
   Future<Item?> findBySku(String sku) async => null;
+
+  @override
+  Future<Item?> findByGtin(String gtin) async => null;
   @override
   Future<void> save(Item item) async {}
   @override

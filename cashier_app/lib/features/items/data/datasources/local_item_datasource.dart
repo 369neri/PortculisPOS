@@ -22,6 +22,12 @@ class LocalItemDatasource implements ItemRepository {
   }
 
   @override
+  Future<Item?> findByGtin(String gtin) async {
+    final row = await _db.itemsDao.findByGtin(gtin);
+    return row == null ? null : _toItem(row);
+  }
+
+  @override
   Future<void> save(Item item) async {
     if (item.sku == null) return; // KeyedPriceItem is never persisted
     await _db.itemsDao.upsertItem(

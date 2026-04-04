@@ -23,6 +23,9 @@ class _FakeRepo implements ItemRepository {
   Future<Item?> findBySku(String sku) async => null;
 
   @override
+  Future<Item?> findByGtin(String gtin) async => null;
+
+  @override
   Future<void> save(Item item) async {
     if (error != null) throw error!;
   }
