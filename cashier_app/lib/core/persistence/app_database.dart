@@ -45,6 +45,10 @@ class TransactionsTable extends Table {
   TextColumn get status => text()();
 
   DateTimeColumn get createdAt => dateTime()();
+
+  /// Optional customer association.
+  IntColumn get customerId =>
+      integer().nullable().references(CustomersTable, #id)();
 }
 
 // ---------------------------------------------------------------------------
@@ -101,6 +105,22 @@ class CashDrawerSessionsTable extends Table {
   IntColumn get openingBalanceSubunits => integer()();
   IntColumn get closingBalanceSubunits => integer().nullable()();
   TextColumn get notes => text().nullable()();
+}
+
+// ---------------------------------------------------------------------------
+// Customers table
+// ---------------------------------------------------------------------------
+
+class CustomersTable extends Table {
+  @override
+  String get tableName => 'customers';
+
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get name => text()();
+  TextColumn get phone => text().withDefault(const Constant(''))();
+  TextColumn get email => text().withDefault(const Constant(''))();
+  TextColumn get notes => text().withDefault(const Constant(''))();
+  DateTimeColumn get createdAt => dateTime()();
 }
 
 // ---------------------------------------------------------------------------
@@ -250,6 +270,46 @@ class CashDrawerDao extends DatabaseAccessor<AppDatabase>
 }
 
 // ---------------------------------------------------------------------------
+// Customers DAO
+// ---------------------------------------------------------------------------
+
+@DriftAccessor(tables: [CustomersTable])
+class CustomersDao extends DatabaseAccessor<AppDatabase>
+    with _$CustomersDaoMixin {
+  CustomersDao(super.db);
+
+  Future<List<CustomersTableData>> getAll() =>
+      (select(customersTable)..orderBy([(t) => OrderingTerm.asc(t.name)]))
+          .get();
+
+  Future<CustomersTableData?> findById(int id) =>
+      (select(customersTable)..where((t) => t.id.equals(id)))
+          .getSingleOrNull();
+
+  Future<List<CustomersTableData>> search(String query) =>
+      (select(customersTable)
+            ..where(
+              (t) =>
+                  t.name.like('%$query%') |
+                  t.phone.like('%$query%') |
+                  t.email.like('%$query%'),
+            )
+            ..orderBy([(t) => OrderingTerm.asc(t.name)]))
+          .get();
+
+  Future<int> insertCustomer(CustomersTableCompanion companion) =>
+      into(customersTable).insert(companion);
+
+  Future<void> updateCustomer(CustomersTableCompanion companion) =>
+      (update(customersTable)
+            ..where((t) => t.id.equals(companion.id.value)))
+          .write(companion);
+
+  Future<int> deleteCustomer(int id) =>
+      (delete(customersTable)..where((t) => t.id.equals(id))).go();
+}
+
+// ---------------------------------------------------------------------------
 // Database
 // ---------------------------------------------------------------------------
 
@@ -260,14 +320,15 @@ class CashDrawerDao extends DatabaseAccessor<AppDatabase>
     PaymentsTable,
     SettingsTable,
     CashDrawerSessionsTable,
+    CustomersTable,
   ],
-  daos: [ItemsDao, TransactionsDao, SettingsDao, CashDrawerDao],
+  daos: [ItemsDao, TransactionsDao, SettingsDao, CashDrawerDao, CustomersDao],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration {
@@ -298,6 +359,13 @@ class AppDatabase extends _$AppDatabase {
         }
         if (from < 7) {
           await m.addColumn(settingsTable, settingsTable.themeMode);
+        }
+        if (from < 8) {
+          await m.createTable(customersTable);
+          await m.addColumn(
+            transactionsTable,
+            transactionsTable.customerId,
+          );
         }
       },
     );

@@ -46,6 +46,7 @@ class LocalTransactionDatasource implements TransactionRepository {
       invoiceJson: _encodeInvoice(transaction.invoice),
       status: transaction.status.name,
       createdAt: transaction.createdAt,
+      customerId: Value(transaction.customerId),
     );
 
     final payments = transaction.payments
@@ -80,6 +81,7 @@ class LocalTransactionDatasource implements TransactionRepository {
       payments: paymentRows.map(_paymentToDomain).toList(),
       status: TransactionStatus.values.byName(row.status),
       createdAt: row.createdAt,
+      customerId: row.customerId,
     );
   }
 

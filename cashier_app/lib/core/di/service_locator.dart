@@ -7,6 +7,9 @@ import 'package:cashier_app/features/checkout/data/datasources/local_transaction
 import 'package:cashier_app/features/checkout/domain/repositories/transaction_repository.dart';
 import 'package:cashier_app/features/checkout/presentation/state/checkout_cubit.dart';
 import 'package:cashier_app/features/checkout/presentation/state/transaction_history_cubit.dart';
+import 'package:cashier_app/features/customers/data/datasources/local_customer_datasource.dart';
+import 'package:cashier_app/features/customers/domain/repositories/customer_repository.dart';
+import 'package:cashier_app/features/customers/presentation/state/customer_cubit.dart';
 import 'package:cashier_app/features/items/data/datasources/local_item_datasource.dart';
 import 'package:cashier_app/features/items/domain/repositories/item_repository.dart';
 import 'package:cashier_app/features/items/presentation/state/item_catalog_cubit.dart';
@@ -63,5 +66,12 @@ void initServiceLocator() {
     )
     ..registerFactory<CashDrawerCubit>(
       () => CashDrawerCubit(sl<CashDrawerRepository>()),
+    )
+    // Customers
+    ..registerSingleton<CustomerRepository>(
+      LocalCustomerDatasource(sl<AppDatabase>().customersDao),
+    )
+    ..registerFactory<CustomerCubit>(
+      () => CustomerCubit(sl<CustomerRepository>()),
     );
 }

@@ -14,6 +14,8 @@ class Transaction extends Equatable {
     required this.createdAt,
     this.id,
     this.invoiceNumber,
+    this.customerId,
+    this.customerName,
   });
 
   final int? id;
@@ -22,6 +24,8 @@ class Transaction extends Equatable {
   final List<Payment> payments;
   final TransactionStatus status;
   final DateTime createdAt;
+  final int? customerId;
+  final String? customerName;
 
   /// Sum of all payment amounts.
   Price get totalPaid => payments.fold(
@@ -39,5 +43,6 @@ class Transaction extends Equatable {
   bool get isFullyPaid => totalPaid.value >= invoice.total.value;
 
   @override
-  List<Object?> get props => [id, invoiceNumber, invoice, payments, status, createdAt];
+  List<Object?> get props =>
+      [id, invoiceNumber, invoice, payments, status, createdAt, customerId];
 }

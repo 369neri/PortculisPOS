@@ -6,6 +6,8 @@ import 'package:cashier_app/features/billing/presentation/state/sales_register_c
 import 'package:cashier_app/features/cash_drawer/presentation/state/cash_drawer_cubit.dart';
 import 'package:cashier_app/features/checkout/presentation/state/checkout_cubit.dart';
 import 'package:cashier_app/features/checkout/presentation/state/transaction_history_cubit.dart';
+import 'package:cashier_app/features/customers/presentation/pages/customer_list_page.dart';
+import 'package:cashier_app/features/customers/presentation/state/customer_cubit.dart';
 import 'package:cashier_app/features/items/presentation/pages/item_catalog_page.dart';
 import 'package:cashier_app/features/items/presentation/state/item_lookup_cubit.dart';
 import 'package:cashier_app/features/pricing/presentation/state/keypad_cubit.dart';
@@ -58,6 +60,9 @@ class PortculisApp extends StatelessWidget {
         BlocProvider<CashDrawerCubit>(
           create: (_) => sl<CashDrawerCubit>(),
         ),
+        BlocProvider<CustomerCubit>(
+          create: (_) => sl<CustomerCubit>(),
+        ),
       ],
       child: BlocBuilder<SettingsCubit, SettingsState>(
         buildWhen: (prev, curr) {
@@ -106,6 +111,7 @@ class _AppShellState extends State<_AppShell> {
   static const _pages = <Widget>[
     SalesRegisterPage(),
     ItemCatalogPage(),
+    CustomerListPage(),
     ReportsPage(),
     SettingsPage(),
     ArchivePage(),
@@ -114,6 +120,7 @@ class _AppShellState extends State<_AppShell> {
   static const _destinations = <({IconData icon, IconData selectedIcon, String label})>[
     (icon: Icons.point_of_sale_outlined, selectedIcon: Icons.point_of_sale, label: 'Register'),
     (icon: Icons.inventory_2_outlined, selectedIcon: Icons.inventory_2, label: 'Catalog'),
+    (icon: Icons.people_outlined, selectedIcon: Icons.people, label: 'Customers'),
     (icon: Icons.bar_chart_outlined, selectedIcon: Icons.bar_chart, label: 'Reports'),
     (icon: Icons.settings_outlined, selectedIcon: Icons.settings, label: 'Settings'),
     (icon: Icons.folder_outlined, selectedIcon: Icons.folder, label: 'Archive'),
@@ -121,7 +128,7 @@ class _AppShellState extends State<_AppShell> {
 
   void _onDestinationSelected(int index) {
     setState(() => _selectedIndex = index);
-    if (index == 2) {
+    if (index == 3) {
       context.read<TransactionHistoryCubit>().load();
       context.read<ReportsCubit>().load();
       context.read<CashDrawerCubit>().load();

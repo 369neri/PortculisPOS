@@ -18,6 +18,20 @@ class CheckoutCubit extends Cubit<CheckoutState> {
     emit(CheckoutCollecting(invoice: invoice, taxRate: taxRate));
   }
 
+  void setCustomer({int? id, String? name}) {
+    final current = state;
+    if (current is! CheckoutCollecting) return;
+    emit(
+      CheckoutCollecting(
+        invoice: current.invoice,
+        payments: current.payments,
+        taxRate: current.taxRate,
+        customerId: id,
+        customerName: name,
+      ),
+    );
+  }
+
   void addPayment(PaymentMethod method, Price amount) {
     final current = state;
     if (current is! CheckoutCollecting) return;
@@ -27,6 +41,8 @@ class CheckoutCubit extends Cubit<CheckoutState> {
         invoice: current.invoice,
         payments: [...current.payments, Payment(method: method, amount: amount)],
         taxRate: current.taxRate,
+        customerId: current.customerId,
+        customerName: current.customerName,
       ),
     );
   }
@@ -39,6 +55,8 @@ class CheckoutCubit extends Cubit<CheckoutState> {
         invoice: current.invoice,
         payments: [...current.payments]..removeAt(index),
         taxRate: current.taxRate,
+        customerId: current.customerId,
+        customerName: current.customerName,
       ),
     );
   }
@@ -54,6 +72,8 @@ class CheckoutCubit extends Cubit<CheckoutState> {
         payments: current.payments,
         status: TransactionStatus.completed,
         createdAt: DateTime.now(),
+        customerId: current.customerId,
+        customerName: current.customerName,
       );
       final id = await _repository.save(transaction);
       final saved = await _repository.findById(id);

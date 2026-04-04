@@ -6,6 +6,8 @@ import 'package:cashier_app/features/checkout/domain/entities/payment_method.dar
 import 'package:cashier_app/features/checkout/domain/entities/transaction.dart';
 import 'package:cashier_app/features/checkout/presentation/state/checkout_cubit.dart';
 import 'package:cashier_app/features/checkout/presentation/state/checkout_state.dart';
+import 'package:cashier_app/features/customers/domain/entities/customer.dart';
+import 'package:cashier_app/features/customers/domain/repositories/customer_repository.dart';
 import 'package:cashier_app/features/pricing/domain/entities/price.dart';
 import 'package:cashier_app/features/receipts/receipt_pdf_builder.dart';
 import 'package:cashier_app/features/settings/domain/entities/app_settings.dart';
@@ -83,7 +85,12 @@ class _CollectingBody extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text('Checkout', style: textTheme.titleLarge),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
+          _CustomerChip(
+            customerId: state.customerId,
+            customerName: state.customerName,
+          ),
+          const SizedBox(height: 12),
           _TotalRow(label: 'Total', value: state.totalDue.toString()),
           _TotalRow(label: 'Paid', value: state.totalPaid.toString()),
           if (state.isFullyPaid)
@@ -505,4 +512,142 @@ Price? _parseCashAmount(String text) {
   final parsed = double.tryParse(text.trim().replaceAll(',', '.'));
   if (parsed == null || parsed <= 0) return null;
   return Price(BigInt.from((parsed * 100).round()));
+}
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Customer picker chip
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _CustomerChip extends StatelessWidget {
+  const _CustomerChip({this.customerId, this.customerName});
+
+  final int? customerId;
+  final String? customerName;
+
+  @override
+  Widget build(BuildContext context) {
+    if (customerId != null) {
+      return InputChip(
+        avatar: const Icon(Icons.person, size: 18),
+        label: Text(customerName ?? 'Customer #$customerId'),
+        onDeleted: () =>
+            context.read<CheckoutCubit>().setCustomer(),
+        deleteButtonTooltipMessage: 'Remove customer',
+      );
+    }
+    return ActionChip(
+      avatar: const Icon(Icons.person_add_alt_1, size: 18),
+      label: const Text('Add Customer'),
+      onPressed: () => _showCustomerSearchDialog(context),
+    );
+  }
+}
+
+Future<void> _showCustomerSearchDialog(BuildContext context) async {
+  final cubit = context.read<CheckoutCubit>();
+  final customer = await showDialog<Customer>(
+    context: context,
+    builder: (_) => const _CustomerSearchDialog(),
+  );
+  if (customer != null) {
+    cubit.setCustomer(id: customer.id, name: customer.name);
+  }
+}
+
+class _CustomerSearchDialog extends StatefulWidget {
+  const _CustomerSearchDialog();
+
+  @override
+  State<_CustomerSearchDialog> createState() => _CustomerSearchDialogState();
+}
+
+class _CustomerSearchDialogState extends State<_CustomerSearchDialog> {
+  final _controller = TextEditingController();
+  List<Customer> _results = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    final repo = sl<CustomerRepository>();
+    final all = await repo.getAll();
+    if (mounted) setState(() => _results = all);
+  }
+
+  Future<void> _search(String query) async {
+    final repo = sl<CustomerRepository>();
+    final results =
+        query.isEmpty ? await repo.getAll() : await repo.search(query);
+    if (mounted) setState(() => _results = results);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Select Customer'),
+      content: SizedBox(
+        width: double.maxFinite,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: _controller,
+              autofocus: true,
+              decoration: const InputDecoration(
+                hintText: 'Search by name, phone, or email',
+                prefixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(),
+              ),
+              onChanged: _search,
+            ),
+            const SizedBox(height: 8),
+            Flexible(
+              child: _results.isEmpty
+                  ? const Center(child: Text('No customers found'))
+                  : ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: _results.length,
+                      itemBuilder: (_, i) {
+                        final c = _results[i];
+                        return ListTile(
+                          leading: CircleAvatar(
+                            child: Text(
+                              c.name.isNotEmpty
+                                  ? c.name[0].toUpperCase()
+                                  : '?',
+                            ),
+                          ),
+                          title: Text(c.name),
+                          subtitle: Text(
+                            [
+                              if (c.phone.isNotEmpty) c.phone,
+                              if (c.email.isNotEmpty) c.email,
+                            ].join(' \u2022 '),
+                          ),
+                          onTap: () => Navigator.of(context).pop(c),
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+      ],
+    );
+  }
 }
