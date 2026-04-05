@@ -1,4 +1,6 @@
 import 'package:cashier_app/core/persistence/app_database.dart';
+import 'package:cashier_app/features/archive/domain/services/archive_service.dart';
+import 'package:cashier_app/features/archive/presentation/state/archive_cubit.dart';
 import 'package:cashier_app/features/billing/presentation/state/sales_register_cubit.dart';
 import 'package:cashier_app/features/cash_drawer/data/datasources/local_cash_drawer_datasource.dart';
 import 'package:cashier_app/features/cash_drawer/domain/repositories/cash_drawer_repository.dart';
@@ -73,5 +75,10 @@ void initServiceLocator() {
     )
     ..registerFactory<CustomerCubit>(
       () => CustomerCubit(sl<CustomerRepository>()),
+    )
+    // Archive
+    ..registerSingleton<ArchiveService>(ArchiveService())
+    ..registerFactory<ArchiveCubit>(
+      () => ArchiveCubit(sl<ArchiveService>()),
     );
 }
