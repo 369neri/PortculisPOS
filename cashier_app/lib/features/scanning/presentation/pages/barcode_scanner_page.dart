@@ -42,11 +42,11 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
         actions: [
           IconButton(
             icon: const Icon(Icons.flash_on),
-            onPressed: () => _controller.toggleTorch(),
+            onPressed: _controller.toggleTorch,
           ),
           IconButton(
             icon: const Icon(Icons.cameraswitch),
-            onPressed: () => _controller.switchCamera(),
+            onPressed: _controller.switchCamera,
           ),
         ],
       ),

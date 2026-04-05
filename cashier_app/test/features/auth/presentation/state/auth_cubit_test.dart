@@ -16,11 +16,10 @@ class _FakeUserRepo implements UserRepository {
 
   @override
   Future<User?> findByUsername(String username) async {
-    try {
-      return users.firstWhere((u) => u.username == username);
-    } catch (_) {
-      return null;
+    for (final u in users) {
+      if (u.username == username) return u;
     }
+    return null;
   }
 
   @override

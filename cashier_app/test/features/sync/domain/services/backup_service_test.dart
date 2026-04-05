@@ -71,7 +71,6 @@ final _service = ServiceItem(
   label: 'Repair',
   unitPrice: Price.from(2500),
   category: 'Labor',
-  isFavorite: false,
 );
 
 // ---------------------------------------------------------------------------
@@ -151,8 +150,8 @@ void main() {
 
       // Write to a temp file
       final tmpDir = Directory.systemTemp.createTempSync('backup_test_');
-      final file = File('${tmpDir.path}/backup.json');
-      file.writeAsStringSync(json);
+      final file = File('${tmpDir.path}/backup.json')
+        ..writeAsStringSync(json);
 
       final count = await sut.importBackup(file.path);
       expect(count, 2);
@@ -165,10 +164,10 @@ void main() {
     });
 
     test('throws FormatException for unsupported version', () async {
-      final json = jsonEncode({'version': 99, 'items': []});
+      final json = jsonEncode({'version': 99, 'items': <Map<String, dynamic>>[]});
       final tmpDir = Directory.systemTemp.createTempSync('backup_test_');
-      final file = File('${tmpDir.path}/backup.json');
-      file.writeAsStringSync(json);
+      final file = File('${tmpDir.path}/backup.json')
+        ..writeAsStringSync(json);
 
       expect(
         () => sut.importBackup(file.path),
@@ -182,12 +181,12 @@ void main() {
       final json = jsonEncode({
         'version': 1,
         'exportedAt': DateTime.now().toIso8601String(),
-        'items': [],
+        'items': <Map<String, dynamic>>[],
         'transactionCount': 0,
       });
       final tmpDir = Directory.systemTemp.createTempSync('backup_test_');
-      final file = File('${tmpDir.path}/backup.json');
-      file.writeAsStringSync(json);
+      final file = File('${tmpDir.path}/backup.json')
+        ..writeAsStringSync(json);
 
       final count = await sut.importBackup(file.path);
       expect(count, 0);

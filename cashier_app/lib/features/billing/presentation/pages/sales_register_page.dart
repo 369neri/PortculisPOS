@@ -9,7 +9,6 @@ import 'package:cashier_app/features/billing/presentation/widgets/invoice_summar
 import 'package:cashier_app/features/cash_drawer/presentation/state/cash_drawer_cubit.dart';
 import 'package:cashier_app/features/cash_drawer/presentation/state/cash_drawer_state.dart';
 import 'package:cashier_app/features/checkout/presentation/pages/checkout_page.dart';
-import 'package:cashier_app/features/scanning/presentation/pages/barcode_scanner_page.dart';
 import 'package:cashier_app/features/checkout/presentation/state/checkout_cubit.dart';
 import 'package:cashier_app/features/checkout/presentation/state/transaction_history_cubit.dart';
 import 'package:cashier_app/features/items/domain/entities/item.dart';
@@ -20,6 +19,7 @@ import 'package:cashier_app/features/pricing/presentation/state/keypad_cubit.dar
 import 'package:cashier_app/features/pricing/presentation/state/keypad_cubit_state.dart';
 import 'package:cashier_app/features/pricing/presentation/widgets/keypad_display.dart';
 import 'package:cashier_app/features/pricing/presentation/widgets/num_keypad.dart';
+import 'package:cashier_app/features/scanning/presentation/pages/barcode_scanner_page.dart';
 import 'package:cashier_app/features/settings/presentation/state/settings_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -128,7 +128,7 @@ class _SkuSearchBarState extends State<_SkuSearchBar> {
   void _submit(String value) {
     final query = value.trim();
     if (query.isEmpty) return;
-    context.read<ItemLookupCubit>().lookupBySku(query);
+    unawaited(context.read<ItemLookupCubit>().lookupBySku(query));
   }
 
   Future<void> _showCatalogPicker(BuildContext context) async {
@@ -146,7 +146,7 @@ class _SkuSearchBarState extends State<_SkuSearchBar> {
       MaterialPageRoute(builder: (_) => const BarcodeScannerPage()),
     );
     if (barcode != null && barcode.isNotEmpty && context.mounted) {
-      context.read<ItemLookupCubit>().lookupBySku(barcode);
+      unawaited(context.read<ItemLookupCubit>().lookupBySku(barcode));
     }
   }
 
@@ -666,7 +666,7 @@ class _CatalogPickerDialogState extends State<_CatalogPickerDialog> {
   }
 
   void _filter(String query) {
-    setState(() => _applyFilters());
+    setState(_applyFilters);
   }
 
   @override
@@ -717,7 +717,7 @@ class _CatalogPickerDialogState extends State<_CatalogPickerDialog> {
                                 _applyFilters();
                               }),
                             ),
-                          )),
+                          ),),
                     ],
                   ),
                 ),

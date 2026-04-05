@@ -94,7 +94,7 @@ void main() {
 
     test('handles multiple transactions', () async {
       final txs = [
-        _makeTx(id: 1),
+        _makeTx(),
         _makeTx(id: 2, status: TransactionStatus.voided),
         _makeTx(id: 3, status: TransactionStatus.refunded),
       ];

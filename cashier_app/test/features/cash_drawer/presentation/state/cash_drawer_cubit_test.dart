@@ -22,7 +22,7 @@ void main() {
 
   tearDown(() => cubit.close());
 
-  final now = DateTime(2026, 4, 4, 10, 0);
+  final now = DateTime(2026, 4, 4, 10);
   final session = CashDrawerSession(
     id: 1,
     openedAt: now,

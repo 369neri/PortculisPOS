@@ -74,7 +74,7 @@ class _SettingsPageState extends State<SettingsPage> {
   Future<void> _exportBackup() async {
     try {
       await GetIt.instance<BackupService>().exportAndShare();
-    } catch (e) {
+    } on Exception catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Export failed: $e')),
@@ -98,7 +98,7 @@ class _SettingsPageState extends State<SettingsPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Imported $count items')),
       );
-    } catch (e) {
+    } on Exception catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Import failed: $e')),

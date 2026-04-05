@@ -54,7 +54,7 @@ void main() {
 
     test('items with different isFavorite are not equal', () {
       final a = ServiceItem(sku: 's', label: 'l', unitPrice: Price.from(1), isFavorite: true);
-      final b = ServiceItem(sku: 's', label: 'l', unitPrice: Price.from(1), isFavorite: false);
+      final b = ServiceItem(sku: 's', label: 'l', unitPrice: Price.from(1));
       expect(a, isNot(equals(b)));
     });
   });

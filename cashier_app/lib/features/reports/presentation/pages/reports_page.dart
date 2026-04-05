@@ -322,10 +322,10 @@ class _ReportActions extends StatelessWidget {
     if (txState is! TransactionHistoryLoaded) return;
     try {
       await CsvExporter.exportAndShare(txState.transactions);
-    } on Exception catch (e) {
+    } on Exception {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Export failed: \$e')),
+        const SnackBar(content: Text(r'Export failed: $e')),
       );
     }
   }
