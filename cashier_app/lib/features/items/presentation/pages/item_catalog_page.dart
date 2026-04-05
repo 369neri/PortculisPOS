@@ -17,8 +17,33 @@ class ItemCatalogPage extends StatelessWidget {
   }
 }
 
-class _ItemCatalogView extends StatelessWidget {
+class _ItemCatalogView extends StatefulWidget {
   const _ItemCatalogView();
+
+  @override
+  State<_ItemCatalogView> createState() => _ItemCatalogViewState();
+}
+
+class _ItemCatalogViewState extends State<_ItemCatalogView> {
+  final _searchController = TextEditingController();
+  String _query = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  List<Item> _applyFilter(List<Item> items) {
+    if (_query.isEmpty) return items;
+    final q = _query.toLowerCase();
+    return items.where((item) {
+      final label = item.label?.toLowerCase() ?? '';
+      final sku = item.sku?.toLowerCase() ?? '';
+      final gtin = (item is TradeItem) ? (item.gtin?.toLowerCase() ?? '') : '';
+      return label.contains(q) || sku.contains(q) || gtin.contains(q);
+    }).toList();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,43 +54,94 @@ class _ItemCatalogView extends StatelessWidget {
         tooltip: 'Add item',
         child: const Icon(Icons.add),
       ),
-      body: BlocBuilder<ItemCatalogCubit, ItemCatalogState>(
-        builder: (context, state) {
-          return switch (state) {
-            ItemCatalogLoading() =>
-              const Center(child: CircularProgressIndicator()),
-            ItemCatalogError(message: final msg) =>
-              Center(child: Text('Error: $msg')),
-            ItemCatalogLoaded(items: final items) => items.isEmpty
-                ? const Center(child: Text('No items in catalog'))
-                : ListView.builder(
-                    itemCount: items.length,
-                    itemBuilder: (context, index) {
-                      final item = items[index];
-                      return ListTile(
-                        leading: Icon(_iconFor(item)),
-                        title: Text(item.label ?? item.sku ?? 'Unknown'),
-                        subtitle: Text(item.sku ?? ''),
-                        trailing: Text(
-                          item.unitPrice.toString(),
-                          style: Theme.of(context).textTheme.bodyLarge,
-                        ),
-                        onTap: () => _showItemForm(
-                          context,
-                          item: item,
-                          cubit: context.read(),
-                        ),
-                        onLongPress: () => _confirmDelete(
-                          context,
-                          item: item,
-                          cubit: context.read(),
-                        ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                prefixIcon: const Icon(Icons.search),
+                hintText: 'Search by name, SKU, or GTIN...',
+                border: const OutlineInputBorder(),
+                isDense: true,
+                suffixIcon: _query.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          _searchController.clear();
+                          setState(() => _query = '');
+                        },
+                      )
+                    : null,
+              ),
+              onChanged: (v) => setState(() => _query = v.trim()),
+            ),
+          ),
+          Expanded(
+            child: BlocBuilder<ItemCatalogCubit, ItemCatalogState>(
+              builder: (context, state) {
+                return switch (state) {
+                  ItemCatalogLoading() =>
+                    const Center(child: CircularProgressIndicator()),
+                  ItemCatalogError(message: final msg) =>
+                    Center(child: Text('Error: $msg')),
+                  ItemCatalogLoaded(items: final items) => () {
+                      final filtered = _applyFilter(items);
+                      if (filtered.isEmpty) {
+                        return Center(
+                          child: Text(
+                            _query.isEmpty
+                                ? 'No items in catalog'
+                                : 'No items match "$_query"',
+                          ),
+                        );
+                      }
+                      return ListView.builder(
+                        itemCount: filtered.length,
+                        itemBuilder: (context, index) {
+                          final item = filtered[index];
+                          return ListTile(
+                            leading: Icon(_iconFor(item)),
+                            title:
+                                Text(item.label ?? item.sku ?? 'Unknown'),
+                            subtitle: _buildSubtitle(context, item),
+                            trailing: Text(
+                              item.unitPrice.toString(),
+                              style:
+                                  Theme.of(context).textTheme.bodyLarge,
+                            ),
+                            onTap: () => _showItemForm(
+                              context,
+                              item: item,
+                              cubit: context.read(),
+                            ),
+                            onLongPress: () => _confirmDelete(
+                              context,
+                              item: item,
+                              cubit: context.read(),
+                            ),
+                          );
+                        },
                       );
-                    },
-                  ),
-          };
-        },
+                    }(),
+                };
+              },
+            ),
+          ),
+        ],
       ),
+    );
+  }
+
+  Widget? _buildSubtitle(BuildContext context, Item item) {
+    final parts = <String>[];
+    if (item.sku != null) parts.add(item.sku!);
+    if (item is TradeItem && item.gtin != null) parts.add('GTIN: ${item.gtin}');
+    if (parts.isEmpty) return null;
+    return Text(
+      parts.join('  ·  '),
+      style: Theme.of(context).textTheme.bodySmall,
     );
   }
 
@@ -118,7 +194,7 @@ class _ItemCatalogView extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// Item form bottom sheet
+// Item form bottom sheet (with GTIN field for trade items)
 // ---------------------------------------------------------------------------
 
 class _ItemFormSheet extends StatefulWidget {
@@ -136,6 +212,7 @@ class _ItemFormSheetState extends State<_ItemFormSheet> {
   late final TextEditingController _skuCtrl;
   late final TextEditingController _labelCtrl;
   late final TextEditingController _priceCtrl;
+  late final TextEditingController _gtinCtrl;
   String _type = 'trade';
 
   @override
@@ -147,6 +224,9 @@ class _ItemFormSheetState extends State<_ItemFormSheet> {
     _priceCtrl = TextEditingController(
       text: item != null ? item.unitPrice.toString() : '',
     );
+    _gtinCtrl = TextEditingController(
+      text: (item is TradeItem) ? (item.gtin ?? '') : '',
+    );
     if (item is ServiceItem) _type = 'service';
   }
 
@@ -155,17 +235,20 @@ class _ItemFormSheetState extends State<_ItemFormSheet> {
     _skuCtrl.dispose();
     _labelCtrl.dispose();
     _priceCtrl.dispose();
+    _gtinCtrl.dispose();
     super.dispose();
   }
 
   void _save() {
     if (!_formKey.currentState!.validate()) return;
 
-    // Parse price: user enters decimal (e.g. "3.50") → store as subunits (350)
+    // Parse price: user enters decimal (e.g. "3.50") -> store as subunits (350)
     final priceText = _priceCtrl.text.trim().replaceAll(',', '.');
     final priceDouble = double.tryParse(priceText) ?? 0;
     final subunits = BigInt.from((priceDouble * 100).round());
     final price = Price(subunits);
+
+    final gtinText = _gtinCtrl.text.trim();
 
     final newItem = _type == 'service'
         ? ServiceItem(
@@ -177,6 +260,7 @@ class _ItemFormSheetState extends State<_ItemFormSheet> {
             sku: _skuCtrl.text.trim(),
             label: _labelCtrl.text.trim(),
             unitPrice: price,
+            gtin: gtinText.isNotEmpty ? gtinText : null,
           );
 
     widget.cubit.save(newItem);
@@ -239,6 +323,17 @@ class _ItemFormSheetState extends State<_ItemFormSheet> {
                 return null;
               },
             ),
+            if (_type == 'trade') ...[
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _gtinCtrl,
+                decoration: const InputDecoration(
+                  labelText: 'GTIN / Barcode',
+                  hintText: 'e.g. 5901234123457',
+                ),
+                keyboardType: TextInputType.number,
+              ),
+            ],
             const SizedBox(height: 20),
             FilledButton(
               onPressed: _save,

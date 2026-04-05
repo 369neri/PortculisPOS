@@ -31,6 +31,27 @@ class Invoice extends Equatable {
     return copyWith(items: updated);
   }
 
+
+  Invoice updateItemDiscount(
+    int index, {
+    double discountPercent = 0.0,
+    Price? discountAmount,
+  }) {
+    final updated = [...items];
+    updated[index] = updated[index].copyWith(
+      discountPercent: discountPercent,
+      discountAmount: discountAmount != null ? () => discountAmount : null,
+    );
+    return copyWith(items: updated);
+  }
+
+  /// Sum of all line-item discounts (gross totals − net totals).
+  Price get discountTotal => items.fold(
+        Price.from(0),
+        (sum, item) =>
+            Price(sum.value + (item.grossTotal.value - item.lineTotal.value)),
+      );
+
   Invoice suspend() => copyWith(status: InvoiceStatus.pending);
   Invoice activate() => copyWith(status: InvoiceStatus.active);
   Invoice process() => copyWith(status: InvoiceStatus.processed);

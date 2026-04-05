@@ -4,14 +4,24 @@ import 'package:flutter/widgets.dart';
 
 @immutable
 class SalesRegisterState extends Equatable {
-  const SalesRegisterState({this.invoice = const Invoice()});
+  const SalesRegisterState({
+    this.invoice = const Invoice(),
+    this.heldInvoices = const [],
+  });
 
   final Invoice invoice;
+  final List<Invoice> heldInvoices;
 
-  SalesRegisterState copyWith({Invoice? invoice}) {
-    return SalesRegisterState(invoice: invoice ?? this.invoice);
+  SalesRegisterState copyWith({
+    Invoice? invoice,
+    List<Invoice>? heldInvoices,
+  }) {
+    return SalesRegisterState(
+      invoice: invoice ?? this.invoice,
+      heldInvoices: heldInvoices ?? this.heldInvoices,
+    );
   }
 
   @override
-  List<Object?> get props => [invoice];
+  List<Object?> get props => [invoice, heldInvoices];
 }

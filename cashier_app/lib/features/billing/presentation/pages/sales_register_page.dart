@@ -6,6 +6,8 @@ import 'package:cashier_app/features/billing/presentation/state/sales_register_c
 import 'package:cashier_app/features/billing/presentation/state/sales_register_state.dart';
 import 'package:cashier_app/features/billing/presentation/widgets/invoice_line_item.dart';
 import 'package:cashier_app/features/billing/presentation/widgets/invoice_summary.dart';
+import 'package:cashier_app/features/cash_drawer/presentation/state/cash_drawer_cubit.dart';
+import 'package:cashier_app/features/cash_drawer/presentation/state/cash_drawer_state.dart';
 import 'package:cashier_app/features/checkout/presentation/pages/checkout_page.dart';
 import 'package:cashier_app/features/checkout/presentation/state/checkout_cubit.dart';
 import 'package:cashier_app/features/checkout/presentation/state/transaction_history_cubit.dart';
@@ -271,17 +273,68 @@ class _InvoicePanel extends StatelessWidget {
                           onQuantityChanged: (qty) => context
                               .read<SalesRegisterCubit>()
                               .updateQuantity(index, qty),
+                          onDiscountChanged: (pct, amt) => context
+                              .read<SalesRegisterCubit>()
+                              .updateDiscount(index,
+                                  discountPercent: pct,
+                                  discountAmount: amt,),
                         );
                       },
                     ),
             ),
             InvoiceSummary(invoice: state.invoice),
             Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: items.isEmpty
+                          ? null
+                          : () => context
+                              .read<SalesRegisterCubit>()
+                              .holdInvoice(),
+                      icon: const Icon(Icons.pause_circle_outline, size: 18),
+                      label: const Text('Hold'),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Badge(
+                      isLabelVisible: state.heldInvoices.isNotEmpty,
+                      label: Text('${state.heldInvoices.length}'),
+                      child: OutlinedButton.icon(
+                        onPressed: state.heldInvoices.isEmpty
+                            ? null
+                            : () => _showHeldInvoicesSheet(context),
+                        icon: const Icon(Icons.replay, size: 18),
+                        label: const Text('Recall'),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: FilledButton.icon(
                 onPressed: items.isEmpty
                     ? null
                     : () async {
+                        // Check if cash drawer is open
+                        final drawerState =
+                            context.read<CashDrawerCubit>().state;
+                        if (drawerState is! CashDrawerOpen &&
+                            context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Open the cash drawer before checking out',
+                              ),
+                            ),
+                          );
+                          return;
+                        }
                         final settingsState =
                             context.read<SettingsCubit>().state;
                         final taxRate = settingsState is SettingsReady
@@ -311,6 +364,74 @@ class _InvoicePanel extends StatelessWidget {
       },
     );
   }
+}
+
+void _showHeldInvoicesSheet(BuildContext context) {
+  showModalBottomSheet<void>(
+    context: context,
+    builder: (_) => BlocProvider.value(
+      value: context.read<SalesRegisterCubit>(),
+      child: BlocBuilder<SalesRegisterCubit, SalesRegisterState>(
+        builder: (ctx, state) {
+          final held = state.heldInvoices;
+          return Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  'Held Invoices (${held.length})',
+                  style: Theme.of(ctx).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 8),
+                if (held.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 24),
+                    child: Center(child: Text('No held invoices')),
+                  )
+                else
+                  ...List.generate(held.length, (i) {
+                    final inv = held[i];
+                    final itemCount = inv.items.length;
+                    final total = inv.total;
+                    return ListTile(
+                      leading: CircleAvatar(child: Text('${i + 1}')),
+                      title: Text(
+                        '$itemCount item${itemCount == 1 ? '' : 's'}',
+                      ),
+                      subtitle: Text(total.toString()),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          FilledButton(
+                            onPressed: () {
+                              ctx
+                                  .read<SalesRegisterCubit>()
+                                  .recallInvoice(i);
+                              Navigator.of(ctx).pop();
+                            },
+                            child: const Text('Recall'),
+                          ),
+                          const SizedBox(width: 8),
+                          IconButton(
+                            icon: const Icon(Icons.delete_outline),
+                            onPressed: () => ctx
+                                .read<SalesRegisterCubit>()
+                                .discardHeldInvoice(i),
+                            tooltip: 'Discard',
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
+              ],
+            ),
+          );
+        },
+      ),
+    ),
+  );
 }
 
 // ---------------------------------------------------------------------------

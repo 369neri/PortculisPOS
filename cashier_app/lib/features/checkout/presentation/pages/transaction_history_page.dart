@@ -12,36 +12,170 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:printing/printing.dart';
 
-class TransactionHistoryPage extends StatelessWidget {
+class TransactionHistoryPage extends StatefulWidget {
   const TransactionHistoryPage({super.key});
+
+  @override
+  State<TransactionHistoryPage> createState() =>
+      _TransactionHistoryPageState();
+}
+
+class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
+  final _searchController = TextEditingController();
+  String _query = '';
+  String _statusFilter = 'all'; // all | completed | voided
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  List<Transaction> _applyFilters(List<Transaction> transactions) {
+    var result = transactions;
+
+    // Status filter
+    if (_statusFilter == 'completed') {
+      result = result
+          .where((tx) => tx.status == TransactionStatus.completed)
+          .toList();
+    } else if (_statusFilter == 'voided') {
+      result = result
+          .where((tx) => tx.status == TransactionStatus.voided)
+          .toList();
+    }
+
+    // Text search
+    if (_query.isNotEmpty) {
+      final q = _query.toLowerCase();
+      result = result.where((tx) {
+        final inv = tx.invoiceNumber?.toLowerCase() ?? '';
+        final id = tx.id?.toString() ?? '';
+        final total = tx.invoice.total.toString().toLowerCase();
+        final methods = tx.payments
+            .map((p) => p.method.name.toLowerCase())
+            .join(' ');
+        return inv.contains(q) ||
+            id.contains(q) ||
+            total.contains(q) ||
+            methods.contains(q);
+      }).toList();
+    }
+
+    return result;
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('History')),
-      body: BlocBuilder<TransactionHistoryCubit, TransactionHistoryState>(
-        builder: (context, state) {
-          return switch (state) {
-            TransactionHistoryInitial() ||
-            TransactionHistoryLoading() =>
-              const Center(child: CircularProgressIndicator()),
-            TransactionHistoryError(:final message) => _ErrorView(
-                message: message,
-                onRetry: () =>
-                    context.read<TransactionHistoryCubit>().load(),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                prefixIcon: const Icon(Icons.search),
+                hintText: 'Search by invoice#, amount, method...',
+                border: const OutlineInputBorder(),
+                isDense: true,
+                suffixIcon: _query.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          _searchController.clear();
+                          setState(() => _query = '');
+                        },
+                      )
+                    : null,
               ),
-            TransactionHistoryLoaded(:final transactions)
-                when transactions.isEmpty =>
-              const _EmptyView(),
-            TransactionHistoryLoaded(:final transactions) =>
-              RefreshIndicator(
-                onRefresh: () =>
-                    context.read<TransactionHistoryCubit>().load(),
-                child: _TransactionList(transactions: transactions),
-              ),
-          };
-        },
+              onChanged: (v) => setState(() => _query = v.trim()),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Row(
+              children: [
+                _FilterChip(
+                  label: 'All',
+                  selected: _statusFilter == 'all',
+                  onSelected: () =>
+                      setState(() => _statusFilter = 'all'),
+                ),
+                const SizedBox(width: 8),
+                _FilterChip(
+                  label: 'Completed',
+                  selected: _statusFilter == 'completed',
+                  onSelected: () =>
+                      setState(() => _statusFilter = 'completed'),
+                ),
+                const SizedBox(width: 8),
+                _FilterChip(
+                  label: 'Voided',
+                  selected: _statusFilter == 'voided',
+                  onSelected: () =>
+                      setState(() => _statusFilter = 'voided'),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 4),
+          Expanded(
+            child: BlocBuilder<TransactionHistoryCubit,
+                TransactionHistoryState>(
+              builder: (context, state) {
+                return switch (state) {
+                  TransactionHistoryInitial() ||
+                  TransactionHistoryLoading() =>
+                    const Center(child: CircularProgressIndicator()),
+                  TransactionHistoryError(:final message) => _ErrorView(
+                      message: message,
+                      onRetry: () =>
+                          context.read<TransactionHistoryCubit>().load(),
+                    ),
+                  TransactionHistoryLoaded(:final transactions) => () {
+                      final filtered = _applyFilters(transactions);
+                      if (transactions.isEmpty) return const _EmptyView();
+                      if (filtered.isEmpty) {
+                        return const Center(
+                          child: Text('No matching transactions'),
+                        );
+                      }
+                      return RefreshIndicator(
+                        onRefresh: () =>
+                            context.read<TransactionHistoryCubit>().load(),
+                        child:
+                            _TransactionList(transactions: filtered),
+                      );
+                    }(),
+                };
+              },
+            ),
+          ),
+        ],
       ),
+    );
+  }
+}
+
+class _FilterChip extends StatelessWidget {
+  const _FilterChip({
+    required this.label,
+    required this.selected,
+    required this.onSelected,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return FilterChip(
+      label: Text(label),
+      selected: selected,
+      onSelected: (_) => onSelected(),
     );
   }
 }
