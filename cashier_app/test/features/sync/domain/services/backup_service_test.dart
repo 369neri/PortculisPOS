@@ -3,9 +3,13 @@ import 'dart:io';
 
 import 'package:cashier_app/features/checkout/domain/entities/transaction.dart';
 import 'package:cashier_app/features/checkout/domain/repositories/transaction_repository.dart';
+import 'package:cashier_app/features/customers/domain/entities/customer.dart';
+import 'package:cashier_app/features/customers/domain/repositories/customer_repository.dart';
 import 'package:cashier_app/features/items/domain/entities/item.dart';
 import 'package:cashier_app/features/items/domain/repositories/item_repository.dart';
 import 'package:cashier_app/features/pricing/domain/entities/price.dart';
+import 'package:cashier_app/features/settings/domain/entities/app_settings.dart';
+import 'package:cashier_app/features/settings/domain/repositories/settings_repository.dart';
 import 'package:cashier_app/features/sync/domain/services/backup_service.dart';
 import 'package:test/test.dart';
 
@@ -39,17 +43,53 @@ class _FakeItemRepo implements ItemRepository {
 
 class _FakeTxRepo implements TransactionRepository {
   List<Transaction> transactions = [];
+  final List<Transaction> saved = [];
 
   @override
   Future<List<Transaction>> getAll() async => transactions;
   @override
   Future<Transaction?> findById(int id) async => null;
   @override
-  Future<int> save(Transaction transaction) async => 1;
+  Future<int> save(Transaction transaction) async {
+    saved.add(transaction);
+    return saved.length;
+  }
+
   @override
   Future<void> voidTransaction(int id) async {}
   @override
   Future<void> refundTransaction(int id) async {}
+}
+
+class _FakeCustomerRepo implements CustomerRepository {
+  List<Customer> customers = [];
+  final List<Customer> saved = [];
+
+  @override
+  Future<List<Customer>> getAll() async => customers;
+  @override
+  Future<Customer?> findById(int id) async => null;
+  @override
+  Future<List<Customer>> search(String query) async => [];
+  @override
+  Future<int> save(Customer customer) async {
+    saved.add(customer);
+    return saved.length;
+  }
+
+  @override
+  Future<void> update(Customer customer) async {}
+  @override
+  Future<void> delete(int id) async {}
+}
+
+class _FakeSettingsRepo implements SettingsRepository {
+  AppSettings settings = const AppSettings();
+
+  @override
+  Future<AppSettings> getSettings() async => settings;
+  @override
+  Future<void> saveSettings(AppSettings s) async => settings = s;
 }
 
 // ---------------------------------------------------------------------------
@@ -74,18 +114,34 @@ final _service = ServiceItem(
 );
 
 // ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+/// Write [json] to a temp file and return the path. Caller must clean up.
+(String path, Directory dir) _writeTempJson(String json) {
+  final tmpDir = Directory.systemTemp.createTempSync('backup_test_');
+  final path = '${tmpDir.path}/backup.json';
+  File(path).writeAsStringSync(json);
+  return (path, tmpDir);
+}
+
+// ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
 
 void main() {
   late _FakeItemRepo itemRepo;
   late _FakeTxRepo txRepo;
+  late _FakeCustomerRepo customerRepo;
+  late _FakeSettingsRepo settingsRepo;
   late BackupService sut;
 
   setUp(() {
     itemRepo = _FakeItemRepo();
     txRepo = _FakeTxRepo();
-    sut = BackupService(itemRepo, txRepo);
+    customerRepo = _FakeCustomerRepo();
+    settingsRepo = _FakeSettingsRepo();
+    sut = BackupService(itemRepo, txRepo, customerRepo, settingsRepo);
   });
 
   group('BackupService encode/decode round-trip', () {
@@ -137,7 +193,7 @@ void main() {
   });
 
   group('importBackup', () {
-    test('imports items from valid JSON file', () async {
+    test('imports items from valid v1 JSON file', () async {
       final json = jsonEncode({
         'version': 1,
         'exportedAt': DateTime.now().toIso8601String(),
@@ -148,51 +204,45 @@ void main() {
         'transactionCount': 0,
       });
 
-      // Write to a temp file
-      final tmpDir = Directory.systemTemp.createTempSync('backup_test_');
-      final file = File('${tmpDir.path}/backup.json')
-        ..writeAsStringSync(json);
+      final (path, dir) = _writeTempJson(json);
+      addTearDown(() => dir.deleteSync(recursive: true));
 
-      final count = await sut.importBackup(file.path);
+      final count = await sut.importBackup(path);
       expect(count, 2);
       expect(itemRepo.saved.length, 2);
       expect(itemRepo.saved[0], isA<TradeItem>());
       expect(itemRepo.saved[1], isA<ServiceItem>());
-
-      // Cleanup
-      tmpDir.deleteSync(recursive: true);
     });
 
     test('throws FormatException for unsupported version', () async {
-      final json = jsonEncode({'version': 99, 'items': <Map<String, dynamic>>[]});
-      final tmpDir = Directory.systemTemp.createTempSync('backup_test_');
-      final file = File('${tmpDir.path}/backup.json')
-        ..writeAsStringSync(json);
+      final json = jsonEncode({
+        'version': 99,
+        'items': <dynamic>[],
+      });
+
+      final (path, dir) = _writeTempJson(json);
+      addTearDown(() => dir.deleteSync(recursive: true));
 
       expect(
-        () => sut.importBackup(file.path),
+        () => sut.importBackup(path),
         throwsA(isA<FormatException>()),
       );
-
-      tmpDir.deleteSync(recursive: true);
     });
 
     test('returns 0 for empty items list', () async {
       final json = jsonEncode({
         'version': 1,
         'exportedAt': DateTime.now().toIso8601String(),
-        'items': <Map<String, dynamic>>[],
+        'items': <dynamic>[],
         'transactionCount': 0,
       });
-      final tmpDir = Directory.systemTemp.createTempSync('backup_test_');
-      final file = File('${tmpDir.path}/backup.json')
-        ..writeAsStringSync(json);
 
-      final count = await sut.importBackup(file.path);
+      final (path, dir) = _writeTempJson(json);
+      addTearDown(() => dir.deleteSync(recursive: true));
+
+      final count = await sut.importBackup(path);
       expect(count, 0);
       expect(itemRepo.saved, isEmpty);
-
-      tmpDir.deleteSync(recursive: true);
     });
   });
 }

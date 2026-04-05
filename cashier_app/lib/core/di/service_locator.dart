@@ -97,6 +97,11 @@ void initServiceLocator() {
     )
     // Backup
     ..registerSingleton<BackupService>(
-      BackupService(sl<ItemRepository>(), sl<TransactionRepository>()),
+      BackupService(
+        sl<ItemRepository>(),
+        sl<TransactionRepository>(),
+        sl<CustomerRepository>(),
+        sl<SettingsRepository>(),
+      ),
     );
 }

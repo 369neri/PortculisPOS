@@ -1,5 +1,6 @@
 import 'package:cashier_app/features/auth/domain/entities/user.dart';
 import 'package:cashier_app/features/auth/domain/repositories/user_repository.dart';
+import 'package:cashier_app/features/auth/domain/services/pin_hasher.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -63,7 +64,7 @@ class AuthCubit extends Cubit<AuthState> {
   /// Attempt login with username + PIN.
   Future<void> login(String username, String pin) async {
     final user = await _repo.findByUsername(username);
-    if (user == null || user.pin != pin || !user.isActive) {
+    if (user == null || user.pin != hashPin(pin) || !user.isActive) {
       emit(const AuthLocked(error: 'Invalid credentials'));
       return;
     }

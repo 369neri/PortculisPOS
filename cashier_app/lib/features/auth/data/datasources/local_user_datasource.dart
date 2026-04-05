@@ -1,6 +1,7 @@
 import 'package:cashier_app/core/persistence/app_database.dart';
 import 'package:cashier_app/features/auth/domain/entities/user.dart';
 import 'package:cashier_app/features/auth/domain/repositories/user_repository.dart';
+import 'package:cashier_app/features/auth/domain/services/pin_hasher.dart';
 import 'package:drift/drift.dart' show Value;
 
 class LocalUserDatasource implements UserRepository {
@@ -22,13 +23,14 @@ class LocalUserDatasource implements UserRepository {
 
   @override
   Future<void> save(User user) async {
+    final hashedPin = hashPin(user.pin);
     if (user.id != null) {
       await _dao.updateUser(
         UsersTableCompanion(
           id: Value(user.id!),
           username: Value(user.username),
           displayName: Value(user.displayName),
-          pin: Value(user.pin),
+          pin: Value(hashedPin),
           role: Value(user.role),
           isActive: Value(user.isActive),
         ),
@@ -38,7 +40,7 @@ class LocalUserDatasource implements UserRepository {
         UsersTableCompanion.insert(
           username: user.username,
           displayName: user.displayName,
-          pin: user.pin,
+          pin: hashedPin,
           role: Value(user.role),
           isActive: Value(user.isActive),
           createdAt: DateTime.now(),

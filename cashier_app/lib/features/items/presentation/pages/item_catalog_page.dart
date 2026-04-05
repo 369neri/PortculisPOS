@@ -25,24 +25,28 @@ class _ItemCatalogView extends StatefulWidget {
 }
 
 class _ItemCatalogViewState extends State<_ItemCatalogView> {
-  final _searchController = TextEditingController();
-  String _query = '';
+  String _searchQuery = '';
+  String? _selectedCategory;
 
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
+  List<Item> _applyFilters(List<Item> items) {
+    var result = items;
+    if (_searchQuery.isNotEmpty) {
+      final q = _searchQuery.toLowerCase();
+      result = result.where((item) {
+        final label = item.label?.toLowerCase() ?? '';
+        final sku = item.sku?.toLowerCase() ?? '';
+        final category = item.category.toLowerCase();
+        return label.contains(q) || sku.contains(q) || category.contains(q);
+      }).toList();
+    }
+    if (_selectedCategory != null && _selectedCategory!.isNotEmpty) {
+      result = result.where((item) => item.category == _selectedCategory).toList();
+    }
+    return result;
   }
 
-  List<Item> _applyFilter(List<Item> items) {
-    if (_query.isEmpty) return items;
-    final q = _query.toLowerCase();
-    return items.where((item) {
-      final label = item.label?.toLowerCase() ?? '';
-      final sku = item.sku?.toLowerCase() ?? '';
-      final gtin = (item is TradeItem) ? (item.gtin?.toLowerCase() ?? '') : '';
-      return label.contains(q) || sku.contains(q) || gtin.contains(q);
-    }).toList();
+  Set<String> _extractCategories(List<Item> items) {
+    return items.map((i) => i.category).where((c) => c.isNotEmpty).toSet();
   }
 
   @override
@@ -54,122 +58,119 @@ class _ItemCatalogViewState extends State<_ItemCatalogView> {
         tooltip: 'Add item',
         child: const Icon(Icons.add),
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                prefixIcon: const Icon(Icons.search),
-                hintText: 'Search by name, SKU, or GTIN...',
-                border: const OutlineInputBorder(),
-                isDense: true,
-                suffixIcon: _query.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          _searchController.clear();
-                          setState(() => _query = '');
-                        },
-                      )
-                    : null,
-              ),
-              onChanged: (v) => setState(() => _query = v.trim()),
-            ),
-          ),
-          Expanded(
-            child: BlocBuilder<ItemCatalogCubit, ItemCatalogState>(
-              builder: (context, state) {
-                return switch (state) {
-                  ItemCatalogLoading() =>
-                    const Center(child: CircularProgressIndicator()),
-                  ItemCatalogError(message: final msg) =>
-                    Center(child: Text('Error: $msg')),
-                  ItemCatalogLoaded(items: final items) => () {
-                      final filtered = _applyFilter(items);
-                      if (filtered.isEmpty) {
-                        return Center(
-                          child: Text(
-                            _query.isEmpty
-                                ? 'No items in catalog'
-                                : 'No items match "$_query"',
-                          ),
-                        );
-                      }
-                      return ListView.builder(
-                        itemCount: filtered.length,
-                        itemBuilder: (context, index) {
-                          final item = filtered[index];
-                          return ListTile(
-                            leading: Icon(
-                              _iconFor(item),
-                              color: item.isFavorite ? Colors.amber : null,
-                            ),
-                            title: Text(item.label ?? item.sku ?? 'Unknown'),
-                            subtitle: _buildSubtitle(context, item),
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                if (item.isFavorite)
-                                  const Padding(
-                                    padding: EdgeInsets.only(right: 4),
-                                    child: Icon(
-                                      Icons.star,
-                                      size: 16,
-                                      color: Colors.amber,
-                                    ),
-                                  ),
-                                Text(
-                                  item.unitPrice.toString(),
-                                  style:
-                                      Theme.of(context).textTheme.bodyLarge,
-                                ),
-                              ],
-                            ),
-                            onTap: () => _showItemForm(
-                              context,
-                              item: item,
-                              cubit: context.read(),
-                            ),
-                            onLongPress: () => _confirmDelete(
-                              context,
-                              item: item,
-                              cubit: context.read(),
-                            ),
-                          );
-                        },
-                      );
-                    }(),
-                };
-              },
-            ),
-          ),
-        ],
+      body: BlocBuilder<ItemCatalogCubit, ItemCatalogState>(
+        builder: (context, state) {
+          return switch (state) {
+            ItemCatalogLoading() =>
+              const Center(child: CircularProgressIndicator()),
+            ItemCatalogError(message: final msg) =>
+              Center(child: Text('Error: $msg')),
+            ItemCatalogLoaded(items: final allItems) => _buildList(context, allItems),
+          };
+        },
       ),
     );
   }
 
-  Widget? _buildSubtitle(BuildContext context, Item item) {
-    final parts = <String>[];
-    if (item.category.isNotEmpty) parts.add(item.category);
-    if (item.sku != null) parts.add(item.sku!);
-    if (item is TradeItem && item.gtin != null) parts.add('GTIN: ${item.gtin}');
-    if (item is TradeItem && item.stockQuantity >= 0) {
-      parts.add('Stock: ${item.stockQuantity}');
-    }
-    if (parts.isEmpty) return null;
-    return Text(
-      parts.join('  ·  '),
-      style: Theme.of(context).textTheme.bodySmall,
+  Widget _buildList(BuildContext context, List<Item> allItems) {
+    final categories = _extractCategories(allItems);
+    final filtered = _applyFilters(allItems);
+
+    return Column(
+      children: [
+        // Search bar
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+          child: TextField(
+            decoration: InputDecoration(
+              hintText: 'Search items...',
+              prefixIcon: const Icon(Icons.search),
+              suffixIcon: _searchQuery.isNotEmpty
+                  ? IconButton(
+                      icon: const Icon(Icons.clear),
+                      onPressed: () => setState(() => _searchQuery = ''),
+                    )
+                  : null,
+              border: const OutlineInputBorder(),
+              isDense: true,
+            ),
+            onChanged: (v) => setState(() => _searchQuery = v),
+          ),
+        ),
+        // Category filter chips
+        if (categories.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: SizedBox(
+              height: 40,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(right: 6),
+                    child: FilterChip(
+                      label: const Text('All'),
+                      selected: _selectedCategory == null,
+                      onSelected: (_) =>
+                          setState(() => _selectedCategory = null),
+                    ),
+                  ),
+                  for (final cat in categories.toList()..sort())
+                    Padding(
+                      padding: const EdgeInsets.only(right: 6),
+                      child: FilterChip(
+                        label: Text(cat),
+                        selected: _selectedCategory == cat,
+                        onSelected: (_) => setState(
+                          () => _selectedCategory =
+                              _selectedCategory == cat ? null : cat,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        const SizedBox(height: 4),
+        // Item count
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              '${filtered.length} item${filtered.length == 1 ? '' : 's'}',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ),
+        ),
+        const SizedBox(height: 4),
+        // List
+        Expanded(
+          child: filtered.isEmpty
+              ? const Center(child: Text('No items found'))
+              : ListView.builder(
+                  itemCount: filtered.length,
+                  itemBuilder: (context, index) {
+                    final item = filtered[index];
+                    return _ItemTile(
+                      item: item,
+                      onTap: () => _showItemForm(
+                        context,
+                        item: item,
+                        cubit: context.read(),
+                      ),
+                      onLongPress: () => _confirmDelete(
+                        context,
+                        item: item,
+                        cubit: context.read(),
+                      ),
+                    );
+                  },
+                ),
+        ),
+      ],
     );
   }
-
-  IconData _iconFor(Item item) => switch (item) {
-        ServiceItem() => Icons.home_repair_service_outlined,
-        TradeItem() => Icons.inventory_2_outlined,
-        KeyedPriceItem() => Icons.keyboard,
-      };
 
   void _showItemForm(
     BuildContext context, {
@@ -214,7 +215,53 @@ class _ItemCatalogViewState extends State<_ItemCatalogView> {
 }
 
 // ---------------------------------------------------------------------------
-// Item form bottom sheet (with GTIN field for trade items)
+// Item tile
+// ---------------------------------------------------------------------------
+
+class _ItemTile extends StatelessWidget {
+  const _ItemTile({
+    required this.item,
+    required this.onTap,
+    required this.onLongPress,
+  });
+
+  final Item item;
+  final VoidCallback onTap;
+  final VoidCallback onLongPress;
+
+  @override
+  Widget build(BuildContext context) {
+    final stockText =
+        item.stockQuantity >= 0 ? ' • Stock: ${item.stockQuantity}' : '';
+    final catText = item.category.isNotEmpty ? '${item.category} • ' : '';
+    final icon = switch (item) {
+      ServiceItem() => Icons.home_repair_service_outlined,
+      TradeItem() => Icons.inventory_2_outlined,
+      KeyedPriceItem() => Icons.keyboard,
+    };
+
+    return ListTile(
+      leading: Icon(icon),
+      title: Row(
+        children: [
+          Expanded(child: Text(item.label ?? item.sku ?? 'Unknown')),
+          if (item.isFavorite)
+            const Icon(Icons.star, size: 18, color: Colors.amber),
+        ],
+      ),
+      subtitle: Text('$catText${item.sku ?? ""}$stockText'),
+      trailing: Text(
+        item.unitPrice.toString(),
+        style: Theme.of(context).textTheme.bodyLarge,
+      ),
+      onTap: onTap,
+      onLongPress: onLongPress,
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Item form bottom sheet
 // ---------------------------------------------------------------------------
 
 class _ItemFormSheet extends StatefulWidget {
@@ -232,11 +279,10 @@ class _ItemFormSheetState extends State<_ItemFormSheet> {
   late final TextEditingController _skuCtrl;
   late final TextEditingController _labelCtrl;
   late final TextEditingController _priceCtrl;
-  late final TextEditingController _gtinCtrl;
   late final TextEditingController _categoryCtrl;
   late final TextEditingController _stockCtrl;
   String _type = 'trade';
-  bool _isFavorite = false;
+  late bool _isFavorite;
 
   @override
   void initState() {
@@ -247,17 +293,14 @@ class _ItemFormSheetState extends State<_ItemFormSheet> {
     _priceCtrl = TextEditingController(
       text: item != null ? item.unitPrice.toString() : '',
     );
-    _gtinCtrl = TextEditingController(
-      text: (item is TradeItem) ? (item.gtin ?? '') : '',
-    );
     _categoryCtrl = TextEditingController(text: item?.category ?? '');
     _stockCtrl = TextEditingController(
-      text: (item is TradeItem && item.stockQuantity >= 0)
+      text: item != null && item.stockQuantity >= 0
           ? item.stockQuantity.toString()
           : '',
     );
-    _isFavorite = item?.isFavorite ?? false;
     if (item is ServiceItem) _type = 'service';
+    _isFavorite = item?.isFavorite ?? false;
   }
 
   @override
@@ -265,7 +308,6 @@ class _ItemFormSheetState extends State<_ItemFormSheet> {
     _skuCtrl.dispose();
     _labelCtrl.dispose();
     _priceCtrl.dispose();
-    _gtinCtrl.dispose();
     _categoryCtrl.dispose();
     _stockCtrl.dispose();
     super.dispose();
@@ -279,28 +321,25 @@ class _ItemFormSheetState extends State<_ItemFormSheet> {
     final priceDouble = double.tryParse(priceText) ?? 0;
     final subunits = BigInt.from((priceDouble * 100).round());
     final price = Price(subunits);
-
-    final gtinText = _gtinCtrl.text.trim();
-
-    final categoryText = _categoryCtrl.text.trim();
+    final category = _categoryCtrl.text.trim();
     final stockText = _stockCtrl.text.trim();
-    final stockQty = stockText.isNotEmpty ? (int.tryParse(stockText) ?? -1) : -1;
+    final stockQuantity =
+        stockText.isEmpty ? -1 : (int.tryParse(stockText) ?? -1);
 
     final newItem = _type == 'service'
         ? ServiceItem(
             sku: _skuCtrl.text.trim(),
             label: _labelCtrl.text.trim(),
             unitPrice: price,
-            category: categoryText,
+            category: category,
             isFavorite: _isFavorite,
           )
         : TradeItem(
             sku: _skuCtrl.text.trim(),
             label: _labelCtrl.text.trim(),
             unitPrice: price,
-            gtin: gtinText.isNotEmpty ? gtinText : null,
-            category: categoryText,
-            stockQuantity: stockQty,
+            category: category,
+            stockQuantity: stockQuantity,
             isFavorite: _isFavorite,
           );
 
@@ -364,43 +403,30 @@ class _ItemFormSheetState extends State<_ItemFormSheet> {
                 return null;
               },
             ),
-            if (_type == 'trade') ...[
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _gtinCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'GTIN / Barcode',
-                  hintText: 'e.g. 5901234123457',
-                ),
-                keyboardType: TextInputType.number,
-              ),
-            ],
             const SizedBox(height: 12),
             TextFormField(
               controller: _categoryCtrl,
               decoration: const InputDecoration(
-                labelText: 'Category',
-                hintText: 'e.g. Beverages, Electronics',
+                labelText: 'Category (optional)',
+                hintText: 'e.g. Drinks, Food, Parts',
               ),
             ),
-            if (_type == 'trade') ...[
-              const SizedBox(height: 12),
+            const SizedBox(height: 12),
+            if (_type == 'trade')
               TextFormField(
                 controller: _stockCtrl,
                 decoration: const InputDecoration(
-                  labelText: 'Stock quantity',
-                  hintText: 'Leave empty to skip tracking',
+                  labelText: 'Stock quantity (blank = untracked)',
+                  hintText: 'Leave empty to disable tracking',
                 ),
                 keyboardType: TextInputType.number,
               ),
-            ],
-            const SizedBox(height: 12),
+            if (_type == 'trade') const SizedBox(height: 12),
             SwitchListTile(
-              title: const Text('Favorite'),
-              subtitle: const Text('Show in quick-add grid'),
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Favorite (quick-add)'),
               value: _isFavorite,
               onChanged: (v) => setState(() => _isFavorite = v),
-              contentPadding: EdgeInsets.zero,
             ),
             const SizedBox(height: 20),
             FilledButton(

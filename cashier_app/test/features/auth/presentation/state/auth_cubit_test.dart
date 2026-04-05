@@ -1,6 +1,7 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:cashier_app/features/auth/domain/entities/user.dart';
 import 'package:cashier_app/features/auth/domain/repositories/user_repository.dart';
+import 'package:cashier_app/features/auth/domain/services/pin_hasher.dart';
 import 'package:cashier_app/features/auth/presentation/state/auth_cubit.dart';
 import 'package:test/test.dart';
 
@@ -33,30 +34,30 @@ class _FakeUserRepo implements UserRepository {
 }
 
 // ---------------------------------------------------------------------------
-// Fixtures
+// Fixtures — PINs are stored hashed, matching production behaviour.
 // ---------------------------------------------------------------------------
 
-const _admin = User(
+final _admin = User(
   id: 1,
   username: 'admin',
   displayName: 'Admin',
-  pin: '1234',
+  pin: hashPin('1234'),
   role: 'admin',
 );
 
-const _cashier = User(
+final _cashier = User(
   id: 2,
   username: 'cashier',
   displayName: 'Cashier',
-  pin: '0000',
+  pin: hashPin('0000'),
   role: 'cashier',
 );
 
-const _inactive = User(
+final _inactive = User(
   id: 3,
   username: 'fired',
   displayName: 'Gone',
-  pin: '9999',
+  pin: hashPin('9999'),
   role: 'cashier',
   isActive: false,
 );
@@ -103,7 +104,7 @@ void main() {
         return AuthCubit(repo);
       },
       act: (c) => c.login('admin', '1234'),
-      expect: () => [const AuthAuthenticated(_admin)],
+      expect: () => [AuthAuthenticated(_admin)],
     );
 
     blocTest<AuthCubit, AuthState>(
@@ -150,7 +151,7 @@ void main() {
         repo.users = [_admin];
         return AuthCubit(repo);
       },
-      seed: () => const AuthAuthenticated(_admin),
+      seed: () => AuthAuthenticated(_admin),
       act: (c) => c.logout(),
       expect: () => [const AuthLocked()],
     );

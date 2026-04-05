@@ -126,29 +126,33 @@ class _AppShell extends StatefulWidget {
 class _AppShellState extends State<_AppShell> {
   int _selectedIndex = 0;
 
-  static const _pages = <Widget>[
-    SalesRegisterPage(),
-    ItemCatalogPage(),
-    CustomerListPage(),
-    ReportsPage(),
-    SettingsPage(),
-    ArchivePage(),
-    UserManagementPage(),
+  // All available pages with admin-only flags.
+  static const _allEntries = <({Widget page, IconData icon, IconData selectedIcon, String label, bool adminOnly})>[
+    (page: SalesRegisterPage(), icon: Icons.point_of_sale_outlined, selectedIcon: Icons.point_of_sale, label: 'Register', adminOnly: false),
+    (page: ItemCatalogPage(), icon: Icons.inventory_2_outlined, selectedIcon: Icons.inventory_2, label: 'Catalog', adminOnly: false),
+    (page: CustomerListPage(), icon: Icons.people_outlined, selectedIcon: Icons.people, label: 'Customers', adminOnly: false),
+    (page: ReportsPage(), icon: Icons.bar_chart_outlined, selectedIcon: Icons.bar_chart, label: 'Reports', adminOnly: false),
+    (page: SettingsPage(), icon: Icons.settings_outlined, selectedIcon: Icons.settings, label: 'Settings', adminOnly: true),
+    (page: ArchivePage(), icon: Icons.folder_outlined, selectedIcon: Icons.folder, label: 'Archive', adminOnly: true),
+    (page: UserManagementPage(), icon: Icons.manage_accounts_outlined, selectedIcon: Icons.manage_accounts, label: 'Users', adminOnly: true),
   ];
 
-  static const _destinations = <({IconData icon, IconData selectedIcon, String label})>[
-    (icon: Icons.point_of_sale_outlined, selectedIcon: Icons.point_of_sale, label: 'Register'),
-    (icon: Icons.inventory_2_outlined, selectedIcon: Icons.inventory_2, label: 'Catalog'),
-    (icon: Icons.people_outlined, selectedIcon: Icons.people, label: 'Customers'),
-    (icon: Icons.bar_chart_outlined, selectedIcon: Icons.bar_chart, label: 'Reports'),
-    (icon: Icons.settings_outlined, selectedIcon: Icons.settings, label: 'Settings'),
-    (icon: Icons.folder_outlined, selectedIcon: Icons.folder, label: 'Archive'),
-    (icon: Icons.manage_accounts_outlined, selectedIcon: Icons.manage_accounts, label: 'Users'),
-  ];
+  bool get _isAdmin {
+    final authState = context.read<AuthCubit>().state;
+    if (authState is AuthAuthenticated) return authState.user.isAdmin;
+    // When auth is disabled, treat as admin (full access).
+    return true;
+  }
+
+  List<({Widget page, IconData icon, IconData selectedIcon, String label, bool adminOnly})> get _visibleEntries {
+    if (_isAdmin) return _allEntries;
+    return _allEntries.where((e) => !e.adminOnly).toList();
+  }
 
   void _onDestinationSelected(int index) {
     setState(() => _selectedIndex = index);
-    if (index == 3) {
+    final entries = _visibleEntries;
+    if (index < entries.length && entries[index].label == 'Reports') {
       context.read<TransactionHistoryCubit>().load();
       context.read<ReportsCubit>().load();
       context.read<CashDrawerCubit>().load();
@@ -158,29 +162,32 @@ class _AppShellState extends State<_AppShell> {
   @override
   Widget build(BuildContext context) {
     final wide = isWideScreen(context);
+    final entries = _visibleEntries;        
+    // Clamp index in case role changed.
+    if (_selectedIndex >= entries.length) _selectedIndex = 0;
 
     return Scaffold(
-      body: wide ? _buildRailLayout() : _buildPageBody(),
-      bottomNavigationBar: wide ? null : _buildBottomBar(),
+      body: wide ? _buildRailLayout(entries) : _buildPageBody(entries),
+      bottomNavigationBar: wide ? null : _buildBottomBar(entries),
     );
   }
 
-  Widget _buildPageBody() {
+  Widget _buildPageBody(List<({Widget page, IconData icon, IconData selectedIcon, String label, bool adminOnly})> entries) {
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 250),
       child: KeyedSubtree(
         key: ValueKey(_selectedIndex),
-        child: _pages[_selectedIndex],
+        child: entries[_selectedIndex].page,
       ),
     );
   }
 
-  Widget _buildBottomBar() {
+  Widget _buildBottomBar(List<({Widget page, IconData icon, IconData selectedIcon, String label, bool adminOnly})> entries) {
     return NavigationBar(
       selectedIndex: _selectedIndex,
       onDestinationSelected: _onDestinationSelected,
       destinations: [
-        for (final d in _destinations)
+        for (final d in entries)
           NavigationDestination(
             icon: Icon(d.icon),
             selectedIcon: Icon(d.selectedIcon),
@@ -190,7 +197,7 @@ class _AppShellState extends State<_AppShell> {
     );
   }
 
-  Widget _buildRailLayout() {
+  Widget _buildRailLayout(List<({Widget page, IconData icon, IconData selectedIcon, String label, bool adminOnly})> entries) {
     return Row(
       children: [
         NavigationRail(
@@ -198,7 +205,7 @@ class _AppShellState extends State<_AppShell> {
           onDestinationSelected: _onDestinationSelected,
           labelType: NavigationRailLabelType.all,
           destinations: [
-            for (final d in _destinations)
+            for (final d in entries)
               NavigationRailDestination(
                 icon: Icon(d.icon),
                 selectedIcon: Icon(d.selectedIcon),
@@ -207,7 +214,7 @@ class _AppShellState extends State<_AppShell> {
           ],
         ),
         const VerticalDivider(thickness: 1, width: 1),
-        Expanded(child: _buildPageBody()),
+        Expanded(child: _buildPageBody(entries)),
       ],
     );
   }
