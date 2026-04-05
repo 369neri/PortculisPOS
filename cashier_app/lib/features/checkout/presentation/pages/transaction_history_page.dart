@@ -23,7 +23,7 @@ class TransactionHistoryPage extends StatefulWidget {
 class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
   final _searchController = TextEditingController();
   String _query = '';
-  String _statusFilter = 'all'; // all | completed | voided
+  String _statusFilter = 'all'; // all | completed | voided | refunded | refunded
 
   @override
   void dispose() {
@@ -296,6 +296,8 @@ class _TransactionTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isVoided = transaction.status == TransactionStatus.voided;
+    final isRefunded = transaction.status == TransactionStatus.refunded;
+    final isInactive = isVoided || isRefunded;
     final label = transaction.invoiceNumber ?? '#${transaction.id}';
     final total = transaction.invoice.total;
     final methods = transaction.payments
@@ -303,18 +305,28 @@ class _TransactionTile extends StatelessWidget {
         .toSet()
         .join(' + ');
 
+    final IconData icon;
+    final Color? iconColor;
+    if (isVoided) {
+      icon = Icons.block;
+      iconColor = Colors.red;
+    } else if (isRefunded) {
+      icon = Icons.undo;
+      iconColor = Colors.orange;
+    } else {
+      icon = Icons.receipt_long_outlined;
+      iconColor = null;
+    }
+
     return ListTile(
-      leading: Icon(
-        isVoided ? Icons.block : Icons.receipt_long_outlined,
-        color: isVoided ? Colors.red : null,
-      ),
+      leading: Icon(icon, color: iconColor),
       title: Text(label),
       subtitle: Text('${_fmtDate(transaction.createdAt)}  $methods'),
       trailing: Text(
         '$currencySymbol$total',
         style: TextStyle(
-          decoration: isVoided ? TextDecoration.lineThrough : null,
-          color: isVoided ? Colors.grey : null,
+          decoration: isInactive ? TextDecoration.lineThrough : null,
+          color: isInactive ? Colors.grey : null,
         ),
       ),
       onTap: onTap,
@@ -338,7 +350,22 @@ class _TransactionDetailSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isVoided = transaction.status == TransactionStatus.voided;
+    final isRefunded = transaction.status == TransactionStatus.refunded;
+    final isCompleted = transaction.status == TransactionStatus.completed;
     final label = transaction.invoiceNumber ?? '#${transaction.id}';
+
+    final String statusLabel;
+    final Color statusColor;
+    if (isRefunded) {
+      statusLabel = 'Refunded';
+      statusColor = Colors.orange;
+    } else if (isVoided) {
+      statusLabel = 'Voided';
+      statusColor = Colors.red;
+    } else {
+      statusLabel = 'Completed';
+      statusColor = Colors.green;
+    }
 
     return DraggableScrollableSheet(
       initialChildSize: 0.65,
@@ -380,13 +407,10 @@ class _TransactionDetailSheet extends StatelessWidget {
                   ),
                   Chip(
                     label: Text(
-                      isVoided ? 'Voided' : 'Completed',
-                      style: TextStyle(
-                        color: isVoided ? Colors.red : Colors.green,
-                      ),
+                      statusLabel,
+                      style: TextStyle(color: statusColor),
                     ),
-                    backgroundColor:
-                        isVoided ? Colors.red.shade50 : Colors.green.shade50,
+                    backgroundColor: statusColor.withValues(alpha: 0.1),
                   ),
                 ],
               ),
@@ -510,8 +534,20 @@ class _TransactionDetailSheet extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               const SizedBox(height: 24),
+              // Refund button (completed only)
+              if (isCompleted)
+                OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.orange,
+                    side: const BorderSide(color: Colors.orange),
+                  ),
+                  onPressed: () => _confirmRefund(context),
+                  icon: const Icon(Icons.undo),
+                  label: const Text('Refund Transaction'),
+                ),
+              if (isCompleted) const SizedBox(height: 8),
               // Void button (completed only)
-              if (!isVoided)
+              if (isCompleted)
                 OutlinedButton.icon(
                   style: OutlinedButton.styleFrom(
                     foregroundColor: Colors.red,
@@ -533,6 +569,39 @@ class _TransactionDetailSheet extends StatelessWidget {
       },
     );
   }
+
+  void _confirmRefund(BuildContext context) {
+    final cubit = context.read<TransactionHistoryCubit>();
+    final txId = transaction.id;
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Refund Transaction'),
+        content: const Text(
+          'This cannot be undone. Mark this transaction as refunded?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: Colors.orange),
+            onPressed: () {
+              Navigator.of(dialogContext).pop();
+              Navigator.of(context).pop();
+              if (txId != null) {
+                cubit.refundTransaction(txId);
+              }
+            },
+            child: const Text('Refund'),
+          ),
+        ],
+      ),
+    );
+  }
+
+
 
   void _confirmVoid(BuildContext context) {
     final cubit = context.read<TransactionHistoryCubit>();

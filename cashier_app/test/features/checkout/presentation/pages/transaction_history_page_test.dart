@@ -30,6 +30,9 @@ class _FakeTransactionRepo implements TransactionRepository {
   Future<int> save(Transaction transaction) async => 1;
   @override
   Future<void> voidTransaction(int id) async {}
+
+  @override
+  Future<void> refundTransaction(int id) async {}
 }
 
 class _StubSettingsRepo implements SettingsRepository {

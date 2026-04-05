@@ -9,6 +9,7 @@ import 'package:cashier_app/features/checkout/presentation/state/transaction_his
 import 'package:cashier_app/features/pricing/domain/entities/price.dart';
 import 'package:cashier_app/features/receipts/report_pdf_builder.dart';
 import 'package:cashier_app/features/reports/domain/entities/sales_report.dart';
+import 'package:cashier_app/features/reports/domain/services/csv_exporter.dart';
 import 'package:cashier_app/features/reports/presentation/state/reports_cubit.dart';
 import 'package:cashier_app/features/reports/presentation/state/reports_state.dart';
 import 'package:cashier_app/features/settings/domain/entities/app_settings.dart';
@@ -306,9 +307,30 @@ class _ReportActions extends StatelessWidget {
           icon: const Icon(Icons.lock_clock),
           label: const Text('Z Report — Close Day'),
         ),
+        const SizedBox(height: 8),
+        OutlinedButton.icon(
+          onPressed: () => _exportCsv(context),
+          icon: const Icon(Icons.file_download_outlined),
+          label: const Text('Export CSV'),
+        ),
       ],
     );
   }
+
+  Future<void> _exportCsv(BuildContext context) async {
+    final txState = context.read<TransactionHistoryCubit>().state;
+    if (txState is! TransactionHistoryLoaded) return;
+    try {
+      await CsvExporter.exportAndShare(txState.transactions);
+    } on Exception catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Export failed: \$e')),
+      );
+    }
+  }
+
+
 
   void _showReportSheet(
     BuildContext context,

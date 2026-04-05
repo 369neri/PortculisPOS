@@ -48,6 +48,9 @@ class _FakeRepo implements TransactionRepository {
   Future<void> voidTransaction(int id) async {
     if (throws) throw Exception('db error');
   }
+
+  @override
+  Future<void> refundTransaction(int id) async {}
 }
 
 // ---------------------------------------------------------------------------

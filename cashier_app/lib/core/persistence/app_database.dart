@@ -23,6 +23,11 @@ class ItemsTable extends Table {
   IntColumn get unitPriceSubunits => integer()();
   TextColumn get type => text()();
   TextColumn get gtin => text().nullable()();
+  TextColumn get category => text().withDefault(const Constant(''))();
+  IntColumn get stockQuantity =>
+      integer().withDefault(const Constant(-1))(); // -1 = untracked
+  BoolColumn get isFavorite =>
+      boolean().withDefault(const Constant(false))();
 }
 
 // ---------------------------------------------------------------------------
@@ -41,7 +46,7 @@ class TransactionsTable extends Table {
   /// JSON-encoded invoice snapshot.
   TextColumn get invoiceJson => text()();
 
-  /// 'completed' | 'voided'
+  /// 'completed' | 'voided' | 'refunded'
   TextColumn get status => text()();
 
   DateTimeColumn get createdAt => dateTime()();
@@ -152,6 +157,28 @@ class ItemsDao extends DatabaseAccessor<AppDatabase> with _$ItemsDaoMixin {
 
   Future<int> deleteItem(int id) =>
       (delete(itemsTable)..where((t) => t.id.equals(id))).go();
+
+  /// Returns all items marked as favorites.
+  Future<List<ItemsTableData>> getFavorites() =>
+      (select(itemsTable)..where((t) => t.isFavorite.equals(true))).get();
+
+  /// Decrements stock by [qty]. No-op if item is untracked (stockQuantity == -1).
+  Future<void> decrementStock(String sku, int qty) async {
+    final row = await findBySku(sku);
+    if (row == null || row.stockQuantity < 0) return;
+    final newQty = (row.stockQuantity - qty).clamp(0, 999999);
+    await (update(itemsTable)..where((t) => t.sku.equals(sku)))
+        .write(ItemsTableCompanion(stockQuantity: Value(newQty)));
+  }
+
+  /// Increments stock by [qty] (for refunds). No-op if untracked.
+  Future<void> incrementStock(String sku, int qty) async {
+    final row = await findBySku(sku);
+    if (row == null || row.stockQuantity < 0) return;
+    final newQty = row.stockQuantity + qty;
+    await (update(itemsTable)..where((t) => t.sku.equals(sku)))
+        .write(ItemsTableCompanion(stockQuantity: Value(newQty)));
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -310,6 +337,50 @@ class CustomersDao extends DatabaseAccessor<AppDatabase>
 }
 
 // ---------------------------------------------------------------------------
+// Users table (auth)
+// ---------------------------------------------------------------------------
+
+class UsersTable extends Table {
+  @override
+  String get tableName => 'users';
+
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get username => text().unique()();
+  TextColumn get displayName => text()();
+  TextColumn get pin => text()(); // hashed PIN
+  TextColumn get role => text().withDefault(const Constant('cashier'))(); // admin | manager | cashier
+  BoolColumn get isActive => boolean().withDefault(const Constant(true))();
+  DateTimeColumn get createdAt => dateTime()();
+}
+
+// ---------------------------------------------------------------------------
+// Users DAO
+// ---------------------------------------------------------------------------
+
+@DriftAccessor(tables: [UsersTable])
+class UsersDao extends DatabaseAccessor<AppDatabase> with _$UsersDaoMixin {
+  UsersDao(super.db);
+
+  Future<List<UsersTableData>> getAll() =>
+      (select(usersTable)..orderBy([(t) => OrderingTerm.asc(t.displayName)]))
+          .get();
+
+  Future<UsersTableData?> findByUsername(String username) =>
+      (select(usersTable)..where((t) => t.username.equals(username)))
+          .getSingleOrNull();
+
+  Future<int> insertUser(UsersTableCompanion companion) =>
+      into(usersTable).insert(companion);
+
+  Future<void> updateUser(UsersTableCompanion companion) =>
+      (update(usersTable)..where((t) => t.id.equals(companion.id.value)))
+          .write(companion);
+
+  Future<int> deleteUser(int id) =>
+      (delete(usersTable)..where((t) => t.id.equals(id))).go();
+}
+
+// ---------------------------------------------------------------------------
 // Database
 // ---------------------------------------------------------------------------
 
@@ -321,14 +392,15 @@ class CustomersDao extends DatabaseAccessor<AppDatabase>
     SettingsTable,
     CashDrawerSessionsTable,
     CustomersTable,
+    UsersTable,
   ],
-  daos: [ItemsDao, TransactionsDao, SettingsDao, CashDrawerDao, CustomersDao],
+  daos: [ItemsDao, TransactionsDao, SettingsDao, CashDrawerDao, CustomersDao, UsersDao],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 9;
 
   @override
   MigrationStrategy get migration {
@@ -366,6 +438,12 @@ class AppDatabase extends _$AppDatabase {
             transactionsTable,
             transactionsTable.customerId,
           );
+        }
+        if (from < 9) {
+          await m.addColumn(itemsTable, itemsTable.category);
+          await m.addColumn(itemsTable, itemsTable.stockQuantity);
+          await m.addColumn(itemsTable, itemsTable.isFavorite);
+          await m.createTable(usersTable);
         }
       },
     );

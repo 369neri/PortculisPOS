@@ -29,6 +29,13 @@ class _StubItemRepo implements ItemRepository {
   Future<void> deleteById(int id) async {}
   @override
   Future<void> deleteBySku(String sku) async {}
+
+  @override
+  Future<List<Item>> getFavorites() async => [];
+  @override
+  Future<void> decrementStock(String sku, {int qty = 1}) async {}
+  @override
+  Future<void> incrementStock(String sku, {int qty = 1}) async {}
 }
 
 class _StubSettingsRepo implements SettingsRepository {
@@ -47,6 +54,9 @@ class _StubTransactionRepo implements TransactionRepository {
   Future<int> save(Transaction transaction) async => 1;
   @override
   Future<void> voidTransaction(int id) async {}
+
+  @override
+  Future<void> refundTransaction(int id) async {}
 }
 
 void main() {

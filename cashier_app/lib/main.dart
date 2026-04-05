@@ -1,6 +1,9 @@
 import 'package:cashier_app/core/di/service_locator.dart';
 import 'package:cashier_app/core/layout/responsive_layout.dart';
 import 'package:cashier_app/features/archive/presentation/pages/archive_page.dart';
+import 'package:cashier_app/features/auth/presentation/pages/login_page.dart';
+import 'package:cashier_app/features/auth/presentation/pages/user_management_page.dart';
+import 'package:cashier_app/features/auth/presentation/state/auth_cubit.dart';
 import 'package:cashier_app/features/billing/presentation/pages/sales_register_page.dart';
 import 'package:cashier_app/features/billing/presentation/state/sales_register_cubit.dart';
 import 'package:cashier_app/features/cash_drawer/presentation/state/cash_drawer_cubit.dart';
@@ -42,6 +45,9 @@ class PortculisApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
+        BlocProvider<AuthCubit>(
+          create: (_) => sl<AuthCubit>()..init(),
+        ),
         BlocProvider<SettingsCubit>(create: (_) => sl<SettingsCubit>()),
         BlocProvider<KeypadCubit>(create: (_) => sl<KeypadCubit>()),
         BlocProvider<SalesRegisterCubit>(
@@ -90,7 +96,19 @@ class PortculisApp extends StatelessWidget {
               ),
               useMaterial3: true,
             ),
-            home: const _AppShell(),
+            home: BlocBuilder<AuthCubit, AuthState>(
+              builder: (context, authState) {
+                return switch (authState) {
+                  AuthInitial() =>
+                    const Scaffold(
+                      body: Center(child: CircularProgressIndicator()),
+                    ),
+                  AuthLocked() => const LoginPage(),
+                  AuthDisabled() || AuthAuthenticated() =>
+                    const _AppShell(),
+                };
+              },
+            ),
           );
         },
       ),
@@ -115,6 +133,7 @@ class _AppShellState extends State<_AppShell> {
     ReportsPage(),
     SettingsPage(),
     ArchivePage(),
+    UserManagementPage(),
   ];
 
   static const _destinations = <({IconData icon, IconData selectedIcon, String label})>[
@@ -124,6 +143,7 @@ class _AppShellState extends State<_AppShell> {
     (icon: Icons.bar_chart_outlined, selectedIcon: Icons.bar_chart, label: 'Reports'),
     (icon: Icons.settings_outlined, selectedIcon: Icons.settings, label: 'Settings'),
     (icon: Icons.folder_outlined, selectedIcon: Icons.folder, label: 'Archive'),
+    (icon: Icons.manage_accounts_outlined, selectedIcon: Icons.manage_accounts, label: 'Users'),
   ];
 
   void _onDestinationSelected(int index) {

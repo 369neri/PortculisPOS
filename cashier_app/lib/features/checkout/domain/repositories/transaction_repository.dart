@@ -5,4 +5,5 @@ abstract class TransactionRepository {
   Future<Transaction?> findById(int id);
   Future<int> save(Transaction transaction);
   Future<void> voidTransaction(int id);
+  Future<void> refundTransaction(int id);
 }

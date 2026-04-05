@@ -1,6 +1,9 @@
 import 'package:cashier_app/core/persistence/app_database.dart';
 import 'package:cashier_app/features/archive/domain/services/archive_service.dart';
 import 'package:cashier_app/features/archive/presentation/state/archive_cubit.dart';
+import 'package:cashier_app/features/auth/data/datasources/local_user_datasource.dart';
+import 'package:cashier_app/features/auth/domain/repositories/user_repository.dart';
+import 'package:cashier_app/features/auth/presentation/state/auth_cubit.dart';
 import 'package:cashier_app/features/billing/presentation/state/sales_register_cubit.dart';
 import 'package:cashier_app/features/cash_drawer/data/datasources/local_cash_drawer_datasource.dart';
 import 'package:cashier_app/features/cash_drawer/domain/repositories/cash_drawer_repository.dart';
@@ -22,6 +25,7 @@ import 'package:cashier_app/features/reports/presentation/state/reports_cubit.da
 import 'package:cashier_app/features/settings/data/datasources/local_settings_datasource.dart';
 import 'package:cashier_app/features/settings/domain/repositories/settings_repository.dart';
 import 'package:cashier_app/features/settings/presentation/state/settings_cubit.dart';
+import 'package:cashier_app/features/sync/domain/services/backup_service.dart';
 import 'package:get_it/get_it.dart';
 
 final sl = GetIt.instance;
@@ -51,7 +55,10 @@ void initServiceLocator() {
       () => ItemCatalogCubit(sl<ItemRepository>()),
     )
     ..registerFactory<CheckoutCubit>(
-      () => CheckoutCubit(sl<TransactionRepository>()),
+      () => CheckoutCubit(
+        sl<TransactionRepository>(),
+        itemRepository: sl<ItemRepository>(),
+      ),
     )
     ..registerSingleton<SettingsCubit>(
       SettingsCubit(sl<SettingsRepository>()),
@@ -80,5 +87,16 @@ void initServiceLocator() {
     ..registerSingleton<ArchiveService>(ArchiveService())
     ..registerFactory<ArchiveCubit>(
       () => ArchiveCubit(sl<ArchiveService>()),
+    )
+    // Auth
+    ..registerSingleton<UserRepository>(
+      LocalUserDatasource(sl<AppDatabase>().usersDao),
+    )
+    ..registerSingleton<AuthCubit>(
+      AuthCubit(sl<UserRepository>()),
+    )
+    // Backup
+    ..registerSingleton<BackupService>(
+      BackupService(sl<ItemRepository>(), sl<TransactionRepository>()),
     );
 }

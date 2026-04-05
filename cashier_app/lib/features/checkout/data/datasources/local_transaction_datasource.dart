@@ -66,6 +66,10 @@ class LocalTransactionDatasource implements TransactionRepository {
   Future<void> voidTransaction(int id) =>
       _dao.updateStatus(id, TransactionStatus.voided.name);
 
+  @override
+  Future<void> refundTransaction(int id) =>
+      _dao.updateStatus(id, TransactionStatus.refunded.name);
+
   // ---------------------------------------------------------------------------
   // Mapping helpers
   // ---------------------------------------------------------------------------

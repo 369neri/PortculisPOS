@@ -102,14 +102,30 @@ class _ItemCatalogViewState extends State<_ItemCatalogView> {
                         itemBuilder: (context, index) {
                           final item = filtered[index];
                           return ListTile(
-                            leading: Icon(_iconFor(item)),
-                            title:
-                                Text(item.label ?? item.sku ?? 'Unknown'),
+                            leading: Icon(
+                              _iconFor(item),
+                              color: item.isFavorite ? Colors.amber : null,
+                            ),
+                            title: Text(item.label ?? item.sku ?? 'Unknown'),
                             subtitle: _buildSubtitle(context, item),
-                            trailing: Text(
-                              item.unitPrice.toString(),
-                              style:
-                                  Theme.of(context).textTheme.bodyLarge,
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (item.isFavorite)
+                                  const Padding(
+                                    padding: EdgeInsets.only(right: 4),
+                                    child: Icon(
+                                      Icons.star,
+                                      size: 16,
+                                      color: Colors.amber,
+                                    ),
+                                  ),
+                                Text(
+                                  item.unitPrice.toString(),
+                                  style:
+                                      Theme.of(context).textTheme.bodyLarge,
+                                ),
+                              ],
                             ),
                             onTap: () => _showItemForm(
                               context,
@@ -136,8 +152,12 @@ class _ItemCatalogViewState extends State<_ItemCatalogView> {
 
   Widget? _buildSubtitle(BuildContext context, Item item) {
     final parts = <String>[];
+    if (item.category.isNotEmpty) parts.add(item.category);
     if (item.sku != null) parts.add(item.sku!);
     if (item is TradeItem && item.gtin != null) parts.add('GTIN: ${item.gtin}');
+    if (item is TradeItem && item.stockQuantity >= 0) {
+      parts.add('Stock: ${item.stockQuantity}');
+    }
     if (parts.isEmpty) return null;
     return Text(
       parts.join('  ·  '),
@@ -213,7 +233,10 @@ class _ItemFormSheetState extends State<_ItemFormSheet> {
   late final TextEditingController _labelCtrl;
   late final TextEditingController _priceCtrl;
   late final TextEditingController _gtinCtrl;
+  late final TextEditingController _categoryCtrl;
+  late final TextEditingController _stockCtrl;
   String _type = 'trade';
+  bool _isFavorite = false;
 
   @override
   void initState() {
@@ -227,6 +250,13 @@ class _ItemFormSheetState extends State<_ItemFormSheet> {
     _gtinCtrl = TextEditingController(
       text: (item is TradeItem) ? (item.gtin ?? '') : '',
     );
+    _categoryCtrl = TextEditingController(text: item?.category ?? '');
+    _stockCtrl = TextEditingController(
+      text: (item is TradeItem && item.stockQuantity >= 0)
+          ? item.stockQuantity.toString()
+          : '',
+    );
+    _isFavorite = item?.isFavorite ?? false;
     if (item is ServiceItem) _type = 'service';
   }
 
@@ -236,6 +266,8 @@ class _ItemFormSheetState extends State<_ItemFormSheet> {
     _labelCtrl.dispose();
     _priceCtrl.dispose();
     _gtinCtrl.dispose();
+    _categoryCtrl.dispose();
+    _stockCtrl.dispose();
     super.dispose();
   }
 
@@ -250,17 +282,26 @@ class _ItemFormSheetState extends State<_ItemFormSheet> {
 
     final gtinText = _gtinCtrl.text.trim();
 
+    final categoryText = _categoryCtrl.text.trim();
+    final stockText = _stockCtrl.text.trim();
+    final stockQty = stockText.isNotEmpty ? (int.tryParse(stockText) ?? -1) : -1;
+
     final newItem = _type == 'service'
         ? ServiceItem(
             sku: _skuCtrl.text.trim(),
             label: _labelCtrl.text.trim(),
             unitPrice: price,
+            category: categoryText,
+            isFavorite: _isFavorite,
           )
         : TradeItem(
             sku: _skuCtrl.text.trim(),
             label: _labelCtrl.text.trim(),
             unitPrice: price,
             gtin: gtinText.isNotEmpty ? gtinText : null,
+            category: categoryText,
+            stockQuantity: stockQty,
+            isFavorite: _isFavorite,
           );
 
     widget.cubit.save(newItem);
@@ -334,6 +375,33 @@ class _ItemFormSheetState extends State<_ItemFormSheet> {
                 keyboardType: TextInputType.number,
               ),
             ],
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _categoryCtrl,
+              decoration: const InputDecoration(
+                labelText: 'Category',
+                hintText: 'e.g. Beverages, Electronics',
+              ),
+            ),
+            if (_type == 'trade') ...[
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _stockCtrl,
+                decoration: const InputDecoration(
+                  labelText: 'Stock quantity',
+                  hintText: 'Leave empty to skip tracking',
+                ),
+                keyboardType: TextInputType.number,
+              ),
+            ],
+            const SizedBox(height: 12),
+            SwitchListTile(
+              title: const Text('Favorite'),
+              subtitle: const Text('Show in quick-add grid'),
+              value: _isFavorite,
+              onChanged: (v) => setState(() => _isFavorite = v),
+              contentPadding: EdgeInsets.zero,
+            ),
             const SizedBox(height: 20),
             FilledButton(
               onPressed: _save,

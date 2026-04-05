@@ -15,6 +15,9 @@ sealed class Item extends Equatable {
   String? get sku;
   String? get label;
   Price get unitPrice;
+  String get category => '';
+  int get stockQuantity => -1;
+  bool get isFavorite => false;
 
   ValidationResult validate();
 }

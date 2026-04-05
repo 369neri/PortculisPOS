@@ -53,6 +53,9 @@ class _FakeRepo implements TransactionRepository {
       createdAt: old.createdAt,
     );
   }
+
+  @override
+  Future<void> refundTransaction(int id) async {}
 }
 
 // ---------------------------------------------------------------------------

@@ -39,6 +39,13 @@ class _FakeRepo implements ItemRepository {
   Future<void> deleteBySku(String sku) async {
     if (error != null) throw error!;
   }
+
+  @override
+  Future<List<Item>> getFavorites() async => [];
+  @override
+  Future<void> decrementStock(String sku, {int qty = 1}) async {}
+  @override
+  Future<void> incrementStock(String sku, {int qty = 1}) async {}
 }
 
 // ---------------------------------------------------------------------------

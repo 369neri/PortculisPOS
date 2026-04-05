@@ -7,6 +7,9 @@ final class TradeItem extends Item {
     required this.label,
     required this.unitPrice,
     this.gtin,
+    this.category = '',
+    this.stockQuantity = -1,
+    this.isFavorite = false,
   });
 
   @override
@@ -20,7 +23,18 @@ final class TradeItem extends Item {
   final String? gtin;
 
   @override
-  List<Object?> get props => [sku, label, unitPrice, gtin];
+  final String category;
+
+  /// Stock on hand. -1 means stock is not tracked for this item.
+  @override
+  final int stockQuantity;
+
+  @override
+  final bool isFavorite;
+
+  @override
+  List<Object?> get props =>
+      [sku, label, unitPrice, gtin, category, stockQuantity, isFavorite];
 
   @override
   ValidationResult validate() {

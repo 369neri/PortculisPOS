@@ -6,6 +6,8 @@ final class ServiceItem extends Item {
     required this.sku,
     required this.label,
     required this.unitPrice,
+    this.category = '',
+    this.isFavorite = false,
   });
 
   @override
@@ -16,7 +18,16 @@ final class ServiceItem extends Item {
   final Price unitPrice;
 
   @override
-  List<Object?> get props => [sku, label, unitPrice];
+  final String category;
+
+  @override
+  int get stockQuantity => -1; // services never have stock
+
+  @override
+  final bool isFavorite;
+
+  @override
+  List<Object?> get props => [sku, label, unitPrice, category, isFavorite];
 
   @override
   ValidationResult validate() {

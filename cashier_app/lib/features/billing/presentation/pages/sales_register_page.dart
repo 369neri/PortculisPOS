@@ -9,6 +9,7 @@ import 'package:cashier_app/features/billing/presentation/widgets/invoice_summar
 import 'package:cashier_app/features/cash_drawer/presentation/state/cash_drawer_cubit.dart';
 import 'package:cashier_app/features/cash_drawer/presentation/state/cash_drawer_state.dart';
 import 'package:cashier_app/features/checkout/presentation/pages/checkout_page.dart';
+import 'package:cashier_app/features/scanning/presentation/pages/barcode_scanner_page.dart';
 import 'package:cashier_app/features/checkout/presentation/state/checkout_cubit.dart';
 import 'package:cashier_app/features/checkout/presentation/state/transaction_history_cubit.dart';
 import 'package:cashier_app/features/items/domain/entities/item.dart';
@@ -140,6 +141,15 @@ class _SkuSearchBarState extends State<_SkuSearchBar> {
     }
   }
 
+  Future<void> _openCameraScanner(BuildContext context) async {
+    final barcode = await Navigator.of(context).push<String>(
+      MaterialPageRoute(builder: (_) => const BarcodeScannerPage()),
+    );
+    if (barcode != null && barcode.isNotEmpty && context.mounted) {
+      context.read<ItemLookupCubit>().lookupBySku(barcode);
+    }
+  }
+
   /// Re-request focus so consecutive scans work seamlessly.
   void _refocus() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -237,6 +247,12 @@ class _SkuSearchBarState extends State<_SkuSearchBar> {
                 onPressed: () => _showCatalogPicker(context),
                 icon: const Icon(Icons.inventory_2_outlined),
                 tooltip: 'Browse catalog',
+              ),
+              const SizedBox(width: 4),
+              IconButton.filled(
+                onPressed: () => _openCameraScanner(context),
+                icon: const Icon(Icons.camera_alt_outlined),
+                tooltip: 'Scan with camera',
               ),
             ],
           ),
@@ -443,15 +459,141 @@ class _KeypadPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.all(8),
+    return DefaultTabController(
+      length: 2,
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          KeypadDisplay(),
-          SizedBox(height: 8),
-          NumKeypad(),
+          const TabBar(
+            tabs: [
+              Tab(icon: Icon(Icons.dialpad), text: 'Keypad'),
+              Tab(icon: Icon(Icons.star), text: 'Favorites'),
+            ],
+          ),
+          Expanded(
+            child: TabBarView(
+              children: [
+                const Padding(
+                  padding: EdgeInsets.all(8),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      KeypadDisplay(),
+                      SizedBox(height: 8),
+                      NumKeypad(),
+                    ],
+                  ),
+                ),
+                _FavoritesGrid(),
+              ],
+            ),
+          ),
         ],
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Favorites quick-add grid
+// ---------------------------------------------------------------------------
+
+class _FavoritesGrid extends StatefulWidget {
+  @override
+  State<_FavoritesGrid> createState() => _FavoritesGridState();
+}
+
+class _FavoritesGridState extends State<_FavoritesGrid> {
+  List<Item> _favorites = [];
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    final items = await sl<ItemRepository>().getFavorites();
+    if (!mounted) return;
+    setState(() {
+      _favorites = items;
+      _loading = false;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_loading) return const Center(child: CircularProgressIndicator());
+    if (_favorites.isEmpty) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(24),
+          child: Text(
+            'No favorites yet.\nMark items as favorites in the Item Catalog.',
+            textAlign: TextAlign.center,
+          ),
+        ),
+      );
+    }
+    return GridView.builder(
+      padding: const EdgeInsets.all(8),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        mainAxisSpacing: 8,
+        crossAxisSpacing: 8,
+        childAspectRatio: 1.2,
+      ),
+      itemCount: _favorites.length,
+      itemBuilder: (context, index) {
+        final item = _favorites[index];
+        return _FavoriteTile(
+          item: item,
+          onTap: () {
+            context.read<SalesRegisterCubit>().addCatalogItem(item);
+            HapticFeedback.mediumImpact();
+          },
+        );
+      },
+    );
+  }
+}
+
+class _FavoriteTile extends StatelessWidget {
+  const _FavoriteTile({required this.item, required this.onTap});
+
+  final Item item;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Theme.of(context).colorScheme.primaryContainer,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(8),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                item.label ?? item.sku ?? '?',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                maxLines: 2,
+                textAlign: TextAlign.center,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                item.unitPrice.toString(),
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -473,6 +615,7 @@ class _CatalogPickerDialogState extends State<_CatalogPickerDialog> {
   List<Item> _allItems = [];
   List<Item> _filtered = [];
   bool _loading = true;
+  String _selectedCategory = '';
 
   @override
   void initState() {
@@ -491,22 +634,39 @@ class _CatalogPickerDialogState extends State<_CatalogPickerDialog> {
     if (!mounted) return;
     setState(() {
       _allItems = items;
-      _filtered = items;
       _loading = false;
+      _applyFilters();
     });
   }
 
+  List<String> get _categories {
+    final cats = _allItems
+        .map((e) => e.category)
+        .where((c) => c.isNotEmpty)
+        .toSet()
+        .toList()
+      ..sort();
+    return cats;
+  }
+
+  void _applyFilters() {
+    final q = _searchController.text.toLowerCase();
+    var items = _allItems;
+    if (_selectedCategory.isNotEmpty) {
+      items = items.where((i) => i.category == _selectedCategory).toList();
+    }
+    if (q.isNotEmpty) {
+      items = items.where((item) {
+        final label = item.label?.toLowerCase() ?? '';
+        final sku = item.sku?.toLowerCase() ?? '';
+        return label.contains(q) || sku.contains(q);
+      }).toList();
+    }
+    _filtered = items;
+  }
+
   void _filter(String query) {
-    final q = query.toLowerCase();
-    setState(() {
-      _filtered = q.isEmpty
-          ? _allItems
-          : _allItems.where((item) {
-              final label = item.label?.toLowerCase() ?? '';
-              final sku = item.sku?.toLowerCase() ?? '';
-              return label.contains(q) || sku.contains(q);
-            }).toList();
-    });
+    setState(() => _applyFilters());
   }
 
   @override
@@ -532,6 +692,36 @@ class _CatalogPickerDialogState extends State<_CatalogPickerDialog> {
                 ),
                 onChanged: _filter,
               ),
+              if (_categories.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      ChoiceChip(
+                        label: const Text('All'),
+                        selected: _selectedCategory.isEmpty,
+                        onSelected: (_) => setState(() {
+                          _selectedCategory = '';
+                          _applyFilters();
+                        }),
+                      ),
+                      const SizedBox(width: 6),
+                      ..._categories.map((cat) => Padding(
+                            padding: const EdgeInsets.only(right: 6),
+                            child: ChoiceChip(
+                              label: Text(cat),
+                              selected: _selectedCategory == cat,
+                              onSelected: (_) => setState(() {
+                                _selectedCategory = cat;
+                                _applyFilters();
+                              }),
+                            ),
+                          )),
+                    ],
+                  ),
+                ),
+              ],
               const SizedBox(height: 8),
               Flexible(
                 child: _loading

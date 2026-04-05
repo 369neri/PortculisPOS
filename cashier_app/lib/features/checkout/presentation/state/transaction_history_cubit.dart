@@ -27,4 +27,13 @@ class TransactionHistoryCubit extends Cubit<TransactionHistoryState> {
       emit(TransactionHistoryError(e.toString()));
     }
   }
+
+  Future<void> refundTransaction(int id) async {
+    try {
+      await _repo.refundTransaction(id);
+      await load();
+    } on Exception catch (e) {
+      emit(TransactionHistoryError(e.toString()));
+    }
+  }
 }

@@ -1,7 +1,12 @@
+import 'dart:io';
+
 import 'package:cashier_app/features/settings/domain/entities/app_settings.dart';
 import 'package:cashier_app/features/settings/presentation/state/settings_cubit.dart';
+import 'package:cashier_app/features/sync/domain/services/backup_service.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -64,6 +69,41 @@ class _SettingsPageState extends State<SettingsPage> {
         );
     ScaffoldMessenger.of(context)
         .showSnackBar(const SnackBar(content: Text('Settings saved')));
+  }
+
+  Future<void> _exportBackup() async {
+    try {
+      await GetIt.instance<BackupService>().exportAndShare();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Export failed: $e')),
+      );
+    }
+  }
+
+  Future<void> _importBackup() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['json'],
+    );
+    if (result == null || result.files.single.path == null) return;
+    final path = result.files.single.path!;
+    if (!File(path).existsSync()) return;
+
+    try {
+      final count =
+          await GetIt.instance<BackupService>().importBackup(path);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Imported $count items')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Import failed: $e')),
+      );
+    }
   }
 
   @override
@@ -141,6 +181,22 @@ class _SettingsPageState extends State<SettingsPage> {
                 FilledButton(
                   onPressed: _save,
                   child: const Text('Save settings'),
+                ),
+                const SizedBox(height: 32),
+                const Divider(),
+                const SizedBox(height: 16),
+                Text('Data', style: Theme.of(context).textTheme.titleSmall),
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  onPressed: _exportBackup,
+                  icon: const Icon(Icons.upload_file),
+                  label: const Text('Export backup'),
+                ),
+                const SizedBox(height: 8),
+                OutlinedButton.icon(
+                  onPressed: _importBackup,
+                  icon: const Icon(Icons.download),
+                  label: const Text('Import backup'),
                 ),
               ],
             ),

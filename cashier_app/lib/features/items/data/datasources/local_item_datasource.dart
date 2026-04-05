@@ -37,6 +37,9 @@ class LocalItemDatasource implements ItemRepository {
         unitPriceSubunits: Value(item.unitPrice.value.toInt()),
         type: Value(_typeOf(item)),
         gtin: item is TradeItem ? Value(item.gtin) : const Value(null),
+        category: Value(item.category),
+        stockQuantity: Value(item.stockQuantity),
+        isFavorite: Value(item.isFavorite),
       ),
     );
   }
@@ -50,6 +53,20 @@ class LocalItemDatasource implements ItemRepository {
     if (row != null) await _db.itemsDao.deleteItem(row.id);
   }
 
+  @override
+  Future<List<Item>> getFavorites() async {
+    final rows = await _db.itemsDao.getFavorites();
+    return rows.map(_toItem).toList();
+  }
+
+  @override
+  Future<void> decrementStock(String sku, {int qty = 1}) =>
+      _db.itemsDao.decrementStock(sku, qty);
+
+  @override
+  Future<void> incrementStock(String sku, {int qty = 1}) =>
+      _db.itemsDao.incrementStock(sku, qty);
+
   // ----------------------------------------------------------
   // Helpers
   // ----------------------------------------------------------
@@ -61,12 +78,17 @@ class LocalItemDatasource implements ItemRepository {
           sku: row.sku,
           label: row.label,
           unitPrice: price,
+          category: row.category,
+          isFavorite: row.isFavorite,
         ),
       _ => TradeItem(
           sku: row.sku,
           label: row.label,
           unitPrice: price,
           gtin: row.gtin,
+          category: row.category,
+          stockQuantity: row.stockQuantity,
+          isFavorite: row.isFavorite,
         ),
     };
   }

@@ -75,6 +75,18 @@ class CustomersDaoManager {
           _db.attachedDatabase, _db.customersTable);
 }
 
+mixin _$UsersDaoMixin on DatabaseAccessor<AppDatabase> {
+  $UsersTableTable get usersTable => attachedDatabase.usersTable;
+  UsersDaoManager get managers => UsersDaoManager(this);
+}
+
+class UsersDaoManager {
+  final _$UsersDaoMixin _db;
+  UsersDaoManager(this._db);
+  $$UsersTableTableTableManager get usersTable =>
+      $$UsersTableTableTableManager(_db.attachedDatabase, _db.usersTable);
+}
+
 class $ItemsTableTable extends ItemsTable
     with TableInfo<$ItemsTableTable, ItemsTableData> {
   @override
@@ -118,9 +130,44 @@ class $ItemsTableTable extends ItemsTable
   late final GeneratedColumn<String> gtin = GeneratedColumn<String>(
       'gtin', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _categoryMeta =
+      const VerificationMeta('category');
   @override
-  List<GeneratedColumn> get $columns =>
-      [id, sku, label, unitPriceSubunits, type, gtin];
+  late final GeneratedColumn<String> category = GeneratedColumn<String>(
+      'category', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(''));
+  static const VerificationMeta _stockQuantityMeta =
+      const VerificationMeta('stockQuantity');
+  @override
+  late final GeneratedColumn<int> stockQuantity = GeneratedColumn<int>(
+      'stock_quantity', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(-1));
+  static const VerificationMeta _isFavoriteMeta =
+      const VerificationMeta('isFavorite');
+  @override
+  late final GeneratedColumn<bool> isFavorite = GeneratedColumn<bool>(
+      'is_favorite', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("is_favorite" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        sku,
+        label,
+        unitPriceSubunits,
+        type,
+        gtin,
+        category,
+        stockQuantity,
+        isFavorite
+      ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -164,6 +211,22 @@ class $ItemsTableTable extends ItemsTable
       context.handle(
           _gtinMeta, gtin.isAcceptableOrUnknown(data['gtin']!, _gtinMeta));
     }
+    if (data.containsKey('category')) {
+      context.handle(_categoryMeta,
+          category.isAcceptableOrUnknown(data['category']!, _categoryMeta));
+    }
+    if (data.containsKey('stock_quantity')) {
+      context.handle(
+          _stockQuantityMeta,
+          stockQuantity.isAcceptableOrUnknown(
+              data['stock_quantity']!, _stockQuantityMeta));
+    }
+    if (data.containsKey('is_favorite')) {
+      context.handle(
+          _isFavoriteMeta,
+          isFavorite.isAcceptableOrUnknown(
+              data['is_favorite']!, _isFavoriteMeta));
+    }
     return context;
   }
 
@@ -185,6 +248,12 @@ class $ItemsTableTable extends ItemsTable
           .read(DriftSqlType.string, data['${effectivePrefix}type'])!,
       gtin: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}gtin']),
+      category: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}category'])!,
+      stockQuantity: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}stock_quantity'])!,
+      isFavorite: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_favorite'])!,
     );
   }
 
@@ -201,13 +270,19 @@ class ItemsTableData extends DataClass implements Insertable<ItemsTableData> {
   final int unitPriceSubunits;
   final String type;
   final String? gtin;
+  final String category;
+  final int stockQuantity;
+  final bool isFavorite;
   const ItemsTableData(
       {required this.id,
       required this.sku,
       required this.label,
       required this.unitPriceSubunits,
       required this.type,
-      this.gtin});
+      this.gtin,
+      required this.category,
+      required this.stockQuantity,
+      required this.isFavorite});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -219,6 +294,9 @@ class ItemsTableData extends DataClass implements Insertable<ItemsTableData> {
     if (!nullToAbsent || gtin != null) {
       map['gtin'] = Variable<String>(gtin);
     }
+    map['category'] = Variable<String>(category);
+    map['stock_quantity'] = Variable<int>(stockQuantity);
+    map['is_favorite'] = Variable<bool>(isFavorite);
     return map;
   }
 
@@ -230,6 +308,9 @@ class ItemsTableData extends DataClass implements Insertable<ItemsTableData> {
       unitPriceSubunits: Value(unitPriceSubunits),
       type: Value(type),
       gtin: gtin == null && nullToAbsent ? const Value.absent() : Value(gtin),
+      category: Value(category),
+      stockQuantity: Value(stockQuantity),
+      isFavorite: Value(isFavorite),
     );
   }
 
@@ -243,6 +324,9 @@ class ItemsTableData extends DataClass implements Insertable<ItemsTableData> {
       unitPriceSubunits: serializer.fromJson<int>(json['unitPriceSubunits']),
       type: serializer.fromJson<String>(json['type']),
       gtin: serializer.fromJson<String?>(json['gtin']),
+      category: serializer.fromJson<String>(json['category']),
+      stockQuantity: serializer.fromJson<int>(json['stockQuantity']),
+      isFavorite: serializer.fromJson<bool>(json['isFavorite']),
     );
   }
   @override
@@ -255,6 +339,9 @@ class ItemsTableData extends DataClass implements Insertable<ItemsTableData> {
       'unitPriceSubunits': serializer.toJson<int>(unitPriceSubunits),
       'type': serializer.toJson<String>(type),
       'gtin': serializer.toJson<String?>(gtin),
+      'category': serializer.toJson<String>(category),
+      'stockQuantity': serializer.toJson<int>(stockQuantity),
+      'isFavorite': serializer.toJson<bool>(isFavorite),
     };
   }
 
@@ -264,7 +351,10 @@ class ItemsTableData extends DataClass implements Insertable<ItemsTableData> {
           String? label,
           int? unitPriceSubunits,
           String? type,
-          Value<String?> gtin = const Value.absent()}) =>
+          Value<String?> gtin = const Value.absent(),
+          String? category,
+          int? stockQuantity,
+          bool? isFavorite}) =>
       ItemsTableData(
         id: id ?? this.id,
         sku: sku ?? this.sku,
@@ -272,6 +362,9 @@ class ItemsTableData extends DataClass implements Insertable<ItemsTableData> {
         unitPriceSubunits: unitPriceSubunits ?? this.unitPriceSubunits,
         type: type ?? this.type,
         gtin: gtin.present ? gtin.value : this.gtin,
+        category: category ?? this.category,
+        stockQuantity: stockQuantity ?? this.stockQuantity,
+        isFavorite: isFavorite ?? this.isFavorite,
       );
   ItemsTableData copyWithCompanion(ItemsTableCompanion data) {
     return ItemsTableData(
@@ -283,6 +376,12 @@ class ItemsTableData extends DataClass implements Insertable<ItemsTableData> {
           : this.unitPriceSubunits,
       type: data.type.present ? data.type.value : this.type,
       gtin: data.gtin.present ? data.gtin.value : this.gtin,
+      category: data.category.present ? data.category.value : this.category,
+      stockQuantity: data.stockQuantity.present
+          ? data.stockQuantity.value
+          : this.stockQuantity,
+      isFavorite:
+          data.isFavorite.present ? data.isFavorite.value : this.isFavorite,
     );
   }
 
@@ -294,14 +393,17 @@ class ItemsTableData extends DataClass implements Insertable<ItemsTableData> {
           ..write('label: $label, ')
           ..write('unitPriceSubunits: $unitPriceSubunits, ')
           ..write('type: $type, ')
-          ..write('gtin: $gtin')
+          ..write('gtin: $gtin, ')
+          ..write('category: $category, ')
+          ..write('stockQuantity: $stockQuantity, ')
+          ..write('isFavorite: $isFavorite')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, sku, label, unitPriceSubunits, type, gtin);
+  int get hashCode => Object.hash(id, sku, label, unitPriceSubunits, type, gtin,
+      category, stockQuantity, isFavorite);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -311,7 +413,10 @@ class ItemsTableData extends DataClass implements Insertable<ItemsTableData> {
           other.label == this.label &&
           other.unitPriceSubunits == this.unitPriceSubunits &&
           other.type == this.type &&
-          other.gtin == this.gtin);
+          other.gtin == this.gtin &&
+          other.category == this.category &&
+          other.stockQuantity == this.stockQuantity &&
+          other.isFavorite == this.isFavorite);
 }
 
 class ItemsTableCompanion extends UpdateCompanion<ItemsTableData> {
@@ -321,6 +426,9 @@ class ItemsTableCompanion extends UpdateCompanion<ItemsTableData> {
   final Value<int> unitPriceSubunits;
   final Value<String> type;
   final Value<String?> gtin;
+  final Value<String> category;
+  final Value<int> stockQuantity;
+  final Value<bool> isFavorite;
   const ItemsTableCompanion({
     this.id = const Value.absent(),
     this.sku = const Value.absent(),
@@ -328,6 +436,9 @@ class ItemsTableCompanion extends UpdateCompanion<ItemsTableData> {
     this.unitPriceSubunits = const Value.absent(),
     this.type = const Value.absent(),
     this.gtin = const Value.absent(),
+    this.category = const Value.absent(),
+    this.stockQuantity = const Value.absent(),
+    this.isFavorite = const Value.absent(),
   });
   ItemsTableCompanion.insert({
     this.id = const Value.absent(),
@@ -336,6 +447,9 @@ class ItemsTableCompanion extends UpdateCompanion<ItemsTableData> {
     required int unitPriceSubunits,
     required String type,
     this.gtin = const Value.absent(),
+    this.category = const Value.absent(),
+    this.stockQuantity = const Value.absent(),
+    this.isFavorite = const Value.absent(),
   })  : sku = Value(sku),
         label = Value(label),
         unitPriceSubunits = Value(unitPriceSubunits),
@@ -347,6 +461,9 @@ class ItemsTableCompanion extends UpdateCompanion<ItemsTableData> {
     Expression<int>? unitPriceSubunits,
     Expression<String>? type,
     Expression<String>? gtin,
+    Expression<String>? category,
+    Expression<int>? stockQuantity,
+    Expression<bool>? isFavorite,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -355,6 +472,9 @@ class ItemsTableCompanion extends UpdateCompanion<ItemsTableData> {
       if (unitPriceSubunits != null) 'unit_price_subunits': unitPriceSubunits,
       if (type != null) 'type': type,
       if (gtin != null) 'gtin': gtin,
+      if (category != null) 'category': category,
+      if (stockQuantity != null) 'stock_quantity': stockQuantity,
+      if (isFavorite != null) 'is_favorite': isFavorite,
     });
   }
 
@@ -364,7 +484,10 @@ class ItemsTableCompanion extends UpdateCompanion<ItemsTableData> {
       Value<String>? label,
       Value<int>? unitPriceSubunits,
       Value<String>? type,
-      Value<String?>? gtin}) {
+      Value<String?>? gtin,
+      Value<String>? category,
+      Value<int>? stockQuantity,
+      Value<bool>? isFavorite}) {
     return ItemsTableCompanion(
       id: id ?? this.id,
       sku: sku ?? this.sku,
@@ -372,6 +495,9 @@ class ItemsTableCompanion extends UpdateCompanion<ItemsTableData> {
       unitPriceSubunits: unitPriceSubunits ?? this.unitPriceSubunits,
       type: type ?? this.type,
       gtin: gtin ?? this.gtin,
+      category: category ?? this.category,
+      stockQuantity: stockQuantity ?? this.stockQuantity,
+      isFavorite: isFavorite ?? this.isFavorite,
     );
   }
 
@@ -396,6 +522,15 @@ class ItemsTableCompanion extends UpdateCompanion<ItemsTableData> {
     if (gtin.present) {
       map['gtin'] = Variable<String>(gtin.value);
     }
+    if (category.present) {
+      map['category'] = Variable<String>(category.value);
+    }
+    if (stockQuantity.present) {
+      map['stock_quantity'] = Variable<int>(stockQuantity.value);
+    }
+    if (isFavorite.present) {
+      map['is_favorite'] = Variable<bool>(isFavorite.value);
+    }
     return map;
   }
 
@@ -407,7 +542,10 @@ class ItemsTableCompanion extends UpdateCompanion<ItemsTableData> {
           ..write('label: $label, ')
           ..write('unitPriceSubunits: $unitPriceSubunits, ')
           ..write('type: $type, ')
-          ..write('gtin: $gtin')
+          ..write('gtin: $gtin, ')
+          ..write('category: $category, ')
+          ..write('stockQuantity: $stockQuantity, ')
+          ..write('isFavorite: $isFavorite')
           ..write(')'))
         .toString();
   }
@@ -879,7 +1017,7 @@ class TransactionsTableData extends DataClass
   /// JSON-encoded invoice snapshot.
   final String invoiceJson;
 
-  /// 'completed' | 'voided'
+  /// 'completed' | 'voided' | 'refunded'
   final String status;
   final DateTime createdAt;
 
@@ -2139,6 +2277,383 @@ class CashDrawerSessionsTableCompanion
   }
 }
 
+class $UsersTableTable extends UsersTable
+    with TableInfo<$UsersTableTable, UsersTableData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $UsersTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _usernameMeta =
+      const VerificationMeta('username');
+  @override
+  late final GeneratedColumn<String> username = GeneratedColumn<String>(
+      'username', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'));
+  static const VerificationMeta _displayNameMeta =
+      const VerificationMeta('displayName');
+  @override
+  late final GeneratedColumn<String> displayName = GeneratedColumn<String>(
+      'display_name', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _pinMeta = const VerificationMeta('pin');
+  @override
+  late final GeneratedColumn<String> pin = GeneratedColumn<String>(
+      'pin', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _roleMeta = const VerificationMeta('role');
+  @override
+  late final GeneratedColumn<String> role = GeneratedColumn<String>(
+      'role', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('cashier'));
+  static const VerificationMeta _isActiveMeta =
+      const VerificationMeta('isActive');
+  @override
+  late final GeneratedColumn<bool> isActive = GeneratedColumn<bool>(
+      'is_active', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("is_active" IN (0, 1))'),
+      defaultValue: const Constant(true));
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns =>
+      [id, username, displayName, pin, role, isActive, createdAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'users';
+  @override
+  VerificationContext validateIntegrity(Insertable<UsersTableData> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('username')) {
+      context.handle(_usernameMeta,
+          username.isAcceptableOrUnknown(data['username']!, _usernameMeta));
+    } else if (isInserting) {
+      context.missing(_usernameMeta);
+    }
+    if (data.containsKey('display_name')) {
+      context.handle(
+          _displayNameMeta,
+          displayName.isAcceptableOrUnknown(
+              data['display_name']!, _displayNameMeta));
+    } else if (isInserting) {
+      context.missing(_displayNameMeta);
+    }
+    if (data.containsKey('pin')) {
+      context.handle(
+          _pinMeta, pin.isAcceptableOrUnknown(data['pin']!, _pinMeta));
+    } else if (isInserting) {
+      context.missing(_pinMeta);
+    }
+    if (data.containsKey('role')) {
+      context.handle(
+          _roleMeta, role.isAcceptableOrUnknown(data['role']!, _roleMeta));
+    }
+    if (data.containsKey('is_active')) {
+      context.handle(_isActiveMeta,
+          isActive.isAcceptableOrUnknown(data['is_active']!, _isActiveMeta));
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  UsersTableData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return UsersTableData(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      username: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}username'])!,
+      displayName: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}display_name'])!,
+      pin: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}pin'])!,
+      role: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}role'])!,
+      isActive: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_active'])!,
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+    );
+  }
+
+  @override
+  $UsersTableTable createAlias(String alias) {
+    return $UsersTableTable(attachedDatabase, alias);
+  }
+}
+
+class UsersTableData extends DataClass implements Insertable<UsersTableData> {
+  final int id;
+  final String username;
+  final String displayName;
+  final String pin;
+  final String role;
+  final bool isActive;
+  final DateTime createdAt;
+  const UsersTableData(
+      {required this.id,
+      required this.username,
+      required this.displayName,
+      required this.pin,
+      required this.role,
+      required this.isActive,
+      required this.createdAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['username'] = Variable<String>(username);
+    map['display_name'] = Variable<String>(displayName);
+    map['pin'] = Variable<String>(pin);
+    map['role'] = Variable<String>(role);
+    map['is_active'] = Variable<bool>(isActive);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  UsersTableCompanion toCompanion(bool nullToAbsent) {
+    return UsersTableCompanion(
+      id: Value(id),
+      username: Value(username),
+      displayName: Value(displayName),
+      pin: Value(pin),
+      role: Value(role),
+      isActive: Value(isActive),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory UsersTableData.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return UsersTableData(
+      id: serializer.fromJson<int>(json['id']),
+      username: serializer.fromJson<String>(json['username']),
+      displayName: serializer.fromJson<String>(json['displayName']),
+      pin: serializer.fromJson<String>(json['pin']),
+      role: serializer.fromJson<String>(json['role']),
+      isActive: serializer.fromJson<bool>(json['isActive']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'username': serializer.toJson<String>(username),
+      'displayName': serializer.toJson<String>(displayName),
+      'pin': serializer.toJson<String>(pin),
+      'role': serializer.toJson<String>(role),
+      'isActive': serializer.toJson<bool>(isActive),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  UsersTableData copyWith(
+          {int? id,
+          String? username,
+          String? displayName,
+          String? pin,
+          String? role,
+          bool? isActive,
+          DateTime? createdAt}) =>
+      UsersTableData(
+        id: id ?? this.id,
+        username: username ?? this.username,
+        displayName: displayName ?? this.displayName,
+        pin: pin ?? this.pin,
+        role: role ?? this.role,
+        isActive: isActive ?? this.isActive,
+        createdAt: createdAt ?? this.createdAt,
+      );
+  UsersTableData copyWithCompanion(UsersTableCompanion data) {
+    return UsersTableData(
+      id: data.id.present ? data.id.value : this.id,
+      username: data.username.present ? data.username.value : this.username,
+      displayName:
+          data.displayName.present ? data.displayName.value : this.displayName,
+      pin: data.pin.present ? data.pin.value : this.pin,
+      role: data.role.present ? data.role.value : this.role,
+      isActive: data.isActive.present ? data.isActive.value : this.isActive,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('UsersTableData(')
+          ..write('id: $id, ')
+          ..write('username: $username, ')
+          ..write('displayName: $displayName, ')
+          ..write('pin: $pin, ')
+          ..write('role: $role, ')
+          ..write('isActive: $isActive, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, username, displayName, pin, role, isActive, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is UsersTableData &&
+          other.id == this.id &&
+          other.username == this.username &&
+          other.displayName == this.displayName &&
+          other.pin == this.pin &&
+          other.role == this.role &&
+          other.isActive == this.isActive &&
+          other.createdAt == this.createdAt);
+}
+
+class UsersTableCompanion extends UpdateCompanion<UsersTableData> {
+  final Value<int> id;
+  final Value<String> username;
+  final Value<String> displayName;
+  final Value<String> pin;
+  final Value<String> role;
+  final Value<bool> isActive;
+  final Value<DateTime> createdAt;
+  const UsersTableCompanion({
+    this.id = const Value.absent(),
+    this.username = const Value.absent(),
+    this.displayName = const Value.absent(),
+    this.pin = const Value.absent(),
+    this.role = const Value.absent(),
+    this.isActive = const Value.absent(),
+    this.createdAt = const Value.absent(),
+  });
+  UsersTableCompanion.insert({
+    this.id = const Value.absent(),
+    required String username,
+    required String displayName,
+    required String pin,
+    this.role = const Value.absent(),
+    this.isActive = const Value.absent(),
+    required DateTime createdAt,
+  })  : username = Value(username),
+        displayName = Value(displayName),
+        pin = Value(pin),
+        createdAt = Value(createdAt);
+  static Insertable<UsersTableData> custom({
+    Expression<int>? id,
+    Expression<String>? username,
+    Expression<String>? displayName,
+    Expression<String>? pin,
+    Expression<String>? role,
+    Expression<bool>? isActive,
+    Expression<DateTime>? createdAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (username != null) 'username': username,
+      if (displayName != null) 'display_name': displayName,
+      if (pin != null) 'pin': pin,
+      if (role != null) 'role': role,
+      if (isActive != null) 'is_active': isActive,
+      if (createdAt != null) 'created_at': createdAt,
+    });
+  }
+
+  UsersTableCompanion copyWith(
+      {Value<int>? id,
+      Value<String>? username,
+      Value<String>? displayName,
+      Value<String>? pin,
+      Value<String>? role,
+      Value<bool>? isActive,
+      Value<DateTime>? createdAt}) {
+    return UsersTableCompanion(
+      id: id ?? this.id,
+      username: username ?? this.username,
+      displayName: displayName ?? this.displayName,
+      pin: pin ?? this.pin,
+      role: role ?? this.role,
+      isActive: isActive ?? this.isActive,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (username.present) {
+      map['username'] = Variable<String>(username.value);
+    }
+    if (displayName.present) {
+      map['display_name'] = Variable<String>(displayName.value);
+    }
+    if (pin.present) {
+      map['pin'] = Variable<String>(pin.value);
+    }
+    if (role.present) {
+      map['role'] = Variable<String>(role.value);
+    }
+    if (isActive.present) {
+      map['is_active'] = Variable<bool>(isActive.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('UsersTableCompanion(')
+          ..write('id: $id, ')
+          ..write('username: $username, ')
+          ..write('displayName: $displayName, ')
+          ..write('pin: $pin, ')
+          ..write('role: $role, ')
+          ..write('isActive: $isActive, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -2150,12 +2665,14 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $SettingsTableTable settingsTable = $SettingsTableTable(this);
   late final $CashDrawerSessionsTableTable cashDrawerSessionsTable =
       $CashDrawerSessionsTableTable(this);
+  late final $UsersTableTable usersTable = $UsersTableTable(this);
   late final ItemsDao itemsDao = ItemsDao(this as AppDatabase);
   late final TransactionsDao transactionsDao =
       TransactionsDao(this as AppDatabase);
   late final SettingsDao settingsDao = SettingsDao(this as AppDatabase);
   late final CashDrawerDao cashDrawerDao = CashDrawerDao(this as AppDatabase);
   late final CustomersDao customersDao = CustomersDao(this as AppDatabase);
+  late final UsersDao usersDao = UsersDao(this as AppDatabase);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -2166,7 +2683,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         transactionsTable,
         paymentsTable,
         settingsTable,
-        cashDrawerSessionsTable
+        cashDrawerSessionsTable,
+        usersTable
       ];
 }
 
@@ -2177,6 +2695,9 @@ typedef $$ItemsTableTableCreateCompanionBuilder = ItemsTableCompanion Function({
   required int unitPriceSubunits,
   required String type,
   Value<String?> gtin,
+  Value<String> category,
+  Value<int> stockQuantity,
+  Value<bool> isFavorite,
 });
 typedef $$ItemsTableTableUpdateCompanionBuilder = ItemsTableCompanion Function({
   Value<int> id,
@@ -2185,6 +2706,9 @@ typedef $$ItemsTableTableUpdateCompanionBuilder = ItemsTableCompanion Function({
   Value<int> unitPriceSubunits,
   Value<String> type,
   Value<String?> gtin,
+  Value<String> category,
+  Value<int> stockQuantity,
+  Value<bool> isFavorite,
 });
 
 class $$ItemsTableTableFilterComposer
@@ -2214,6 +2738,15 @@ class $$ItemsTableTableFilterComposer
 
   ColumnFilters<String> get gtin => $composableBuilder(
       column: $table.gtin, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get category => $composableBuilder(
+      column: $table.category, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get stockQuantity => $composableBuilder(
+      column: $table.stockQuantity, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get isFavorite => $composableBuilder(
+      column: $table.isFavorite, builder: (column) => ColumnFilters(column));
 }
 
 class $$ItemsTableTableOrderingComposer
@@ -2243,6 +2776,16 @@ class $$ItemsTableTableOrderingComposer
 
   ColumnOrderings<String> get gtin => $composableBuilder(
       column: $table.gtin, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get category => $composableBuilder(
+      column: $table.category, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get stockQuantity => $composableBuilder(
+      column: $table.stockQuantity,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get isFavorite => $composableBuilder(
+      column: $table.isFavorite, builder: (column) => ColumnOrderings(column));
 }
 
 class $$ItemsTableTableAnnotationComposer
@@ -2271,6 +2814,15 @@ class $$ItemsTableTableAnnotationComposer
 
   GeneratedColumn<String> get gtin =>
       $composableBuilder(column: $table.gtin, builder: (column) => column);
+
+  GeneratedColumn<String> get category =>
+      $composableBuilder(column: $table.category, builder: (column) => column);
+
+  GeneratedColumn<int> get stockQuantity => $composableBuilder(
+      column: $table.stockQuantity, builder: (column) => column);
+
+  GeneratedColumn<bool> get isFavorite => $composableBuilder(
+      column: $table.isFavorite, builder: (column) => column);
 }
 
 class $$ItemsTableTableTableManager extends RootTableManager<
@@ -2305,6 +2857,9 @@ class $$ItemsTableTableTableManager extends RootTableManager<
             Value<int> unitPriceSubunits = const Value.absent(),
             Value<String> type = const Value.absent(),
             Value<String?> gtin = const Value.absent(),
+            Value<String> category = const Value.absent(),
+            Value<int> stockQuantity = const Value.absent(),
+            Value<bool> isFavorite = const Value.absent(),
           }) =>
               ItemsTableCompanion(
             id: id,
@@ -2313,6 +2868,9 @@ class $$ItemsTableTableTableManager extends RootTableManager<
             unitPriceSubunits: unitPriceSubunits,
             type: type,
             gtin: gtin,
+            category: category,
+            stockQuantity: stockQuantity,
+            isFavorite: isFavorite,
           ),
           createCompanionCallback: ({
             Value<int> id = const Value.absent(),
@@ -2321,6 +2879,9 @@ class $$ItemsTableTableTableManager extends RootTableManager<
             required int unitPriceSubunits,
             required String type,
             Value<String?> gtin = const Value.absent(),
+            Value<String> category = const Value.absent(),
+            Value<int> stockQuantity = const Value.absent(),
+            Value<bool> isFavorite = const Value.absent(),
           }) =>
               ItemsTableCompanion.insert(
             id: id,
@@ -2329,6 +2890,9 @@ class $$ItemsTableTableTableManager extends RootTableManager<
             unitPriceSubunits: unitPriceSubunits,
             type: type,
             gtin: gtin,
+            category: category,
+            stockQuantity: stockQuantity,
+            isFavorite: isFavorite,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
@@ -3642,6 +4206,201 @@ typedef $$CashDrawerSessionsTableTableProcessedTableManager
         ),
         CashDrawerSessionsTableData,
         PrefetchHooks Function()>;
+typedef $$UsersTableTableCreateCompanionBuilder = UsersTableCompanion Function({
+  Value<int> id,
+  required String username,
+  required String displayName,
+  required String pin,
+  Value<String> role,
+  Value<bool> isActive,
+  required DateTime createdAt,
+});
+typedef $$UsersTableTableUpdateCompanionBuilder = UsersTableCompanion Function({
+  Value<int> id,
+  Value<String> username,
+  Value<String> displayName,
+  Value<String> pin,
+  Value<String> role,
+  Value<bool> isActive,
+  Value<DateTime> createdAt,
+});
+
+class $$UsersTableTableFilterComposer
+    extends Composer<_$AppDatabase, $UsersTableTable> {
+  $$UsersTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get username => $composableBuilder(
+      column: $table.username, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get displayName => $composableBuilder(
+      column: $table.displayName, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get pin => $composableBuilder(
+      column: $table.pin, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get role => $composableBuilder(
+      column: $table.role, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get isActive => $composableBuilder(
+      column: $table.isActive, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+}
+
+class $$UsersTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $UsersTableTable> {
+  $$UsersTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get username => $composableBuilder(
+      column: $table.username, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get displayName => $composableBuilder(
+      column: $table.displayName, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get pin => $composableBuilder(
+      column: $table.pin, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get role => $composableBuilder(
+      column: $table.role, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get isActive => $composableBuilder(
+      column: $table.isActive, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+}
+
+class $$UsersTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $UsersTableTable> {
+  $$UsersTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get username =>
+      $composableBuilder(column: $table.username, builder: (column) => column);
+
+  GeneratedColumn<String> get displayName => $composableBuilder(
+      column: $table.displayName, builder: (column) => column);
+
+  GeneratedColumn<String> get pin =>
+      $composableBuilder(column: $table.pin, builder: (column) => column);
+
+  GeneratedColumn<String> get role =>
+      $composableBuilder(column: $table.role, builder: (column) => column);
+
+  GeneratedColumn<bool> get isActive =>
+      $composableBuilder(column: $table.isActive, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$UsersTableTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $UsersTableTable,
+    UsersTableData,
+    $$UsersTableTableFilterComposer,
+    $$UsersTableTableOrderingComposer,
+    $$UsersTableTableAnnotationComposer,
+    $$UsersTableTableCreateCompanionBuilder,
+    $$UsersTableTableUpdateCompanionBuilder,
+    (
+      UsersTableData,
+      BaseReferences<_$AppDatabase, $UsersTableTable, UsersTableData>
+    ),
+    UsersTableData,
+    PrefetchHooks Function()> {
+  $$UsersTableTableTableManager(_$AppDatabase db, $UsersTableTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$UsersTableTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$UsersTableTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$UsersTableTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<String> username = const Value.absent(),
+            Value<String> displayName = const Value.absent(),
+            Value<String> pin = const Value.absent(),
+            Value<String> role = const Value.absent(),
+            Value<bool> isActive = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+          }) =>
+              UsersTableCompanion(
+            id: id,
+            username: username,
+            displayName: displayName,
+            pin: pin,
+            role: role,
+            isActive: isActive,
+            createdAt: createdAt,
+          ),
+          createCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            required String username,
+            required String displayName,
+            required String pin,
+            Value<String> role = const Value.absent(),
+            Value<bool> isActive = const Value.absent(),
+            required DateTime createdAt,
+          }) =>
+              UsersTableCompanion.insert(
+            id: id,
+            username: username,
+            displayName: displayName,
+            pin: pin,
+            role: role,
+            isActive: isActive,
+            createdAt: createdAt,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$UsersTableTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $UsersTableTable,
+    UsersTableData,
+    $$UsersTableTableFilterComposer,
+    $$UsersTableTableOrderingComposer,
+    $$UsersTableTableAnnotationComposer,
+    $$UsersTableTableCreateCompanionBuilder,
+    $$UsersTableTableUpdateCompanionBuilder,
+    (
+      UsersTableData,
+      BaseReferences<_$AppDatabase, $UsersTableTable, UsersTableData>
+    ),
+    UsersTableData,
+    PrefetchHooks Function()>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -3659,4 +4418,6 @@ class $AppDatabaseManager {
   $$CashDrawerSessionsTableTableTableManager get cashDrawerSessionsTable =>
       $$CashDrawerSessionsTableTableTableManager(
           _db, _db.cashDrawerSessionsTable);
+  $$UsersTableTableTableManager get usersTable =>
+      $$UsersTableTableTableManager(_db, _db.usersTable);
 }

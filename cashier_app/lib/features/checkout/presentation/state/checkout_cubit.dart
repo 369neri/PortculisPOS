@@ -5,13 +5,18 @@ import 'package:cashier_app/features/checkout/domain/entities/transaction.dart';
 import 'package:cashier_app/features/checkout/domain/entities/transaction_status.dart';
 import 'package:cashier_app/features/checkout/domain/repositories/transaction_repository.dart';
 import 'package:cashier_app/features/checkout/presentation/state/checkout_state.dart';
+import 'package:cashier_app/features/items/domain/entities/item.dart';
+import 'package:cashier_app/features/items/domain/repositories/item_repository.dart';
 import 'package:cashier_app/features/pricing/domain/entities/price.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class CheckoutCubit extends Cubit<CheckoutState> {
-  CheckoutCubit(this._repository) : super(const CheckoutIdle());
+  CheckoutCubit(this._repository, {ItemRepository? itemRepository})
+      : _itemRepository = itemRepository,
+        super(const CheckoutIdle());
 
   final TransactionRepository _repository;
+  final ItemRepository? _itemRepository;
 
   void startCheckout(Invoice invoice, {double taxRate = 0.0}) {
     if (invoice.items.isEmpty) return;
@@ -76,6 +81,19 @@ class CheckoutCubit extends Cubit<CheckoutState> {
         customerName: current.customerName,
       );
       final id = await _repository.save(transaction);
+
+        // Decrement stock for tracked items
+        if (_itemRepository != null) {
+          for (final invoiceItem in transaction.invoice.items) {
+            final item = invoiceItem.item;
+            if (item is TradeItem && item.stockQuantity >= 0) {
+              await _itemRepository!.decrementStock(
+                item.sku,
+                qty: invoiceItem.quantity,
+              );
+            }
+          }
+        }
       final saved = await _repository.findById(id);
       emit(
         CheckoutCompleted(
