@@ -32,5 +32,30 @@ void main() {
       final item2 = ServiceItem(sku: 'b', label: 'Same', unitPrice: Price.from(100));
       expect(item1, isNot(equals(item2)));
     });
+
+    // -- New field defaults --
+
+    test('defaults: category is empty, isFavorite is false', () {
+      final item = ServiceItem(sku: 'x', label: 'x', unitPrice: Price.from(1));
+      expect(item.category, '');
+      expect(item.isFavorite, false);
+    });
+
+    test('stockQuantity is always -1', () {
+      final item = ServiceItem(sku: 'x', label: 'x', unitPrice: Price.from(1));
+      expect(item.stockQuantity, -1);
+    });
+
+    test('items with different category are not equal', () {
+      final a = ServiceItem(sku: 's', label: 'l', unitPrice: Price.from(1), category: 'A');
+      final b = ServiceItem(sku: 's', label: 'l', unitPrice: Price.from(1), category: 'B');
+      expect(a, isNot(equals(b)));
+    });
+
+    test('items with different isFavorite are not equal', () {
+      final a = ServiceItem(sku: 's', label: 'l', unitPrice: Price.from(1), isFavorite: true);
+      final b = ServiceItem(sku: 's', label: 'l', unitPrice: Price.from(1), isFavorite: false);
+      expect(a, isNot(equals(b)));
+    });
   });
 }

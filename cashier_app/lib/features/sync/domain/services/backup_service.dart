@@ -5,6 +5,7 @@ import 'package:cashier_app/features/checkout/domain/repositories/transaction_re
 import 'package:cashier_app/features/items/domain/entities/item.dart';
 import 'package:cashier_app/features/items/domain/repositories/item_repository.dart';
 import 'package:cashier_app/features/pricing/domain/entities/price.dart';
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -13,6 +14,12 @@ class BackupService {
 
   final ItemRepository _itemRepo;
   final TransactionRepository _transactionRepo;
+
+  @visibleForTesting
+  Map<String, dynamic> encodeItemForTest(Item item) => _encodeItem(item);
+
+  @visibleForTesting
+  Item? decodeItemForTest(Map<String, dynamic> map) => _decodeItem(map);
 
   /// Export items + transactions to a JSON file and share it.
   Future<String> exportBackup() async {

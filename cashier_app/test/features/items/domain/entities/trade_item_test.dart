@@ -58,5 +58,32 @@ void main() {
 
       expect(item1.hashCode, equals(item2.hashCode));
     });
+
+    // -- New field defaults --
+
+    test('defaults: category is empty, stockQuantity is -1, isFavorite is false', () {
+      final item = TradeItem(sku: 'x', label: 'x', unitPrice: Price.from(1));
+      expect(item.category, '');
+      expect(item.stockQuantity, -1);
+      expect(item.isFavorite, false);
+    });
+
+    test('items with different category are not equal', () {
+      final a = TradeItem(sku: 's', label: 'l', unitPrice: Price.from(1), category: 'A');
+      final b = TradeItem(sku: 's', label: 'l', unitPrice: Price.from(1), category: 'B');
+      expect(a, isNot(equals(b)));
+    });
+
+    test('items with different stockQuantity are not equal', () {
+      final a = TradeItem(sku: 's', label: 'l', unitPrice: Price.from(1), stockQuantity: 10);
+      final b = TradeItem(sku: 's', label: 'l', unitPrice: Price.from(1), stockQuantity: 20);
+      expect(a, isNot(equals(b)));
+    });
+
+    test('items with different isFavorite are not equal', () {
+      final a = TradeItem(sku: 's', label: 'l', unitPrice: Price.from(1), isFavorite: true);
+      final b = TradeItem(sku: 's', label: 'l', unitPrice: Price.from(1), isFavorite: false);
+      expect(a, isNot(equals(b)));
+    });
   });
 }
