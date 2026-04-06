@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:cashier_app/features/reports/domain/entities/sales_report.dart';
@@ -21,12 +22,27 @@ class ReportPdfBuilder {
     final sym = settings.currencySymbol;
     final title = isZ ? 'Z Report — End of Day' : 'X Report';
 
+    // Attempt to load logo if configured.
+    pw.MemoryImage? logoImage;
+    if (settings.logoPath != null && settings.logoPath!.isNotEmpty) {
+      final logoFile = File(settings.logoPath!);
+      if (logoFile.existsSync()) {
+        logoImage = pw.MemoryImage(logoFile.readAsBytesSync());
+      }
+    }
+
     doc.addPage(
       pw.Page(
         pageFormat: PdfPageFormat.a4,
         build: (_) => pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.stretch,
           children: [
+            if (logoImage != null) ...[
+              pw.Center(
+                child: pw.Image(logoImage, width: 80, height: 80),
+              ),
+              pw.SizedBox(height: 8),
+            ],
             pw.Center(
               child: pw.Text(
                 title,

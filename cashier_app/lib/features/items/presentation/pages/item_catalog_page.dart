@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:cashier_app/core/di/service_locator.dart';
 import 'package:cashier_app/features/items/domain/entities/item.dart';
+import 'package:cashier_app/features/items/presentation/pages/csv_import_page.dart';
 import 'package:cashier_app/features/items/presentation/state/item_catalog_cubit.dart';
 import 'package:cashier_app/features/pricing/domain/entities/price.dart';
 import 'package:file_picker/file_picker.dart';
@@ -87,7 +88,22 @@ class _ItemCatalogViewState extends State<_ItemCatalogView> {
     final cubit = context.read<ItemCatalogCubit>();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Item Catalog')),
+      appBar: AppBar(
+        title: const Text('Item Catalog'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.upload_file),
+            tooltip: 'Import CSV',
+            onPressed: () async {
+              await Navigator.push<void>(
+                context,
+                MaterialPageRoute(builder: (_) => const CsvImportPage()),
+              );
+              if (context.mounted) cubit.load();
+            },
+          ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showItemForm(context, cubit: cubit),
         icon: const Icon(Icons.add),

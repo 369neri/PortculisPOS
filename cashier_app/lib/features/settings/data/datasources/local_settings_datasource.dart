@@ -20,6 +20,11 @@ class LocalSettingsDatasource implements SettingsRepository {
           ? DateTime.tryParse(row.lastZReportAt!)
           : null,
       themeMode: row.themeMode,
+      logoPath: row.logoPath,
+      autoBackupEnabled: row.autoBackupEnabled,
+      lastBackupAt: row.lastBackupAt != null
+          ? DateTime.tryParse(row.lastBackupAt!)
+          : null,
     );
   }
 
@@ -33,6 +38,9 @@ class LocalSettingsDatasource implements SettingsRepository {
           receiptFooter: Value(settings.receiptFooter),
           lastZReportAt: Value(settings.lastZReportAt?.toIso8601String()),
           themeMode: Value(settings.themeMode),
+          logoPath: Value(settings.logoPath),
+          autoBackupEnabled: Value(settings.autoBackupEnabled),
+          lastBackupAt: Value(settings.lastBackupAt?.toIso8601String()),
         ),
       );
 }

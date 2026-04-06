@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:cashier_app/features/billing/domain/services/price_calculator.dart';
@@ -22,6 +23,15 @@ class ReceiptPdfBuilder {
     final subtotal = PriceCalculator.subtotal(transaction.invoice);
     final tax = PriceCalculator.tax(transaction.invoice, taxRate: taxRate);
 
+    // Attempt to load logo if configured.
+    pw.MemoryImage? logoImage;
+    if (settings.logoPath != null && settings.logoPath!.isNotEmpty) {
+      final logoFile = File(settings.logoPath!);
+      if (logoFile.existsSync()) {
+        logoImage = pw.MemoryImage(logoFile.readAsBytesSync());
+      }
+    }
+
     doc.addPage(
       pw.Page(
         pageFormat: const PdfPageFormat(
@@ -32,6 +42,12 @@ class ReceiptPdfBuilder {
         build: (_) => pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.stretch,
           children: [
+            if (logoImage != null) ...[
+              pw.Center(
+                child: pw.Image(logoImage, width: 60, height: 60),
+              ),
+              pw.SizedBox(height: 4),
+            ],
             pw.Center(
               child: pw.Text(
                 settings.businessName,

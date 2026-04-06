@@ -92,6 +92,10 @@ class SettingsTable extends Table {
   TextColumn get lastZReportAt => text().nullable()();
   TextColumn get themeMode =>
       text().withDefault(const Constant('system'))();
+  TextColumn get logoPath => text().nullable()();
+  BoolColumn get autoBackupEnabled =>
+      boolean().withDefault(const Constant(false))();
+  TextColumn get lastBackupAt => text().nullable()();
 
   @override
   Set<Column<Object>> get primaryKey => {id};
@@ -410,7 +414,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 10;
+  int get schemaVersion => 11;
 
   @override
   MigrationStrategy get migration {
@@ -457,6 +461,14 @@ class AppDatabase extends _$AppDatabase {
         }
         if (from < 10) {
           await m.addColumn(itemsTable, itemsTable.imagePath);
+        }
+        if (from < 11) {
+          await m.addColumn(settingsTable, settingsTable.logoPath);
+          await m.addColumn(
+            settingsTable,
+            settingsTable.autoBackupEnabled,
+          );
+          await m.addColumn(settingsTable, settingsTable.lastBackupAt);
         }
       },
     );

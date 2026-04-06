@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cashier_app/features/billing/domain/entities/invoice.dart';
 import 'package:cashier_app/features/checkout/domain/entities/payment.dart';
 import 'package:cashier_app/features/checkout/domain/entities/payment_method.dart';
@@ -8,16 +10,22 @@ import 'package:cashier_app/features/checkout/presentation/state/checkout_state.
 import 'package:cashier_app/features/items/domain/entities/item.dart';
 import 'package:cashier_app/features/items/domain/repositories/item_repository.dart';
 import 'package:cashier_app/features/pricing/domain/entities/price.dart';
+import 'package:cashier_app/features/sync/presentation/state/sync_cubit.dart';
 import 'package:cashier_app/core/logging/app_logger.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class CheckoutCubit extends Cubit<CheckoutState> {
-  CheckoutCubit(this._repository, {ItemRepository? itemRepository})
-      : _itemRepository = itemRepository,
+  CheckoutCubit(
+    this._repository, {
+    ItemRepository? itemRepository,
+    SyncCubit? syncCubit,
+  })  : _itemRepository = itemRepository,
+        _syncCubit = syncCubit,
         super(const CheckoutIdle());
 
   final TransactionRepository _repository;
   final ItemRepository? _itemRepository;
+  final SyncCubit? _syncCubit;
 
   void startCheckout(Invoice invoice, {double taxRate = 0.0}) {
     if (invoice.items.isEmpty) return;
@@ -113,6 +121,9 @@ class CheckoutCubit extends Cubit<CheckoutState> {
           taxRate: current.taxRate,
         ),
       );
+
+      // Trigger auto-backup (fire-and-forget; sale is already saved)
+      unawaited(_syncCubit?.onTransactionCompleted() ?? Future<void>.value());
     } on Exception catch (e, st) {
       appLogger.e('Checkout failed', error: e, stackTrace: st);
       emit(CheckoutError('Unable to complete sale. Please try again.'));

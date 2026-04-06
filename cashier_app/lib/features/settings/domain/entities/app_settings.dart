@@ -10,6 +10,9 @@ class AppSettings extends Equatable {
     this.receiptFooter = 'Thank you for your business!',
     this.lastZReportAt,
     this.themeMode = 'system',
+    this.logoPath,
+    this.autoBackupEnabled = false,
+    this.lastBackupAt,
   });
 
   final String businessName;
@@ -26,6 +29,15 @@ class AppSettings extends Equatable {
   /// Theme mode: 'system', 'light', or 'dark'.
   final String themeMode;
 
+  /// Path to the business logo image shown on receipts.
+  final String? logoPath;
+
+  /// Whether automatic backup after each transaction is enabled.
+  final bool autoBackupEnabled;
+
+  /// When the last automatic backup was created.
+  final DateTime? lastBackupAt;
+
   AppSettings copyWith({
     String? businessName,
     double? taxRate,
@@ -34,6 +46,11 @@ class AppSettings extends Equatable {
     DateTime? lastZReportAt,
     bool clearLastZReportAt = false,
     String? themeMode,
+    String? logoPath,
+    bool clearLogoPath = false,
+    bool? autoBackupEnabled,
+    DateTime? lastBackupAt,
+    bool clearLastBackupAt = false,
   }) =>
       AppSettings(
         businessName: businessName ?? this.businessName,
@@ -43,6 +60,10 @@ class AppSettings extends Equatable {
         lastZReportAt:
             clearLastZReportAt ? null : (lastZReportAt ?? this.lastZReportAt),
         themeMode: themeMode ?? this.themeMode,
+        logoPath: clearLogoPath ? null : (logoPath ?? this.logoPath),
+        autoBackupEnabled: autoBackupEnabled ?? this.autoBackupEnabled,
+        lastBackupAt:
+            clearLastBackupAt ? null : (lastBackupAt ?? this.lastBackupAt),
       );
 
   @override
@@ -53,5 +74,8 @@ class AppSettings extends Equatable {
         receiptFooter,
         lastZReportAt,
         themeMode,
+        logoPath,
+        autoBackupEnabled,
+        lastBackupAt,
       ];
 }

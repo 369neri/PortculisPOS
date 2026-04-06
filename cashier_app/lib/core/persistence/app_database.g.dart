@@ -1612,6 +1612,28 @@ class $SettingsTableTable extends SettingsTable
       type: DriftSqlType.string,
       requiredDuringInsert: false,
       defaultValue: const Constant('system'));
+  static const VerificationMeta _logoPathMeta =
+      const VerificationMeta('logoPath');
+  @override
+  late final GeneratedColumn<String> logoPath = GeneratedColumn<String>(
+      'logo_path', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _autoBackupEnabledMeta =
+      const VerificationMeta('autoBackupEnabled');
+  @override
+  late final GeneratedColumn<bool> autoBackupEnabled = GeneratedColumn<bool>(
+      'auto_backup_enabled', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("auto_backup_enabled" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  static const VerificationMeta _lastBackupAtMeta =
+      const VerificationMeta('lastBackupAt');
+  @override
+  late final GeneratedColumn<String> lastBackupAt = GeneratedColumn<String>(
+      'last_backup_at', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -1620,7 +1642,10 @@ class $SettingsTableTable extends SettingsTable
         currencySymbol,
         receiptFooter,
         lastZReportAt,
-        themeMode
+        themeMode,
+        logoPath,
+        autoBackupEnabled,
+        lastBackupAt
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1667,6 +1692,22 @@ class $SettingsTableTable extends SettingsTable
       context.handle(_themeModeMeta,
           themeMode.isAcceptableOrUnknown(data['theme_mode']!, _themeModeMeta));
     }
+    if (data.containsKey('logo_path')) {
+      context.handle(_logoPathMeta,
+          logoPath.isAcceptableOrUnknown(data['logo_path']!, _logoPathMeta));
+    }
+    if (data.containsKey('auto_backup_enabled')) {
+      context.handle(
+          _autoBackupEnabledMeta,
+          autoBackupEnabled.isAcceptableOrUnknown(
+              data['auto_backup_enabled']!, _autoBackupEnabledMeta));
+    }
+    if (data.containsKey('last_backup_at')) {
+      context.handle(
+          _lastBackupAtMeta,
+          lastBackupAt.isAcceptableOrUnknown(
+              data['last_backup_at']!, _lastBackupAtMeta));
+    }
     return context;
   }
 
@@ -1690,6 +1731,12 @@ class $SettingsTableTable extends SettingsTable
           DriftSqlType.string, data['${effectivePrefix}last_z_report_at']),
       themeMode: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}theme_mode'])!,
+      logoPath: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}logo_path']),
+      autoBackupEnabled: attachedDatabase.typeMapping.read(
+          DriftSqlType.bool, data['${effectivePrefix}auto_backup_enabled'])!,
+      lastBackupAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}last_backup_at']),
     );
   }
 
@@ -1708,6 +1755,9 @@ class SettingsTableData extends DataClass
   final String receiptFooter;
   final String? lastZReportAt;
   final String themeMode;
+  final String? logoPath;
+  final bool autoBackupEnabled;
+  final String? lastBackupAt;
   const SettingsTableData(
       {required this.id,
       required this.businessName,
@@ -1715,7 +1765,10 @@ class SettingsTableData extends DataClass
       required this.currencySymbol,
       required this.receiptFooter,
       this.lastZReportAt,
-      required this.themeMode});
+      required this.themeMode,
+      this.logoPath,
+      required this.autoBackupEnabled,
+      this.lastBackupAt});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -1728,6 +1781,13 @@ class SettingsTableData extends DataClass
       map['last_z_report_at'] = Variable<String>(lastZReportAt);
     }
     map['theme_mode'] = Variable<String>(themeMode);
+    if (!nullToAbsent || logoPath != null) {
+      map['logo_path'] = Variable<String>(logoPath);
+    }
+    map['auto_backup_enabled'] = Variable<bool>(autoBackupEnabled);
+    if (!nullToAbsent || lastBackupAt != null) {
+      map['last_backup_at'] = Variable<String>(lastBackupAt);
+    }
     return map;
   }
 
@@ -1742,6 +1802,13 @@ class SettingsTableData extends DataClass
           ? const Value.absent()
           : Value(lastZReportAt),
       themeMode: Value(themeMode),
+      logoPath: logoPath == null && nullToAbsent
+          ? const Value.absent()
+          : Value(logoPath),
+      autoBackupEnabled: Value(autoBackupEnabled),
+      lastBackupAt: lastBackupAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastBackupAt),
     );
   }
 
@@ -1756,6 +1823,9 @@ class SettingsTableData extends DataClass
       receiptFooter: serializer.fromJson<String>(json['receiptFooter']),
       lastZReportAt: serializer.fromJson<String?>(json['lastZReportAt']),
       themeMode: serializer.fromJson<String>(json['themeMode']),
+      logoPath: serializer.fromJson<String?>(json['logoPath']),
+      autoBackupEnabled: serializer.fromJson<bool>(json['autoBackupEnabled']),
+      lastBackupAt: serializer.fromJson<String?>(json['lastBackupAt']),
     );
   }
   @override
@@ -1769,6 +1839,9 @@ class SettingsTableData extends DataClass
       'receiptFooter': serializer.toJson<String>(receiptFooter),
       'lastZReportAt': serializer.toJson<String?>(lastZReportAt),
       'themeMode': serializer.toJson<String>(themeMode),
+      'logoPath': serializer.toJson<String?>(logoPath),
+      'autoBackupEnabled': serializer.toJson<bool>(autoBackupEnabled),
+      'lastBackupAt': serializer.toJson<String?>(lastBackupAt),
     };
   }
 
@@ -1779,7 +1852,10 @@ class SettingsTableData extends DataClass
           String? currencySymbol,
           String? receiptFooter,
           Value<String?> lastZReportAt = const Value.absent(),
-          String? themeMode}) =>
+          String? themeMode,
+          Value<String?> logoPath = const Value.absent(),
+          bool? autoBackupEnabled,
+          Value<String?> lastBackupAt = const Value.absent()}) =>
       SettingsTableData(
         id: id ?? this.id,
         businessName: businessName ?? this.businessName,
@@ -1789,6 +1865,10 @@ class SettingsTableData extends DataClass
         lastZReportAt:
             lastZReportAt.present ? lastZReportAt.value : this.lastZReportAt,
         themeMode: themeMode ?? this.themeMode,
+        logoPath: logoPath.present ? logoPath.value : this.logoPath,
+        autoBackupEnabled: autoBackupEnabled ?? this.autoBackupEnabled,
+        lastBackupAt:
+            lastBackupAt.present ? lastBackupAt.value : this.lastBackupAt,
       );
   SettingsTableData copyWithCompanion(SettingsTableCompanion data) {
     return SettingsTableData(
@@ -1807,6 +1887,13 @@ class SettingsTableData extends DataClass
           ? data.lastZReportAt.value
           : this.lastZReportAt,
       themeMode: data.themeMode.present ? data.themeMode.value : this.themeMode,
+      logoPath: data.logoPath.present ? data.logoPath.value : this.logoPath,
+      autoBackupEnabled: data.autoBackupEnabled.present
+          ? data.autoBackupEnabled.value
+          : this.autoBackupEnabled,
+      lastBackupAt: data.lastBackupAt.present
+          ? data.lastBackupAt.value
+          : this.lastBackupAt,
     );
   }
 
@@ -1819,14 +1906,26 @@ class SettingsTableData extends DataClass
           ..write('currencySymbol: $currencySymbol, ')
           ..write('receiptFooter: $receiptFooter, ')
           ..write('lastZReportAt: $lastZReportAt, ')
-          ..write('themeMode: $themeMode')
+          ..write('themeMode: $themeMode, ')
+          ..write('logoPath: $logoPath, ')
+          ..write('autoBackupEnabled: $autoBackupEnabled, ')
+          ..write('lastBackupAt: $lastBackupAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, businessName, taxRate, currencySymbol,
-      receiptFooter, lastZReportAt, themeMode);
+  int get hashCode => Object.hash(
+      id,
+      businessName,
+      taxRate,
+      currencySymbol,
+      receiptFooter,
+      lastZReportAt,
+      themeMode,
+      logoPath,
+      autoBackupEnabled,
+      lastBackupAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1837,7 +1936,10 @@ class SettingsTableData extends DataClass
           other.currencySymbol == this.currencySymbol &&
           other.receiptFooter == this.receiptFooter &&
           other.lastZReportAt == this.lastZReportAt &&
-          other.themeMode == this.themeMode);
+          other.themeMode == this.themeMode &&
+          other.logoPath == this.logoPath &&
+          other.autoBackupEnabled == this.autoBackupEnabled &&
+          other.lastBackupAt == this.lastBackupAt);
 }
 
 class SettingsTableCompanion extends UpdateCompanion<SettingsTableData> {
@@ -1848,6 +1950,9 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsTableData> {
   final Value<String> receiptFooter;
   final Value<String?> lastZReportAt;
   final Value<String> themeMode;
+  final Value<String?> logoPath;
+  final Value<bool> autoBackupEnabled;
+  final Value<String?> lastBackupAt;
   const SettingsTableCompanion({
     this.id = const Value.absent(),
     this.businessName = const Value.absent(),
@@ -1856,6 +1961,9 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsTableData> {
     this.receiptFooter = const Value.absent(),
     this.lastZReportAt = const Value.absent(),
     this.themeMode = const Value.absent(),
+    this.logoPath = const Value.absent(),
+    this.autoBackupEnabled = const Value.absent(),
+    this.lastBackupAt = const Value.absent(),
   });
   SettingsTableCompanion.insert({
     this.id = const Value.absent(),
@@ -1865,6 +1973,9 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsTableData> {
     this.receiptFooter = const Value.absent(),
     this.lastZReportAt = const Value.absent(),
     this.themeMode = const Value.absent(),
+    this.logoPath = const Value.absent(),
+    this.autoBackupEnabled = const Value.absent(),
+    this.lastBackupAt = const Value.absent(),
   });
   static Insertable<SettingsTableData> custom({
     Expression<int>? id,
@@ -1874,6 +1985,9 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsTableData> {
     Expression<String>? receiptFooter,
     Expression<String>? lastZReportAt,
     Expression<String>? themeMode,
+    Expression<String>? logoPath,
+    Expression<bool>? autoBackupEnabled,
+    Expression<String>? lastBackupAt,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -1883,6 +1997,9 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsTableData> {
       if (receiptFooter != null) 'receipt_footer': receiptFooter,
       if (lastZReportAt != null) 'last_z_report_at': lastZReportAt,
       if (themeMode != null) 'theme_mode': themeMode,
+      if (logoPath != null) 'logo_path': logoPath,
+      if (autoBackupEnabled != null) 'auto_backup_enabled': autoBackupEnabled,
+      if (lastBackupAt != null) 'last_backup_at': lastBackupAt,
     });
   }
 
@@ -1893,7 +2010,10 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsTableData> {
       Value<String>? currencySymbol,
       Value<String>? receiptFooter,
       Value<String?>? lastZReportAt,
-      Value<String>? themeMode}) {
+      Value<String>? themeMode,
+      Value<String?>? logoPath,
+      Value<bool>? autoBackupEnabled,
+      Value<String?>? lastBackupAt}) {
     return SettingsTableCompanion(
       id: id ?? this.id,
       businessName: businessName ?? this.businessName,
@@ -1902,6 +2022,9 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsTableData> {
       receiptFooter: receiptFooter ?? this.receiptFooter,
       lastZReportAt: lastZReportAt ?? this.lastZReportAt,
       themeMode: themeMode ?? this.themeMode,
+      logoPath: logoPath ?? this.logoPath,
+      autoBackupEnabled: autoBackupEnabled ?? this.autoBackupEnabled,
+      lastBackupAt: lastBackupAt ?? this.lastBackupAt,
     );
   }
 
@@ -1929,6 +2052,15 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsTableData> {
     if (themeMode.present) {
       map['theme_mode'] = Variable<String>(themeMode.value);
     }
+    if (logoPath.present) {
+      map['logo_path'] = Variable<String>(logoPath.value);
+    }
+    if (autoBackupEnabled.present) {
+      map['auto_backup_enabled'] = Variable<bool>(autoBackupEnabled.value);
+    }
+    if (lastBackupAt.present) {
+      map['last_backup_at'] = Variable<String>(lastBackupAt.value);
+    }
     return map;
   }
 
@@ -1941,7 +2073,10 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsTableData> {
           ..write('currencySymbol: $currencySymbol, ')
           ..write('receiptFooter: $receiptFooter, ')
           ..write('lastZReportAt: $lastZReportAt, ')
-          ..write('themeMode: $themeMode')
+          ..write('themeMode: $themeMode, ')
+          ..write('logoPath: $logoPath, ')
+          ..write('autoBackupEnabled: $autoBackupEnabled, ')
+          ..write('lastBackupAt: $lastBackupAt')
           ..write(')'))
         .toString();
   }
@@ -3874,6 +4009,9 @@ typedef $$SettingsTableTableCreateCompanionBuilder = SettingsTableCompanion
   Value<String> receiptFooter,
   Value<String?> lastZReportAt,
   Value<String> themeMode,
+  Value<String?> logoPath,
+  Value<bool> autoBackupEnabled,
+  Value<String?> lastBackupAt,
 });
 typedef $$SettingsTableTableUpdateCompanionBuilder = SettingsTableCompanion
     Function({
@@ -3884,6 +4022,9 @@ typedef $$SettingsTableTableUpdateCompanionBuilder = SettingsTableCompanion
   Value<String> receiptFooter,
   Value<String?> lastZReportAt,
   Value<String> themeMode,
+  Value<String?> logoPath,
+  Value<bool> autoBackupEnabled,
+  Value<String?> lastBackupAt,
 });
 
 class $$SettingsTableTableFilterComposer
@@ -3916,6 +4057,16 @@ class $$SettingsTableTableFilterComposer
 
   ColumnFilters<String> get themeMode => $composableBuilder(
       column: $table.themeMode, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get logoPath => $composableBuilder(
+      column: $table.logoPath, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get autoBackupEnabled => $composableBuilder(
+      column: $table.autoBackupEnabled,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get lastBackupAt => $composableBuilder(
+      column: $table.lastBackupAt, builder: (column) => ColumnFilters(column));
 }
 
 class $$SettingsTableTableOrderingComposer
@@ -3951,6 +4102,17 @@ class $$SettingsTableTableOrderingComposer
 
   ColumnOrderings<String> get themeMode => $composableBuilder(
       column: $table.themeMode, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get logoPath => $composableBuilder(
+      column: $table.logoPath, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get autoBackupEnabled => $composableBuilder(
+      column: $table.autoBackupEnabled,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get lastBackupAt => $composableBuilder(
+      column: $table.lastBackupAt,
+      builder: (column) => ColumnOrderings(column));
 }
 
 class $$SettingsTableTableAnnotationComposer
@@ -3982,6 +4144,15 @@ class $$SettingsTableTableAnnotationComposer
 
   GeneratedColumn<String> get themeMode =>
       $composableBuilder(column: $table.themeMode, builder: (column) => column);
+
+  GeneratedColumn<String> get logoPath =>
+      $composableBuilder(column: $table.logoPath, builder: (column) => column);
+
+  GeneratedColumn<bool> get autoBackupEnabled => $composableBuilder(
+      column: $table.autoBackupEnabled, builder: (column) => column);
+
+  GeneratedColumn<String> get lastBackupAt => $composableBuilder(
+      column: $table.lastBackupAt, builder: (column) => column);
 }
 
 class $$SettingsTableTableTableManager extends RootTableManager<
@@ -4017,6 +4188,9 @@ class $$SettingsTableTableTableManager extends RootTableManager<
             Value<String> receiptFooter = const Value.absent(),
             Value<String?> lastZReportAt = const Value.absent(),
             Value<String> themeMode = const Value.absent(),
+            Value<String?> logoPath = const Value.absent(),
+            Value<bool> autoBackupEnabled = const Value.absent(),
+            Value<String?> lastBackupAt = const Value.absent(),
           }) =>
               SettingsTableCompanion(
             id: id,
@@ -4026,6 +4200,9 @@ class $$SettingsTableTableTableManager extends RootTableManager<
             receiptFooter: receiptFooter,
             lastZReportAt: lastZReportAt,
             themeMode: themeMode,
+            logoPath: logoPath,
+            autoBackupEnabled: autoBackupEnabled,
+            lastBackupAt: lastBackupAt,
           ),
           createCompanionCallback: ({
             Value<int> id = const Value.absent(),
@@ -4035,6 +4212,9 @@ class $$SettingsTableTableTableManager extends RootTableManager<
             Value<String> receiptFooter = const Value.absent(),
             Value<String?> lastZReportAt = const Value.absent(),
             Value<String> themeMode = const Value.absent(),
+            Value<String?> logoPath = const Value.absent(),
+            Value<bool> autoBackupEnabled = const Value.absent(),
+            Value<String?> lastBackupAt = const Value.absent(),
           }) =>
               SettingsTableCompanion.insert(
             id: id,
@@ -4044,6 +4224,9 @@ class $$SettingsTableTableTableManager extends RootTableManager<
             receiptFooter: receiptFooter,
             lastZReportAt: lastZReportAt,
             themeMode: themeMode,
+            logoPath: logoPath,
+            autoBackupEnabled: autoBackupEnabled,
+            lastBackupAt: lastBackupAt,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))

@@ -26,6 +26,7 @@ import 'package:cashier_app/features/settings/data/datasources/local_settings_da
 import 'package:cashier_app/features/settings/domain/repositories/settings_repository.dart';
 import 'package:cashier_app/features/settings/presentation/state/settings_cubit.dart';
 import 'package:cashier_app/features/sync/domain/services/backup_service.dart';
+import 'package:cashier_app/features/sync/presentation/state/sync_cubit.dart';
 import 'package:get_it/get_it.dart';
 
 final sl = GetIt.instance;
@@ -58,6 +59,7 @@ void initServiceLocator() {
       () => CheckoutCubit(
         sl<TransactionRepository>(),
         itemRepository: sl<ItemRepository>(),
+        syncCubit: sl<SyncCubit>(),
       ),
     )
     ..registerSingleton<SettingsCubit>(
@@ -106,5 +108,9 @@ void initServiceLocator() {
         sl<CustomerRepository>(),
         sl<SettingsRepository>(),
       ),
+    )
+    // Sync
+    ..registerSingleton<SyncCubit>(
+      SyncCubit(sl<BackupService>(), sl<SettingsRepository>()),
     );
 }

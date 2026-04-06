@@ -11,20 +11,35 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   final _usernameCtrl = TextEditingController();
-  final _pinCtrl = TextEditingController();
+  String _pin = '';
+  static const _pinLength = 4;
 
   @override
   void dispose() {
     _usernameCtrl.dispose();
-    _pinCtrl.dispose();
     super.dispose();
   }
 
+  void _onDigit(String digit) {
+    if (_pin.length >= _pinLength) return;
+    setState(() => _pin += digit);
+    if (_pin.length == _pinLength) {
+      _submit();
+    }
+  }
+
+  void _onBackspace() {
+    if (_pin.isEmpty) return;
+    setState(() => _pin = _pin.substring(0, _pin.length - 1));
+  }
+
+  void _onClear() => setState(() => _pin = '');
+
   void _submit() {
     final username = _usernameCtrl.text.trim();
-    final pin = _pinCtrl.text.trim();
-    if (username.isEmpty || pin.isEmpty) return;
-    context.read<AuthCubit>().login(username, pin);
+    if (username.isEmpty || _pin.isEmpty) return;
+    context.read<AuthCubit>().login(username, _pin);
+    setState(() => _pin = '');
   }
 
   @override
@@ -70,21 +85,24 @@ class _LoginPageState extends State<LoginPage> {
                               border: OutlineInputBorder(),
                               isDense: true,
                             ),
-                            textInputAction: TextInputAction.next,
+                            textInputAction: TextInputAction.done,
                           ),
-                          const SizedBox(height: 12),
-                          TextField(
-                            controller: _pinCtrl,
-                            decoration: const InputDecoration(
-                              labelText: 'PIN',
-                              border: OutlineInputBorder(),
-                              isDense: true,
-                            ),
-                            obscureText: true,
-                            keyboardType: TextInputType.number,
-                            onSubmitted: (_) => _submit(),
+                          const SizedBox(height: 16),
+
+                          // PIN dots
+                          _PinDots(
+                            length: _pinLength,
+                            filled: _pin.length,
                           ),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 16),
+
+                          // Numeric keypad
+                          _NumericKeypad(
+                            onDigit: _onDigit,
+                            onBackspace: _onBackspace,
+                            onClear: _onClear,
+                          ),
+                          const SizedBox(height: 16),
                           SizedBox(
                             width: double.infinity,
                             child: FilledButton(
@@ -101,6 +119,112 @@ class _LoginPageState extends State<LoginPage> {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// PIN dot indicator
+// ---------------------------------------------------------------------------
+
+class _PinDots extends StatelessWidget {
+  const _PinDots({required this.length, required this.filled});
+
+  final int length;
+  final int filled;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = Theme.of(context).colorScheme.primary;
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List.generate(length, (i) {
+        return Container(
+          width: 16,
+          height: 16,
+          margin: const EdgeInsets.symmetric(horizontal: 8),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: i < filled ? color : Colors.transparent,
+            border: Border.all(color: color, width: 2),
+          ),
+        );
+      }),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Numeric keypad (1-9, clear, 0, backspace)
+// ---------------------------------------------------------------------------
+
+class _NumericKeypad extends StatelessWidget {
+  const _NumericKeypad({
+    required this.onDigit,
+    required this.onBackspace,
+    required this.onClear,
+  });
+
+  final ValueChanged<String> onDigit;
+  final VoidCallback onBackspace;
+  final VoidCallback onClear;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        _row(['1', '2', '3']),
+        const SizedBox(height: 8),
+        _row(['4', '5', '6']),
+        const SizedBox(height: 8),
+        _row(['7', '8', '9']),
+        const SizedBox(height: 8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _keyButton(
+              child: const Text('C'),
+              onTap: onClear,
+            ),
+            const SizedBox(width: 12),
+            _keyButton(
+              child: const Text('0', style: TextStyle(fontSize: 20)),
+              onTap: () => onDigit('0'),
+            ),
+            const SizedBox(width: 12),
+            _keyButton(
+              child: const Icon(Icons.backspace_outlined, size: 20),
+              onTap: onBackspace,
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _row(List<String> digits) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        for (int i = 0; i < digits.length; i++) ...[
+          if (i > 0) const SizedBox(width: 12),
+          _keyButton(
+            child: Text(digits[i], style: const TextStyle(fontSize: 20)),
+            onTap: () => onDigit(digits[i]),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _keyButton({required Widget child, required VoidCallback onTap}) {
+    return SizedBox(
+      width: 64,
+      height: 56,
+      child: OutlinedButton(
+        onPressed: onTap,
+        child: child,
       ),
     );
   }

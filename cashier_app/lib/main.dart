@@ -19,6 +19,7 @@ import 'package:cashier_app/features/reports/presentation/state/reports_cubit.da
 import 'package:cashier_app/features/settings/domain/entities/app_settings.dart';
 import 'package:cashier_app/features/settings/presentation/pages/settings_page.dart';
 import 'package:cashier_app/features/settings/presentation/state/settings_cubit.dart';
+import 'package:cashier_app/features/sync/presentation/state/sync_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -68,6 +69,9 @@ class PortculisApp extends StatelessWidget {
         ),
         BlocProvider<CustomerCubit>(
           create: (_) => sl<CustomerCubit>(),
+        ),
+        BlocProvider<SyncCubit>(
+          create: (_) => sl<SyncCubit>(),
         ),
       ],
       child: BlocBuilder<SettingsCubit, SettingsState>(
@@ -125,6 +129,8 @@ class _AppShell extends StatefulWidget {
 
 class _AppShellState extends State<_AppShell> {
   int _selectedIndex = 0;
+  DateTime _lastActivity = DateTime.now();
+  static const _idleTimeout = Duration(minutes: 15);
 
   // All available pages with admin-only flags.
   static const _allEntries = <({Widget page, IconData icon, IconData selectedIcon, String label, bool adminOnly})>[
@@ -150,6 +156,7 @@ class _AppShellState extends State<_AppShell> {
   }
 
   void _onDestinationSelected(int index) {
+    _lastActivity = DateTime.now();
     setState(() => _selectedIndex = index);
     final entries = _visibleEntries;
     if (index < entries.length && entries[index].label == 'Reports') {
@@ -159,16 +166,48 @@ class _AppShellState extends State<_AppShell> {
     }
   }
 
+  void _recordActivity() => _lastActivity = DateTime.now();
+
+  void _checkIdle() {
+    final authState = context.read<AuthCubit>().state;
+    if (authState is! AuthAuthenticated) return;
+    if (DateTime.now().difference(_lastActivity) > _idleTimeout) {
+      context.read<AuthCubit>().logout();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Periodically check for idle timeout on each rebuild.
+    _checkIdle();
+
     final wide = isWideScreen(context);
-    final entries = _visibleEntries;        
+    final entries = _visibleEntries;
     // Clamp index in case role changed.
     if (_selectedIndex >= entries.length) _selectedIndex = 0;
 
-    return Scaffold(
-      body: wide ? _buildRailLayout(entries) : _buildPageBody(entries),
-      bottomNavigationBar: wide ? null : _buildBottomBar(entries),
+    final authState = context.watch<AuthCubit>().state;
+    final showLock = authState is AuthAuthenticated;
+
+    return GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      onTap: _recordActivity,
+      onPanDown: (_) => _recordActivity(),
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(entries[_selectedIndex].label),
+          actions: [
+            if (showLock)
+              IconButton(
+                icon: const Icon(Icons.lock_outline),
+                tooltip: 'Lock',
+                onPressed: () => context.read<AuthCubit>().logout(),
+              ),
+          ],
+        ),
+        body: wide ? _buildRailLayout(entries) : _buildPageBody(entries),
+        bottomNavigationBar: wide ? null : _buildBottomBar(entries),
+      ),
     );
   }
 
