@@ -10,6 +10,7 @@ final class TradeItem extends Item {
     this.category = '',
     this.stockQuantity = -1,
     this.isFavorite = false,
+    this.imagePath,
   });
 
   @override
@@ -33,8 +34,11 @@ final class TradeItem extends Item {
   final bool isFavorite;
 
   @override
+  final String? imagePath;
+
+  @override
   List<Object?> get props =>
-      [sku, label, unitPrice, gtin, category, stockQuantity, isFavorite];
+      [sku, label, unitPrice, gtin, category, stockQuantity, isFavorite, imagePath];
 
   @override
   ValidationResult validate() {

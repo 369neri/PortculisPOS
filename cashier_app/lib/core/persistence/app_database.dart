@@ -28,6 +28,7 @@ class ItemsTable extends Table {
       integer().withDefault(const Constant(-1))(); // -1 = untracked
   BoolColumn get isFavorite =>
       boolean().withDefault(const Constant(false))();
+  TextColumn get imagePath => text().nullable()();
 }
 
 // ---------------------------------------------------------------------------
@@ -400,7 +401,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 9;
+  int get schemaVersion => 10;
 
   @override
   MigrationStrategy get migration {
@@ -444,6 +445,9 @@ class AppDatabase extends _$AppDatabase {
           await m.addColumn(itemsTable, itemsTable.stockQuantity);
           await m.addColumn(itemsTable, itemsTable.isFavorite);
           await m.createTable(usersTable);
+        }
+        if (from < 10) {
+          await m.addColumn(itemsTable, itemsTable.imagePath);
         }
       },
     );

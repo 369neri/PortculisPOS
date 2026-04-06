@@ -156,6 +156,12 @@ class $ItemsTableTable extends ItemsTable
       defaultConstraints:
           GeneratedColumn.constraintIsAlways('CHECK ("is_favorite" IN (0, 1))'),
       defaultValue: const Constant(false));
+  static const VerificationMeta _imagePathMeta =
+      const VerificationMeta('imagePath');
+  @override
+  late final GeneratedColumn<String> imagePath = GeneratedColumn<String>(
+      'image_path', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -166,7 +172,8 @@ class $ItemsTableTable extends ItemsTable
         gtin,
         category,
         stockQuantity,
-        isFavorite
+        isFavorite,
+        imagePath
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -227,6 +234,10 @@ class $ItemsTableTable extends ItemsTable
           isFavorite.isAcceptableOrUnknown(
               data['is_favorite']!, _isFavoriteMeta));
     }
+    if (data.containsKey('image_path')) {
+      context.handle(_imagePathMeta,
+          imagePath.isAcceptableOrUnknown(data['image_path']!, _imagePathMeta));
+    }
     return context;
   }
 
@@ -254,6 +265,8 @@ class $ItemsTableTable extends ItemsTable
           .read(DriftSqlType.int, data['${effectivePrefix}stock_quantity'])!,
       isFavorite: attachedDatabase.typeMapping
           .read(DriftSqlType.bool, data['${effectivePrefix}is_favorite'])!,
+      imagePath: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}image_path']),
     );
   }
 
@@ -273,6 +286,7 @@ class ItemsTableData extends DataClass implements Insertable<ItemsTableData> {
   final String category;
   final int stockQuantity;
   final bool isFavorite;
+  final String? imagePath;
   const ItemsTableData(
       {required this.id,
       required this.sku,
@@ -282,7 +296,8 @@ class ItemsTableData extends DataClass implements Insertable<ItemsTableData> {
       this.gtin,
       required this.category,
       required this.stockQuantity,
-      required this.isFavorite});
+      required this.isFavorite,
+      this.imagePath});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -297,6 +312,9 @@ class ItemsTableData extends DataClass implements Insertable<ItemsTableData> {
     map['category'] = Variable<String>(category);
     map['stock_quantity'] = Variable<int>(stockQuantity);
     map['is_favorite'] = Variable<bool>(isFavorite);
+    if (!nullToAbsent || imagePath != null) {
+      map['image_path'] = Variable<String>(imagePath);
+    }
     return map;
   }
 
@@ -311,6 +329,9 @@ class ItemsTableData extends DataClass implements Insertable<ItemsTableData> {
       category: Value(category),
       stockQuantity: Value(stockQuantity),
       isFavorite: Value(isFavorite),
+      imagePath: imagePath == null && nullToAbsent
+          ? const Value.absent()
+          : Value(imagePath),
     );
   }
 
@@ -327,6 +348,7 @@ class ItemsTableData extends DataClass implements Insertable<ItemsTableData> {
       category: serializer.fromJson<String>(json['category']),
       stockQuantity: serializer.fromJson<int>(json['stockQuantity']),
       isFavorite: serializer.fromJson<bool>(json['isFavorite']),
+      imagePath: serializer.fromJson<String?>(json['imagePath']),
     );
   }
   @override
@@ -342,6 +364,7 @@ class ItemsTableData extends DataClass implements Insertable<ItemsTableData> {
       'category': serializer.toJson<String>(category),
       'stockQuantity': serializer.toJson<int>(stockQuantity),
       'isFavorite': serializer.toJson<bool>(isFavorite),
+      'imagePath': serializer.toJson<String?>(imagePath),
     };
   }
 
@@ -354,7 +377,8 @@ class ItemsTableData extends DataClass implements Insertable<ItemsTableData> {
           Value<String?> gtin = const Value.absent(),
           String? category,
           int? stockQuantity,
-          bool? isFavorite}) =>
+          bool? isFavorite,
+          Value<String?> imagePath = const Value.absent()}) =>
       ItemsTableData(
         id: id ?? this.id,
         sku: sku ?? this.sku,
@@ -365,6 +389,7 @@ class ItemsTableData extends DataClass implements Insertable<ItemsTableData> {
         category: category ?? this.category,
         stockQuantity: stockQuantity ?? this.stockQuantity,
         isFavorite: isFavorite ?? this.isFavorite,
+        imagePath: imagePath.present ? imagePath.value : this.imagePath,
       );
   ItemsTableData copyWithCompanion(ItemsTableCompanion data) {
     return ItemsTableData(
@@ -382,6 +407,7 @@ class ItemsTableData extends DataClass implements Insertable<ItemsTableData> {
           : this.stockQuantity,
       isFavorite:
           data.isFavorite.present ? data.isFavorite.value : this.isFavorite,
+      imagePath: data.imagePath.present ? data.imagePath.value : this.imagePath,
     );
   }
 
@@ -396,14 +422,15 @@ class ItemsTableData extends DataClass implements Insertable<ItemsTableData> {
           ..write('gtin: $gtin, ')
           ..write('category: $category, ')
           ..write('stockQuantity: $stockQuantity, ')
-          ..write('isFavorite: $isFavorite')
+          ..write('isFavorite: $isFavorite, ')
+          ..write('imagePath: $imagePath')
           ..write(')'))
         .toString();
   }
 
   @override
   int get hashCode => Object.hash(id, sku, label, unitPriceSubunits, type, gtin,
-      category, stockQuantity, isFavorite);
+      category, stockQuantity, isFavorite, imagePath);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -416,7 +443,8 @@ class ItemsTableData extends DataClass implements Insertable<ItemsTableData> {
           other.gtin == this.gtin &&
           other.category == this.category &&
           other.stockQuantity == this.stockQuantity &&
-          other.isFavorite == this.isFavorite);
+          other.isFavorite == this.isFavorite &&
+          other.imagePath == this.imagePath);
 }
 
 class ItemsTableCompanion extends UpdateCompanion<ItemsTableData> {
@@ -429,6 +457,7 @@ class ItemsTableCompanion extends UpdateCompanion<ItemsTableData> {
   final Value<String> category;
   final Value<int> stockQuantity;
   final Value<bool> isFavorite;
+  final Value<String?> imagePath;
   const ItemsTableCompanion({
     this.id = const Value.absent(),
     this.sku = const Value.absent(),
@@ -439,6 +468,7 @@ class ItemsTableCompanion extends UpdateCompanion<ItemsTableData> {
     this.category = const Value.absent(),
     this.stockQuantity = const Value.absent(),
     this.isFavorite = const Value.absent(),
+    this.imagePath = const Value.absent(),
   });
   ItemsTableCompanion.insert({
     this.id = const Value.absent(),
@@ -450,6 +480,7 @@ class ItemsTableCompanion extends UpdateCompanion<ItemsTableData> {
     this.category = const Value.absent(),
     this.stockQuantity = const Value.absent(),
     this.isFavorite = const Value.absent(),
+    this.imagePath = const Value.absent(),
   })  : sku = Value(sku),
         label = Value(label),
         unitPriceSubunits = Value(unitPriceSubunits),
@@ -464,6 +495,7 @@ class ItemsTableCompanion extends UpdateCompanion<ItemsTableData> {
     Expression<String>? category,
     Expression<int>? stockQuantity,
     Expression<bool>? isFavorite,
+    Expression<String>? imagePath,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -475,6 +507,7 @@ class ItemsTableCompanion extends UpdateCompanion<ItemsTableData> {
       if (category != null) 'category': category,
       if (stockQuantity != null) 'stock_quantity': stockQuantity,
       if (isFavorite != null) 'is_favorite': isFavorite,
+      if (imagePath != null) 'image_path': imagePath,
     });
   }
 
@@ -487,7 +520,8 @@ class ItemsTableCompanion extends UpdateCompanion<ItemsTableData> {
       Value<String?>? gtin,
       Value<String>? category,
       Value<int>? stockQuantity,
-      Value<bool>? isFavorite}) {
+      Value<bool>? isFavorite,
+      Value<String?>? imagePath}) {
     return ItemsTableCompanion(
       id: id ?? this.id,
       sku: sku ?? this.sku,
@@ -498,6 +532,7 @@ class ItemsTableCompanion extends UpdateCompanion<ItemsTableData> {
       category: category ?? this.category,
       stockQuantity: stockQuantity ?? this.stockQuantity,
       isFavorite: isFavorite ?? this.isFavorite,
+      imagePath: imagePath ?? this.imagePath,
     );
   }
 
@@ -531,6 +566,9 @@ class ItemsTableCompanion extends UpdateCompanion<ItemsTableData> {
     if (isFavorite.present) {
       map['is_favorite'] = Variable<bool>(isFavorite.value);
     }
+    if (imagePath.present) {
+      map['image_path'] = Variable<String>(imagePath.value);
+    }
     return map;
   }
 
@@ -545,7 +583,8 @@ class ItemsTableCompanion extends UpdateCompanion<ItemsTableData> {
           ..write('gtin: $gtin, ')
           ..write('category: $category, ')
           ..write('stockQuantity: $stockQuantity, ')
-          ..write('isFavorite: $isFavorite')
+          ..write('isFavorite: $isFavorite, ')
+          ..write('imagePath: $imagePath')
           ..write(')'))
         .toString();
   }
@@ -2698,6 +2737,7 @@ typedef $$ItemsTableTableCreateCompanionBuilder = ItemsTableCompanion Function({
   Value<String> category,
   Value<int> stockQuantity,
   Value<bool> isFavorite,
+  Value<String?> imagePath,
 });
 typedef $$ItemsTableTableUpdateCompanionBuilder = ItemsTableCompanion Function({
   Value<int> id,
@@ -2709,6 +2749,7 @@ typedef $$ItemsTableTableUpdateCompanionBuilder = ItemsTableCompanion Function({
   Value<String> category,
   Value<int> stockQuantity,
   Value<bool> isFavorite,
+  Value<String?> imagePath,
 });
 
 class $$ItemsTableTableFilterComposer
@@ -2747,6 +2788,9 @@ class $$ItemsTableTableFilterComposer
 
   ColumnFilters<bool> get isFavorite => $composableBuilder(
       column: $table.isFavorite, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get imagePath => $composableBuilder(
+      column: $table.imagePath, builder: (column) => ColumnFilters(column));
 }
 
 class $$ItemsTableTableOrderingComposer
@@ -2786,6 +2830,9 @@ class $$ItemsTableTableOrderingComposer
 
   ColumnOrderings<bool> get isFavorite => $composableBuilder(
       column: $table.isFavorite, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get imagePath => $composableBuilder(
+      column: $table.imagePath, builder: (column) => ColumnOrderings(column));
 }
 
 class $$ItemsTableTableAnnotationComposer
@@ -2823,6 +2870,9 @@ class $$ItemsTableTableAnnotationComposer
 
   GeneratedColumn<bool> get isFavorite => $composableBuilder(
       column: $table.isFavorite, builder: (column) => column);
+
+  GeneratedColumn<String> get imagePath =>
+      $composableBuilder(column: $table.imagePath, builder: (column) => column);
 }
 
 class $$ItemsTableTableTableManager extends RootTableManager<
@@ -2860,6 +2910,7 @@ class $$ItemsTableTableTableManager extends RootTableManager<
             Value<String> category = const Value.absent(),
             Value<int> stockQuantity = const Value.absent(),
             Value<bool> isFavorite = const Value.absent(),
+            Value<String?> imagePath = const Value.absent(),
           }) =>
               ItemsTableCompanion(
             id: id,
@@ -2871,6 +2922,7 @@ class $$ItemsTableTableTableManager extends RootTableManager<
             category: category,
             stockQuantity: stockQuantity,
             isFavorite: isFavorite,
+            imagePath: imagePath,
           ),
           createCompanionCallback: ({
             Value<int> id = const Value.absent(),
@@ -2882,6 +2934,7 @@ class $$ItemsTableTableTableManager extends RootTableManager<
             Value<String> category = const Value.absent(),
             Value<int> stockQuantity = const Value.absent(),
             Value<bool> isFavorite = const Value.absent(),
+            Value<String?> imagePath = const Value.absent(),
           }) =>
               ItemsTableCompanion.insert(
             id: id,
@@ -2893,6 +2946,7 @@ class $$ItemsTableTableTableManager extends RootTableManager<
             category: category,
             stockQuantity: stockQuantity,
             isFavorite: isFavorite,
+            imagePath: imagePath,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))

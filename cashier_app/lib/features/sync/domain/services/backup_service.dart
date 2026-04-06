@@ -150,6 +150,7 @@ class BackupService {
         :final category,
         :final stockQuantity,
         :final isFavorite,
+        :final imagePath,
       ) =>
         {
           'type': 'trade',
@@ -160,6 +161,7 @@ class BackupService {
           'category': category,
           'stockQuantity': stockQuantity,
           'isFavorite': isFavorite,
+          'imagePath': imagePath,
         },
       ServiceItem(
         :final sku,
@@ -167,6 +169,7 @@ class BackupService {
         :final unitPrice,
         :final category,
         :final isFavorite,
+        :final imagePath,
       ) =>
         {
           'type': 'service',
@@ -175,6 +178,7 @@ class BackupService {
           'unitPrice': unitPrice.value.toString(),
           'category': category,
           'isFavorite': isFavorite,
+          'imagePath': imagePath,
         },
       KeyedPriceItem(:final unitPrice) => {
           'type': 'keyed',
@@ -198,6 +202,7 @@ class BackupService {
         category: map['category'] as String? ?? '',
         stockQuantity: map['stockQuantity'] as int? ?? -1,
         isFavorite: map['isFavorite'] as bool? ?? false,
+        imagePath: map['imagePath'] as String?,
       );
     } else if (type == 'service') {
       return ServiceItem(
@@ -206,6 +211,7 @@ class BackupService {
         unitPrice: price,
         category: map['category'] as String? ?? '',
         isFavorite: map['isFavorite'] as bool? ?? false,
+        imagePath: map['imagePath'] as String?,
       );
     }
     return null;

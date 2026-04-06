@@ -18,6 +18,7 @@ sealed class Item extends Equatable {
   String get category => '';
   int get stockQuantity => -1;
   bool get isFavorite => false;
+  String? get imagePath => null;
 
   ValidationResult validate();
 }
