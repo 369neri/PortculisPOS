@@ -134,7 +134,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
                       onRetry: () =>
                           context.read<TransactionHistoryCubit>().load(),
                     ),
-                  TransactionHistoryLoaded(:final transactions) => () {
+                  TransactionHistoryLoaded(:final transactions, :final hasMore) => () {
                       final filtered = _applyFilters(transactions);
                       if (transactions.isEmpty) return const _EmptyView();
                       if (filtered.isEmpty) {
@@ -145,8 +145,10 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
                       return RefreshIndicator(
                         onRefresh: () =>
                             context.read<TransactionHistoryCubit>().load(),
-                        child:
-                            _TransactionList(transactions: filtered),
+                        child: _TransactionList(
+                          transactions: filtered,
+                          hasMore: hasMore,
+                        ),
                       );
                     }(),
                 };
@@ -234,9 +236,13 @@ class _ErrorView extends StatelessWidget {
 // ---------------------------------------------------------------------------
 
 class _TransactionList extends StatelessWidget {
-  const _TransactionList({required this.transactions});
+  const _TransactionList({
+    required this.transactions,
+    required this.hasMore,
+  });
 
   final List<Transaction> transactions;
+  final bool hasMore;
 
   @override
   Widget build(BuildContext context) {
@@ -245,16 +251,32 @@ class _TransactionList extends StatelessWidget {
         ? settingsState.settings
         : const AppSettings();
 
-    return ListView.builder(
-      itemCount: transactions.length,
-      itemBuilder: (context, index) {
-        final tx = transactions[index];
-        return _TransactionTile(
-          transaction: tx,
-          currencySymbol: settings.currencySymbol,
-          onTap: () => _showDetail(context, tx, settings),
-        );
+    return NotificationListener<ScrollNotification>(
+      onNotification: (notification) {
+        if (hasMore &&
+            notification.metrics.pixels >=
+                notification.metrics.maxScrollExtent - 200) {
+          context.read<TransactionHistoryCubit>().loadMore();
+        }
+        return false;
       },
+      child: ListView.builder(
+        itemCount: transactions.length + (hasMore ? 1 : 0),
+        itemBuilder: (context, index) {
+          if (index >= transactions.length) {
+            return const Padding(
+              padding: EdgeInsets.all(16),
+              child: Center(child: CircularProgressIndicator()),
+            );
+          }
+          final tx = transactions[index];
+          return _TransactionTile(
+            transaction: tx,
+            currencySymbol: settings.currencySymbol,
+            onTap: () => _showDetail(context, tx, settings),
+          );
+        },
+      ),
     );
   }
 

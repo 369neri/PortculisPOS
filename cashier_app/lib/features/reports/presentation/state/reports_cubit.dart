@@ -1,3 +1,4 @@
+import 'package:cashier_app/core/logging/app_logger.dart';
 import 'package:cashier_app/features/checkout/domain/repositories/transaction_repository.dart';
 import 'package:cashier_app/features/reports/domain/services/report_service.dart';
 import 'package:cashier_app/features/reports/presentation/state/reports_state.dart';
@@ -22,8 +23,9 @@ class ReportsCubit extends Cubit<ReportsState> {
         taxRate: settings.taxRate,
       );
       emit(ReportsReady(report: report, lastZAt: settings.lastZReportAt));
-    } on Exception catch (e) {
-      emit(ReportsError(e.toString()));
+    } on Exception catch (e, st) {
+      appLogger.e('Failed to load reports', error: e, stackTrace: st);
+      emit(const ReportsError('Unable to load reports. Please try again.'));
     }
   }
 
@@ -35,8 +37,9 @@ class ReportsCubit extends Cubit<ReportsState> {
         settings.copyWith(lastZReportAt: DateTime.now()),
       );
       await load();
-    } on Exception catch (e) {
-      emit(ReportsError(e.toString()));
+    } on Exception catch (e, st) {
+      appLogger.e('Failed to close day', error: e, stackTrace: st);
+      emit(const ReportsError('Unable to close the day. Please try again.'));
     }
   }
 }

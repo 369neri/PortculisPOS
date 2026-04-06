@@ -18,12 +18,13 @@ final class TransactionHistoryLoading extends TransactionHistoryState {
 }
 
 final class TransactionHistoryLoaded extends TransactionHistoryState {
-  const TransactionHistoryLoaded(this.transactions);
+  const TransactionHistoryLoaded(this.transactions, {this.hasMore = false});
 
   final List<Transaction> transactions;
+  final bool hasMore;
 
   @override
-  List<Object?> get props => [transactions];
+  List<Object?> get props => [transactions, hasMore];
 }
 
 final class TransactionHistoryError extends TransactionHistoryState {

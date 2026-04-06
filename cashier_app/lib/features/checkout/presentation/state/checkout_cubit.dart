@@ -8,6 +8,7 @@ import 'package:cashier_app/features/checkout/presentation/state/checkout_state.
 import 'package:cashier_app/features/items/domain/entities/item.dart';
 import 'package:cashier_app/features/items/domain/repositories/item_repository.dart';
 import 'package:cashier_app/features/pricing/domain/entities/price.dart';
+import 'package:cashier_app/core/logging/app_logger.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class CheckoutCubit extends Cubit<CheckoutState> {
@@ -82,18 +83,22 @@ class CheckoutCubit extends Cubit<CheckoutState> {
       );
       final id = await _repository.save(transaction);
 
-        // Decrement stock for tracked items
-        if (_itemRepository != null) {
-          for (final invoiceItem in transaction.invoice.items) {
-            final item = invoiceItem.item;
-            if (item is TradeItem && item.stockQuantity >= 0) {
+      // Decrement stock for tracked items (best-effort; sale is already saved)
+      if (_itemRepository != null) {
+        for (final invoiceItem in transaction.invoice.items) {
+          final item = invoiceItem.item;
+          if (item is TradeItem && item.stockQuantity >= 0) {
+            try {
               await _itemRepository!.decrementStock(
                 item.sku,
                 qty: invoiceItem.quantity,
               );
+            } on Exception {
+              // Stock update failed but transaction is committed — continue
             }
           }
         }
+      }
       final saved = await _repository.findById(id);
       emit(
         CheckoutCompleted(
@@ -108,8 +113,9 @@ class CheckoutCubit extends Cubit<CheckoutState> {
           taxRate: current.taxRate,
         ),
       );
-    } on Exception catch (e) {
-      emit(CheckoutError(e.toString()));
+    } on Exception catch (e, st) {
+      appLogger.e('Checkout failed', error: e, stackTrace: st);
+      emit(CheckoutError('Unable to complete sale. Please try again.'));
     }
   }
 

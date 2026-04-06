@@ -196,6 +196,15 @@ class TransactionsDao extends DatabaseAccessor<AppDatabase>
             ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
           .get();
 
+  Future<List<TransactionsTableData>> getTransactionPage(
+    int limit,
+    int offset,
+  ) =>
+      (select(transactionsTable)
+            ..orderBy([(t) => OrderingTerm.desc(t.createdAt)])
+            ..limit(limit, offset: offset))
+          .get();
+
   Future<TransactionsTableData?> findById(int id) =>
       (select(transactionsTable)..where((t) => t.id.equals(id)))
           .getSingleOrNull();

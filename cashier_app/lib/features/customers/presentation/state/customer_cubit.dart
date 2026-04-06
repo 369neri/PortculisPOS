@@ -1,3 +1,4 @@
+import 'package:cashier_app/core/logging/app_logger.dart';
 import 'package:cashier_app/features/customers/domain/entities/customer.dart';
 import 'package:cashier_app/features/customers/domain/repositories/customer_repository.dart';
 import 'package:equatable/equatable.dart';
@@ -17,8 +18,9 @@ class CustomerCubit extends Cubit<CustomerState> {
     try {
       final customers = await _repository.getAll();
       emit(CustomerLoaded(customers));
-    } on Exception catch (e) {
-      emit(CustomerError(e.toString()));
+    } on Exception catch (e, st) {
+      appLogger.e('Failed to load customers', error: e, stackTrace: st);
+      emit(const CustomerError('Unable to load customers. Please try again.'));
     }
   }
 
@@ -27,8 +29,9 @@ class CustomerCubit extends Cubit<CustomerState> {
     try {
       final results = await _repository.search(query);
       emit(CustomerLoaded(results));
-    } on Exception catch (e) {
-      emit(CustomerError(e.toString()));
+    } on Exception catch (e, st) {
+      appLogger.e('Customer search failed', error: e, stackTrace: st);
+      emit(const CustomerError('Search failed. Please try again.'));
     }
   }
 
@@ -40,8 +43,9 @@ class CustomerCubit extends Cubit<CustomerState> {
         await _repository.save(customer);
       }
       await load();
-    } on Exception catch (e) {
-      emit(CustomerError(e.toString()));
+    } on Exception catch (e, st) {
+      appLogger.e('Failed to save customer', error: e, stackTrace: st);
+      emit(const CustomerError('Unable to save customer. Please try again.'));
     }
   }
 
@@ -49,8 +53,9 @@ class CustomerCubit extends Cubit<CustomerState> {
     try {
       await _repository.delete(id);
       await load();
-    } on Exception catch (e) {
-      emit(CustomerError(e.toString()));
+    } on Exception catch (e, st) {
+      appLogger.e('Failed to delete customer', error: e, stackTrace: st);
+      emit(const CustomerError('Unable to delete customer. Please try again.'));
     }
   }
 }

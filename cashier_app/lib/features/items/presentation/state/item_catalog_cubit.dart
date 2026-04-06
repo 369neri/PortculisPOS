@@ -1,3 +1,4 @@
+import 'package:cashier_app/core/logging/app_logger.dart';
 import 'package:cashier_app/features/items/domain/entities/item.dart';
 import 'package:cashier_app/features/items/domain/repositories/item_repository.dart';
 import 'package:equatable/equatable.dart';
@@ -47,8 +48,9 @@ class ItemCatalogCubit extends Cubit<ItemCatalogState> {
     try {
       final items = await _repo.getAll();
       emit(ItemCatalogLoaded(items));
-    } on Exception catch (e) {
-      emit(ItemCatalogError(e.toString()));
+    } on Exception catch (e, st) {
+      appLogger.e('Failed to load item catalog', error: e, stackTrace: st);
+      emit(const ItemCatalogError('Unable to load items. Please try again.'));
     }
   }
 
@@ -56,8 +58,9 @@ class ItemCatalogCubit extends Cubit<ItemCatalogState> {
     try {
       await _repo.save(item);
       await load();
-    } on Exception catch (e) {
-      emit(ItemCatalogError(e.toString()));
+    } on Exception catch (e, st) {
+      appLogger.e('Failed to save item', error: e, stackTrace: st);
+      emit(const ItemCatalogError('Unable to save item. Please try again.'));
     }
   }
 
@@ -65,8 +68,9 @@ class ItemCatalogCubit extends Cubit<ItemCatalogState> {
     try {
       await _repo.deleteById(id);
       await load();
-    } on Exception catch (e) {
-      emit(ItemCatalogError(e.toString()));
+    } on Exception catch (e, st) {
+      appLogger.e('Failed to delete item by id', error: e, stackTrace: st);
+      emit(const ItemCatalogError('Unable to delete item. Please try again.'));
     }
   }
 
@@ -74,8 +78,9 @@ class ItemCatalogCubit extends Cubit<ItemCatalogState> {
     try {
       await _repo.deleteBySku(sku);
       await load();
-    } on Exception catch (e) {
-      emit(ItemCatalogError(e.toString()));
+    } on Exception catch (e, st) {
+      appLogger.e('Failed to delete item by SKU', error: e, stackTrace: st);
+      emit(const ItemCatalogError('Unable to delete item. Please try again.'));
     }
   }
 }

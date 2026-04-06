@@ -25,6 +25,10 @@ class _FakeRepo implements TransactionRepository {
   Future<List<Transaction>> getAll() async => saved;
 
   @override
+  Future<List<Transaction>> getPage(int limit, int offset) async =>
+      saved.skip(offset).take(limit).toList();
+
+  @override
   Future<Transaction?> findById(int id) async =>
       saved.where((t) => t.id == id).firstOrNull;
 

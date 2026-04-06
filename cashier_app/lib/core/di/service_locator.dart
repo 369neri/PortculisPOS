@@ -64,7 +64,10 @@ void initServiceLocator() {
       SettingsCubit(sl<SettingsRepository>()),
     )
     ..registerSingleton<TransactionHistoryCubit>(
-      TransactionHistoryCubit(sl<TransactionRepository>()),
+      TransactionHistoryCubit(
+        sl<TransactionRepository>(),
+        itemRepository: sl<ItemRepository>(),
+      ),
     )
     ..registerSingleton<ReportsCubit>(
       ReportsCubit(sl<TransactionRepository>(), sl<SettingsRepository>()),

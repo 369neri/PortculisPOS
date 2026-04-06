@@ -13,6 +13,7 @@ class BarcodeScannerPage extends StatefulWidget {
 class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
   final _controller = MobileScannerController();
   bool _scanned = false;
+  bool _permissionDenied = false;
 
   @override
   void dispose() {
@@ -40,20 +41,71 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
           onPressed: () => Navigator.of(context).pop(),
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.flash_on),
-            onPressed: _controller.toggleTorch,
-          ),
-          IconButton(
-            icon: const Icon(Icons.cameraswitch),
-            onPressed: _controller.switchCamera,
-          ),
+          if (!_permissionDenied) ...[
+            IconButton(
+              icon: const Icon(Icons.flash_on),
+              onPressed: _controller.toggleTorch,
+            ),
+            IconButton(
+              icon: const Icon(Icons.cameraswitch),
+              onPressed: _controller.switchCamera,
+            ),
+          ],
         ],
       ),
-      body: MobileScanner(
-        controller: _controller,
-        onDetect: _onDetect,
-      ),
+      body: _permissionDenied
+          ? Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.no_photography, size: 64, color: Colors.grey),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Camera permission is required to scan barcodes.',
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+                    FilledButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: const Text('Go Back'),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          : MobileScanner(
+              controller: _controller,
+              onDetect: _onDetect,
+              errorBuilder: (context, error, child) {
+                if (error.errorCode == MobileScannerErrorCode.permissionDenied) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (mounted && !_permissionDenied) {
+                      setState(() => _permissionDenied = true);
+                    }
+                  });
+                }
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.error_outline, size: 64, color: Colors.red),
+                        const SizedBox(height: 16),
+                        Text(
+                          error.errorCode == MobileScannerErrorCode.permissionDenied
+                              ? 'Camera permission denied.'
+                              : 'Camera error: ${error.errorCode.name}',
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
     );
   }
 }

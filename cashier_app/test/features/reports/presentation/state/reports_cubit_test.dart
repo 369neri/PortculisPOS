@@ -32,6 +32,12 @@ class _FakeTxRepo implements TransactionRepository {
   }
 
   @override
+  Future<List<Transaction>> getPage(int limit, int offset) async {
+    final all = await getAll();
+    return all.skip(offset).take(limit).toList();
+  }
+
+  @override
   Future<Transaction?> findById(int id) async => null;
   @override
   Future<int> save(Transaction transaction) async => 1;

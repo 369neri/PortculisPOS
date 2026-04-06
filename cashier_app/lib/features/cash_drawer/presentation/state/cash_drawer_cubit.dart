@@ -1,3 +1,4 @@
+import 'package:cashier_app/core/logging/app_logger.dart';
 import 'package:cashier_app/features/cash_drawer/domain/entities/cash_drawer_session.dart';
 import 'package:cashier_app/features/cash_drawer/domain/repositories/cash_drawer_repository.dart';
 import 'package:cashier_app/features/cash_drawer/presentation/state/cash_drawer_state.dart';
@@ -18,8 +19,9 @@ class CashDrawerCubit extends Cubit<CashDrawerState> {
       } else {
         emit(const CashDrawerInitial());
       }
-    } on Exception catch (e) {
-      emit(CashDrawerError(e.toString()));
+    } on Exception catch (e, st) {
+      appLogger.e('Failed to load cash drawer', error: e, stackTrace: st);
+      emit(const CashDrawerError('Unable to load cash drawer. Please try again.'));
     }
   }
 
@@ -41,8 +43,9 @@ class CashDrawerCubit extends Cubit<CashDrawerState> {
               ),
         ),
       );
-    } on Exception catch (e) {
-      emit(CashDrawerError(e.toString()));
+    } on Exception catch (e, st) {
+      appLogger.e('Failed to open cash drawer', error: e, stackTrace: st);
+      emit(const CashDrawerError('Unable to open cash drawer. Please try again.'));
     }
   }
 
@@ -63,8 +66,9 @@ class CashDrawerCubit extends Cubit<CashDrawerState> {
       );
       await _repository.closeSession(session.id!, closed);
       emit(CashDrawerClosed(closed));
-    } on Exception catch (e) {
-      emit(CashDrawerError(e.toString()));
+    } on Exception catch (e, st) {
+      appLogger.e('Failed to close cash drawer', error: e, stackTrace: st);
+      emit(const CashDrawerError('Unable to close cash drawer. Please try again.'));
     }
   }
 
@@ -73,8 +77,9 @@ class CashDrawerCubit extends Cubit<CashDrawerState> {
     try {
       final sessions = await _repository.getAllSessions();
       emit(CashDrawerHistory(sessions));
-    } on Exception catch (e) {
-      emit(CashDrawerError(e.toString()));
+    } on Exception catch (e, st) {
+      appLogger.e('Failed to load cash drawer history', error: e, stackTrace: st);
+      emit(const CashDrawerError('Unable to load history. Please try again.'));
     }
   }
 }

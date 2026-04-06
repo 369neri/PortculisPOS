@@ -29,6 +29,14 @@ class _FakeRepo implements TransactionRepository {
   }
 
   @override
+  Future<List<Transaction>> getPage(int limit, int offset) async {
+    final all = await getAll();
+    final sorted = [...all]
+      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    return sorted.skip(offset).take(limit).toList();
+  }
+
+  @override
   Future<Transaction?> findById(int id) async =>
       _store.where((t) => t.id == id).firstOrNull;
 
@@ -170,7 +178,10 @@ void main() {
         return TransactionHistoryCubit(repo);
       },
       act: (c) => c.voidTransaction(1),
-      expect: () => [isA<TransactionHistoryError>()],
+      expect: () => [
+        isA<TransactionHistoryLoading>(),
+        isA<TransactionHistoryError>(),
+      ],
     );
   });
 }

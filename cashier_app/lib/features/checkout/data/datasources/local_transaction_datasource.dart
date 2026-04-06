@@ -30,6 +30,17 @@ class LocalTransactionDatasource implements TransactionRepository {
   }
 
   @override
+  Future<List<Transaction>> getPage(int limit, int offset) async {
+    final rows = await _dao.getTransactionPage(limit, offset);
+    final results = <Transaction>[];
+    for (final row in rows) {
+      final payments = await _dao.paymentsForTransaction(row.id);
+      results.add(_toDomain(row, payments));
+    }
+    return results;
+  }
+
+  @override
   Future<Transaction?> findById(int id) async {
     final row = await _dao.findById(id);
     if (row == null) return null;
@@ -102,6 +113,7 @@ class LocalTransactionDatasource implements TransactionRepository {
 
   String _encodeInvoice(Invoice invoice) {
     return jsonEncode({
+      'version': 1,
       'status': invoice.status.name,
       'items': invoice.items.map(_encodeInvoiceItem).toList(),
     });
@@ -138,6 +150,15 @@ class LocalTransactionDatasource implements TransactionRepository {
 
   Invoice _decodeInvoice(String json) {
     final map = jsonDecode(json) as Map<String, dynamic>;
+    // version defaults to 1 for JSON written before versioning was added.
+    final version = map['version'] as int? ?? 1;
+    return switch (version) {
+      1 => _decodeInvoiceV1(map),
+      _ => throw ArgumentError('Unsupported invoice version: $version'),
+    };
+  }
+
+  Invoice _decodeInvoiceV1(Map<String, dynamic> map) {
     final status = InvoiceStatus.values.byName(map['status'] as String);
     final items = (map['items'] as List<dynamic>)
         .map((e) => _decodeInvoiceItem(e as Map<String, dynamic>))

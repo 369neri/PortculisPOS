@@ -1,3 +1,4 @@
+import 'package:cashier_app/core/logging/app_logger.dart';
 import 'package:cashier_app/features/archive/domain/entities/archive_kind.dart';
 import 'package:cashier_app/features/archive/domain/entities/archived_file.dart';
 import 'package:cashier_app/features/archive/domain/services/archive_service.dart';
@@ -14,8 +15,9 @@ class ArchiveCubit extends Cubit<ArchiveState> {
       final receipts = await _service.listByKind(ArchiveKind.receipt);
       final reports = await _service.listByKind(ArchiveKind.report);
       emit(ArchiveLoaded(receipts: receipts, reports: reports));
-    } on Exception catch (e) {
-      emit(ArchiveError(e.toString()));
+    } on Exception catch (e, st) {
+      appLogger.e('Failed to load archive', error: e, stackTrace: st);
+      emit(const ArchiveError('Unable to load archive. Please try again.'));
     }
   }
 

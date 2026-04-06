@@ -1,3 +1,4 @@
+import 'package:cashier_app/core/logging/app_logger.dart';
 import 'package:cashier_app/features/items/domain/entities/item.dart';
 import 'package:cashier_app/features/items/domain/repositories/item_repository.dart';
 import 'package:equatable/equatable.dart';
@@ -69,8 +70,9 @@ class ItemLookupCubit extends Cubit<ItemLookupState> {
       } else {
         emit(ItemLookupNotFound(query));
       }
-    } on Exception catch (e) {
-      emit(ItemLookupError(e.toString()));
+    } on Exception catch (e, st) {
+      appLogger.e('Item lookup failed for query', error: e, stackTrace: st);
+      emit(const ItemLookupError('Lookup failed. Please try again.'));
     }
   }
 
