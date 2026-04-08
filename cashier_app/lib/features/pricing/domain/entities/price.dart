@@ -13,6 +13,9 @@ class Price extends Equatable {
   final BigInt _value;
   BigInt get value => _value;
 
+  /// The price in the smallest currency unit (e.g. cents) as a plain int.
+  int get subunits => _value.toInt();
+
   // The number of digits after the decimal separator representing subunits.
   // See: https://en.wikipedia.org/wiki/ISO_4217
   // e.g. there are 100 cents to the USD Log(num of cents) = 2

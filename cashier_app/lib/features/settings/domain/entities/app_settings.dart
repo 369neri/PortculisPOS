@@ -13,6 +13,9 @@ class AppSettings extends Equatable {
     this.logoPath,
     this.autoBackupEnabled = false,
     this.lastBackupAt,
+    this.printerType = 'none',
+    this.printerAddress = '',
+    this.taxInclusive = false,
   });
 
   final String businessName;
@@ -38,6 +41,15 @@ class AppSettings extends Equatable {
   /// When the last automatic backup was created.
   final DateTime? lastBackupAt;
 
+  /// Thermal printer connection type: 'none', 'network', or 'usb'.
+  final String printerType;
+
+  /// Printer address (IP:port for network, device path for USB).
+  final String printerAddress;
+
+  /// Whether displayed prices already include tax.
+  final bool taxInclusive;
+
   AppSettings copyWith({
     String? businessName,
     double? taxRate,
@@ -51,6 +63,9 @@ class AppSettings extends Equatable {
     bool? autoBackupEnabled,
     DateTime? lastBackupAt,
     bool clearLastBackupAt = false,
+    String? printerType,
+    String? printerAddress,
+    bool? taxInclusive,
   }) =>
       AppSettings(
         businessName: businessName ?? this.businessName,
@@ -64,6 +79,9 @@ class AppSettings extends Equatable {
         autoBackupEnabled: autoBackupEnabled ?? this.autoBackupEnabled,
         lastBackupAt:
             clearLastBackupAt ? null : (lastBackupAt ?? this.lastBackupAt),
+        printerType: printerType ?? this.printerType,
+        printerAddress: printerAddress ?? this.printerAddress,
+        taxInclusive: taxInclusive ?? this.taxInclusive,
       );
 
   @override
@@ -77,5 +95,8 @@ class AppSettings extends Equatable {
         logoPath,
         autoBackupEnabled,
         lastBackupAt,
+        printerType,
+        printerAddress,
+        taxInclusive,
       ];
 }

@@ -1,4 +1,6 @@
+import 'package:cashier_app/core/extensions/format_helpers.dart';
 import 'package:cashier_app/features/cash_drawer/domain/entities/cash_drawer_session.dart';
+import 'package:cashier_app/features/cash_drawer/domain/entities/cash_movement.dart';
 import 'package:cashier_app/features/cash_drawer/presentation/state/cash_drawer_cubit.dart';
 import 'package:cashier_app/features/cash_drawer/presentation/state/cash_drawer_state.dart';
 import 'package:cashier_app/features/pricing/domain/entities/price.dart';
@@ -17,8 +19,8 @@ class CashDrawerPage extends StatelessWidget {
         CashDrawerLoading() =>
           const Center(child: CircularProgressIndicator()),
         CashDrawerOpen(:final session) => _ActiveDrawerView(session: session),
-        CashDrawerClosed(:final session) =>
-          _ClosedDrawerView(session: session),
+        CashDrawerClosed(:final session, :final movements) =>
+          _ClosedDrawerView(session: session, movements: movements),
         CashDrawerHistory(:final sessions) =>
           _HistoryView(sessions: sessions),
         CashDrawerError(:final message) => Center(
@@ -156,7 +158,7 @@ class _ActiveDrawerView extends StatelessWidget {
                   ),
                   _InfoRow(
                     label: 'Opening Float',
-                    value: '$sym${session.openingBalance}',
+                    value: session.openingBalance.fmt(sym),
                   ),
                 ],
               ),
@@ -182,93 +184,156 @@ class _ActiveDrawerView extends StatelessWidget {
 // ---------------------------------------------------------------------------
 
 class _ClosedDrawerView extends StatelessWidget {
-  const _ClosedDrawerView({required this.session});
+  const _ClosedDrawerView({
+    required this.session,
+    this.movements = const [],
+  });
 
   final CashDrawerSession session;
+  final List<CashMovement> movements;
 
   @override
   Widget build(BuildContext context) {
     final sym = _currencySymbol(context);
-    final expected = session.openingBalance;
+    final opening = session.openingBalance;
     final counted = session.closingBalance ?? Price.from(0);
-    final diff = Price(counted.value - expected.value);
-    final isOver = diff.value > BigInt.zero;
-    final isShort = diff.value < BigInt.zero;
+
+    // Compute movement totals by type.
+    var salesSubunits = 0;
+    var refundsSubunits = 0;
+    var voidsSubunits = 0;
+    var adjustSubunits = 0;
+    for (final m in movements) {
+      switch (m.type) {
+        case CashMovementType.sale:
+          salesSubunits += m.amountSubunits;
+        case CashMovementType.refund:
+          refundsSubunits += m.amountSubunits.abs();
+        case CashMovementType.voidTx:
+          voidsSubunits += m.amountSubunits.abs();
+        case CashMovementType.adjustment:
+          adjustSubunits += m.amountSubunits;
+      }
+    }
+
+    final expectedSubunits =
+        opening.subunits + salesSubunits - refundsSubunits - voidsSubunits + adjustSubunits;
+    final varianceSubunits = counted.subunits - expectedSubunits;
+    final isOver = varianceSubunits > 0;
+    final isShort = varianceSubunits < 0;
+
+    String _subunitsStr(int s) {
+      final abs = s.abs();
+      final sign = s < 0 ? '-' : '';
+      return '$sign${Price(BigInt.from(abs)).fmt(sym)}';
+    }
 
     return Padding(
       padding: const EdgeInsets.all(24),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Icon(
-            Icons.check_circle,
-            size: 48,
-            color: Theme.of(context).colorScheme.primary,
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'Drawer Closed',
-            style: Theme.of(context).textTheme.headlineSmall,
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  _InfoRow(
-                    label: 'Opening Float',
-                    value: '$sym$expected',
-                  ),
-                  _InfoRow(
-                    label: 'Counted Cash',
-                    value: '$sym$counted',
-                  ),
-                  const Divider(height: 16),
-                  _InfoRow(
-                    label: isOver
-                        ? 'Over'
-                        : isShort
-                            ? 'Short'
-                            : 'Balanced',
-                    value: isShort
-                        ? '-$sym${Price(diff.value.abs())}'
-                        : '$sym$diff',
-                    valueColor: isOver
-                        ? Colors.green
-                        : isShort
-                            ? Colors.red
-                            : null,
-                  ),
-                  if (session.notes != null && session.notes!.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8),
-                      child: Text(
-                        'Notes: ${session.notes}',
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Icon(
+              Icons.check_circle,
+              size: 48,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Drawer Closed',
+              style: Theme.of(context).textTheme.headlineSmall,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    _InfoRow(
+                      label: 'Opening Float',
+                      value: opening.fmt(sym),
                     ),
-                ],
+                    if (salesSubunits > 0)
+                      _InfoRow(
+                        label: '+ Cash Sales',
+                        value: _subunitsStr(salesSubunits),
+                        valueColor: Colors.green,
+                      ),
+                    if (refundsSubunits > 0)
+                      _InfoRow(
+                        label: '- Cash Refunds',
+                        value: _subunitsStr(-refundsSubunits),
+                        valueColor: Colors.red,
+                      ),
+                    if (voidsSubunits > 0)
+                      _InfoRow(
+                        label: '- Voids',
+                        value: _subunitsStr(-voidsSubunits),
+                        valueColor: Colors.red,
+                      ),
+                    if (adjustSubunits != 0)
+                      _InfoRow(
+                        label: adjustSubunits > 0
+                            ? '+ Paid In'
+                            : '- Paid Out',
+                        value: _subunitsStr(adjustSubunits),
+                        valueColor:
+                            adjustSubunits > 0 ? Colors.green : Colors.red,
+                      ),
+                    const Divider(height: 16),
+                    _InfoRow(
+                      label: 'Expected Cash',
+                      value: _subunitsStr(expectedSubunits),
+                    ),
+                    _InfoRow(
+                      label: 'Counted Cash',
+                      value: counted.fmt(sym),
+                    ),
+                    const Divider(height: 16),
+                    _InfoRow(
+                      label: isOver
+                          ? 'Over'
+                          : isShort
+                              ? 'Short'
+                              : 'Balanced',
+                      value: _subunitsStr(varianceSubunits),
+                      valueColor: isOver
+                          ? Colors.green
+                          : isShort
+                              ? Colors.red
+                              : null,
+                    ),
+                    if (session.notes != null && session.notes!.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: Text(
+                          'Notes: ${session.notes}',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: 24),
-          FilledButton.icon(
-            onPressed: () =>
-                context.read<CashDrawerCubit>().load(),
-            icon: const Icon(Icons.refresh),
-            label: const Text('New Session'),
-          ),
-          const SizedBox(height: 8),
-          OutlinedButton.icon(
-            onPressed: () =>
-                context.read<CashDrawerCubit>().loadHistory(),
-            icon: const Icon(Icons.history),
-            label: const Text('View History'),
-          ),
-        ],
+            const SizedBox(height: 24),
+            FilledButton.icon(
+              onPressed: () =>
+                  context.read<CashDrawerCubit>().load(),
+              icon: const Icon(Icons.refresh),
+              label: const Text('New Session'),
+            ),
+            const SizedBox(height: 8),
+            OutlinedButton.icon(
+              onPressed: () =>
+                  context.read<CashDrawerCubit>().loadHistory(),
+              icon: const Icon(Icons.history),
+              label: const Text('View History'),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -349,12 +414,12 @@ class _HistoryView extends StatelessWidget {
                       const SizedBox(height: 4),
                       _InfoRow(
                         label: 'Float',
-                        value: '$sym${s.openingBalance}',
+                        value: s.openingBalance.fmt(sym),
                       ),
                       if (s.closingBalance != null)
                         _InfoRow(
                           label: 'Counted',
-                          value: '$sym${s.closingBalance}',
+                          value: s.closingBalance!.fmt(sym),
                         ),
                       if (diff != null)
                         _InfoRow(
@@ -365,8 +430,8 @@ class _HistoryView extends StatelessWidget {
                                       ? 'Short'
                                       : 'Balanced',
                           value: diff.value < BigInt.zero
-                              ? '-$sym${Price(diff.value.abs())}'
-                              : '$sym$diff',
+                              ? '-${Price(diff.value.abs()).fmt(sym)}'
+                              : diff.fmt(sym),
                           valueColor: diff.value > BigInt.zero
                               ? Colors.green
                               : diff.value < BigInt.zero
@@ -500,14 +565,7 @@ Price? _parseAmount(String text) {
   return Price(BigInt.from((parsed * 100).round()));
 }
 
-String _formatDateTime(DateTime dt) {
-  final d = dt.toLocal();
-  final day = d.day.toString().padLeft(2, '0');
-  final mon = d.month.toString().padLeft(2, '0');
-  final hr = d.hour.toString().padLeft(2, '0');
-  final min = d.minute.toString().padLeft(2, '0');
-  return '${d.year}-$mon-$day $hr:$min';
-}
+String _formatDateTime(DateTime dt) => Fmt.dateTime(dt);
 
 String _currencySymbol(BuildContext context) {
   final state = context.watch<SettingsCubit>().state;

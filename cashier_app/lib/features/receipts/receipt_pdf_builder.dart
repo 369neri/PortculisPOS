@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:cashier_app/core/extensions/format_helpers.dart';
 import 'package:cashier_app/features/billing/domain/services/price_calculator.dart';
 import 'package:cashier_app/features/checkout/domain/entities/transaction.dart';
 import 'package:cashier_app/features/settings/domain/entities/app_settings.dart';
@@ -16,12 +17,14 @@ class ReceiptPdfBuilder {
     Transaction transaction,
     AppSettings settings, {
     double taxRate = 0.0,
+    bool taxInclusive = false,
   }) async {
     final doc = pw.Document();
     final sym = settings.currencySymbol;
     final label = transaction.invoiceNumber ?? '#${transaction.id ?? 0}';
     final subtotal = PriceCalculator.subtotal(transaction.invoice);
-    final tax = PriceCalculator.tax(transaction.invoice, taxRate: taxRate);
+    final tax = PriceCalculator.tax(transaction.invoice,
+        taxRate: taxRate, taxInclusive: taxInclusive);
 
     // Attempt to load logo if configured.
     pw.MemoryImage? logoImage;
@@ -79,7 +82,7 @@ class ReceiptPdfBuilder {
                     ),
                   ),
                   pw.Text(
-                    '$sym${item.lineTotal}',
+                    item.lineTotal.fmt(sym),
                     style: const pw.TextStyle(fontSize: 10),
                   ),
                 ],
@@ -90,15 +93,18 @@ class ReceiptPdfBuilder {
               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
               children: [
                 pw.Text('Subtotal', style: const pw.TextStyle(fontSize: 10)),
-                pw.Text('$sym$subtotal', style: const pw.TextStyle(fontSize: 10)),
+                pw.Text(subtotal.fmt(sym), style: const pw.TextStyle(fontSize: 10)),
               ],
             ),
             if (taxRate > 0)
               pw.Row(
                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 children: [
-                  pw.Text('Tax ($taxRate%)', style: const pw.TextStyle(fontSize: 10)),
-                  pw.Text('$sym$tax', style: const pw.TextStyle(fontSize: 10)),
+                  pw.Text(
+                    taxInclusive ? 'Tax incl. ($taxRate%)' : 'Tax ($taxRate%)',
+                    style: const pw.TextStyle(fontSize: 10),
+                  ),
+                  pw.Text(tax.fmt(sym), style: const pw.TextStyle(fontSize: 10)),
                 ],
               ),
             pw.SizedBox(height: 2),
@@ -110,7 +116,9 @@ class ReceiptPdfBuilder {
                   style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
                 ),
                 pw.Text(
-                  '$sym${PriceCalculator.grandTotal(transaction.invoice, taxRate: taxRate)}',
+                  PriceCalculator.grandTotal(transaction.invoice,
+                          taxRate: taxRate, taxInclusive: taxInclusive)
+                      .fmt(sym),
                   style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
                 ),
               ],
@@ -125,7 +133,7 @@ class ReceiptPdfBuilder {
                     style: const pw.TextStyle(fontSize: 10),
                   ),
                   pw.Text(
-                    '$sym${p.amount}',
+                    p.amount.fmt(sym),
                     style: const pw.TextStyle(fontSize: 10),
                   ),
                 ],
@@ -137,7 +145,7 @@ class ReceiptPdfBuilder {
                 children: [
                   pw.Text('CHANGE', style: const pw.TextStyle(fontSize: 10)),
                   pw.Text(
-                    '$sym${transaction.changeDue}',
+                    transaction.changeDue.fmt(sym),
                     style: const pw.TextStyle(fontSize: 10),
                   ),
                 ],
@@ -155,7 +163,7 @@ class ReceiptPdfBuilder {
             pw.Center(
               child: pw.BarcodeWidget(
                 barcode: pw.Barcode.qrCode(),
-                data: '$label|$sym${PriceCalculator.grandTotal(transaction.invoice, taxRate: taxRate)}|${_fmtDate(transaction.createdAt)}',
+                data: '$label|${PriceCalculator.grandTotal(transaction.invoice, taxRate: taxRate, taxInclusive: taxInclusive).fmt(sym)}|${_fmtDate(transaction.createdAt)}',
                 width: 60,
                 height: 60,
               ),
@@ -168,11 +176,5 @@ class ReceiptPdfBuilder {
     return doc.save();
   }
 
-  static String _fmtDate(DateTime dt) {
-    final mo = dt.month.toString().padLeft(2, '0');
-    final d = dt.day.toString().padLeft(2, '0');
-    final h = dt.hour.toString().padLeft(2, '0');
-    final mi = dt.minute.toString().padLeft(2, '0');
-    return '${dt.year}-$mo-$d $h:$mi';
-  }
+  static String _fmtDate(DateTime dt) => Fmt.dateTime(dt);
 }

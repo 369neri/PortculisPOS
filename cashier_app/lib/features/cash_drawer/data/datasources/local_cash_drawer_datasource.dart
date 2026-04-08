@@ -1,12 +1,16 @@
 import 'package:cashier_app/core/persistence/app_database.dart';
 import 'package:cashier_app/features/cash_drawer/domain/entities/cash_drawer_session.dart';
+import 'package:cashier_app/features/cash_drawer/domain/entities/cash_movement.dart';
 import 'package:cashier_app/features/cash_drawer/domain/repositories/cash_drawer_repository.dart';
 import 'package:cashier_app/features/pricing/domain/entities/price.dart';
+import 'package:drift/drift.dart';
 
 class LocalCashDrawerDatasource implements CashDrawerRepository {
-  LocalCashDrawerDatasource(this._dao);
+  LocalCashDrawerDatasource(this._dao, {CashMovementsDao? movementsDao})
+      : _movementsDao = movementsDao;
 
   final CashDrawerDao _dao;
+  final CashMovementsDao? _movementsDao;
 
   @override
   Future<int> openSession(CashDrawerSession session) =>
@@ -43,5 +47,35 @@ class LocalCashDrawerDatasource implements CashDrawerRepository {
           : null,
       notes: row.notes,
     );
+  }
+
+  @override
+  Future<void> addMovement(CashMovement movement) async {
+    final dao = _movementsDao;
+    if (dao == null) return;
+    await dao.insert(CashMovementsTableCompanion.insert(
+      sessionId: movement.sessionId,
+      type: movement.type.name,
+      amountSubunits: movement.amountSubunits,
+      note: Value(movement.note),
+      createdAt: movement.createdAt,
+    ));
+  }
+
+  @override
+  Future<List<CashMovement>> getMovements(int sessionId) async {
+    final dao = _movementsDao;
+    if (dao == null) return [];
+    final rows = await dao.forSession(sessionId);
+    return rows
+        .map((r) => CashMovement(
+              id: r.id,
+              sessionId: r.sessionId,
+              type: CashMovementType.values.byName(r.type),
+              amountSubunits: r.amountSubunits,
+              note: r.note,
+              createdAt: r.createdAt,
+            ))
+        .toList();
   }
 }

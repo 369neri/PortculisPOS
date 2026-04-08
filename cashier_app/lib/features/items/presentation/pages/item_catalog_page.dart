@@ -387,6 +387,7 @@ class _ItemFormSheetState extends State<_ItemFormSheet> {
   late final TextEditingController _priceCtrl;
   late final TextEditingController _categoryCtrl;
   late final TextEditingController _stockCtrl;
+  late final TextEditingController _taxRateCtrl;
   String _type = 'trade';
   late bool _isFavorite;
   String? _imagePath;
@@ -406,6 +407,9 @@ class _ItemFormSheetState extends State<_ItemFormSheet> {
           ? item.stockQuantity.toString()
           : '',
     );
+    _taxRateCtrl = TextEditingController(
+      text: item?.itemTaxRate != null ? item!.itemTaxRate.toString() : '',
+    );
     if (item is ServiceItem) _type = 'service';
     _isFavorite = item?.isFavorite ?? false;
     _imagePath = item?.imagePath;
@@ -418,11 +422,12 @@ class _ItemFormSheetState extends State<_ItemFormSheet> {
     _priceCtrl.dispose();
     _categoryCtrl.dispose();
     _stockCtrl.dispose();
+    _taxRateCtrl.dispose();
     super.dispose();
   }
 
   Future<void> _pickImage() async {
-    final result = await FilePicker.platform.pickFiles(
+    final result = await FilePicker.pickFiles(
       type: FileType.image,
       
     );
@@ -457,6 +462,10 @@ class _ItemFormSheetState extends State<_ItemFormSheet> {
     final stockText = _stockCtrl.text.trim();
     final stockQuantity =
         stockText.isEmpty ? -1 : (int.tryParse(stockText) ?? -1);
+    final taxRateText = _taxRateCtrl.text.trim();
+    final itemTaxRate = taxRateText.isEmpty
+        ? null
+        : double.tryParse(taxRateText.replaceAll(',', '.'));
 
     final newItem = _type == 'service'
         ? ServiceItem(
@@ -466,6 +475,7 @@ class _ItemFormSheetState extends State<_ItemFormSheet> {
             category: category,
             isFavorite: _isFavorite,
             imagePath: _imagePath,
+            itemTaxRate: itemTaxRate,
           )
         : TradeItem(
             sku: _skuCtrl.text.trim(),
@@ -475,6 +485,7 @@ class _ItemFormSheetState extends State<_ItemFormSheet> {
             stockQuantity: stockQuantity,
             isFavorite: _isFavorite,
             imagePath: _imagePath,
+            itemTaxRate: itemTaxRate,
           );
 
     widget.cubit.save(newItem);
@@ -549,6 +560,25 @@ class _ItemFormSheetState extends State<_ItemFormSheet> {
                       double.tryParse(v.replaceAll(',', '.'));
                   if (parsed == null || parsed < 0) {
                     return 'Enter a valid price';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _taxRateCtrl,
+                decoration: const InputDecoration(
+                  labelText: 'Item tax rate %',
+                  hintText: 'Leave empty to use global rate',
+                ),
+                keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,),
+                validator: (v) {
+                  if (v == null || v.trim().isEmpty) return null;
+                  final parsed =
+                      double.tryParse(v.replaceAll(',', '.'));
+                  if (parsed == null || parsed < 0 || parsed > 100) {
+                    return 'Enter a valid rate (0–100)';
                   }
                   return null;
                 },

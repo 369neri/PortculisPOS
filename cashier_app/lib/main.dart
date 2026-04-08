@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:cashier_app/core/di/service_locator.dart';
 import 'package:cashier_app/core/layout/responsive_layout.dart';
+import 'package:cashier_app/core/logging/app_logger.dart';
 import 'package:cashier_app/features/archive/presentation/pages/archive_page.dart';
 import 'package:cashier_app/features/auth/presentation/pages/login_page.dart';
 import 'package:cashier_app/features/auth/presentation/pages/user_management_page.dart';
@@ -24,9 +27,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 void main() {
-  WidgetsFlutterBinding.ensureInitialized();
-  initServiceLocator();
-  runApp(const PortculisApp());
+  runZonedGuarded(() {
+    WidgetsFlutterBinding.ensureInitialized();
+
+    FlutterError.onError = (details) {
+      FlutterError.presentError(details);
+      appLogger.e(
+        'FlutterError: ${details.exceptionAsString()}',
+        error: details.exception,
+        stackTrace: details.stack,
+      );
+    };
+
+    initServiceLocator();
+    runApp(const PortculisApp());
+  }, (error, stack) {
+    appLogger.e('Uncaught exception', error: error, stackTrace: stack);
+  });
 }
 
 class PortculisApp extends StatelessWidget {
@@ -100,6 +117,7 @@ class PortculisApp extends StatelessWidget {
               ),
               useMaterial3: true,
             ),
+            builder: (context, child) => _ErrorBoundary(child: child!),
             home: BlocBuilder<AuthCubit, AuthState>(
               builder: (context, authState) {
                 return switch (authState) {
@@ -131,6 +149,22 @@ class _AppShellState extends State<_AppShell> {
   int _selectedIndex = 0;
   DateTime _lastActivity = DateTime.now();
   static const _idleTimeout = Duration(minutes: 15);
+  late final Timer _idleTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _idleTimer = Timer.periodic(
+      const Duration(seconds: 60),
+      (_) => _checkIdle(),
+    );
+  }
+
+  @override
+  void dispose() {
+    _idleTimer.cancel();
+    super.dispose();
+  }
 
   // All available pages with admin-only flags.
   static const _allEntries = <({Widget page, IconData icon, IconData selectedIcon, String label, bool adminOnly})>[
@@ -178,9 +212,6 @@ class _AppShellState extends State<_AppShell> {
 
   @override
   Widget build(BuildContext context) {
-    // Periodically check for idle timeout on each rebuild.
-    _checkIdle();
-
     final wide = isWideScreen(context);
     final entries = _visibleEntries;
     // Clamp index in case role changed.
@@ -256,5 +287,66 @@ class _AppShellState extends State<_AppShell> {
         Expanded(child: _buildPageBody(entries)),
       ],
     );
+  }
+}
+
+class _ErrorBoundary extends StatefulWidget {
+  const _ErrorBoundary({required this.child});
+
+  final Widget child;
+
+  @override
+  State<_ErrorBoundary> createState() => _ErrorBoundaryState();
+}
+
+class _ErrorBoundaryState extends State<_ErrorBoundary> {
+  FlutterErrorDetails? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    final original = FlutterError.onError;
+    FlutterError.onError = (details) {
+      original?.call(details);
+      if (mounted) setState(() => _error = details);
+    };
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_error != null) {
+      return Material(
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error_outline, size: 64, color: Colors.red),
+                const SizedBox(height: 16),
+                const Text(
+                  'Something went wrong',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  _error!.exceptionAsString(),
+                  textAlign: TextAlign.center,
+                  maxLines: 4,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 24),
+                FilledButton.icon(
+                  onPressed: () => setState(() => _error = null),
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Try Again'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+    return widget.child;
   }
 }

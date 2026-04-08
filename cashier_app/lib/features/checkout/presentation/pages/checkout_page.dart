@@ -1,4 +1,7 @@
 import 'package:cashier_app/core/di/service_locator.dart';
+import 'package:cashier_app/core/extensions/format_helpers.dart';
+import 'package:cashier_app/core/printing/esc_pos_receipt_builder.dart';
+import 'package:cashier_app/core/printing/thermal_printer_service.dart';
 import 'package:cashier_app/features/archive/domain/services/archive_service.dart';
 import 'package:cashier_app/features/billing/domain/entities/invoice.dart';
 import 'package:cashier_app/features/billing/domain/services/price_calculator.dart';
@@ -21,9 +24,10 @@ Future<bool> showCheckoutSheet(
   BuildContext context,
   Invoice invoice, {
   double taxRate = 0.0,
+  bool taxInclusive = false,
 }) async {
   final cubit = context.read<CheckoutCubit>()
-    ..startCheckout(invoice, taxRate: taxRate);
+    ..startCheckout(invoice, taxRate: taxRate, taxInclusive: taxInclusive);
 
   final result = await showModalBottomSheet<bool>(
     context: context,
@@ -155,10 +159,17 @@ class _CollectingBody extends StatelessWidget {
 // Receipt body
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _ReceiptBody extends StatelessWidget {
+class _ReceiptBody extends StatefulWidget {
   const _ReceiptBody({required this.state});
 
   final CheckoutCompleted state;
+
+  @override
+  State<_ReceiptBody> createState() => _ReceiptBodyState();
+}
+
+class _ReceiptBodyState extends State<_ReceiptBody> {
+  bool _autoPrinted = false;
 
   @override
   Widget build(BuildContext context) {
@@ -166,11 +177,26 @@ class _ReceiptBody extends StatelessWidget {
     final settings =
         settingsState is SettingsReady ? settingsState.settings : const AppSettings();
 
-    final tx = state.transaction;
-    final taxRate = state.taxRate;
+    // Auto-print once when thermal printer is configured.
+    if (!_autoPrinted &&
+        settings.printerType != 'none' &&
+        settings.printerAddress.isNotEmpty) {
+      _autoPrinted = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _printReceipt(context, widget.state.transaction, settings,
+            widget.state.taxRate,
+            taxInclusive: widget.state.taxInclusive);
+      });
+    }
+
+    final tx = widget.state.transaction;
+    final taxRate = widget.state.taxRate;
+    final taxInclusive = widget.state.taxInclusive;
     final subtotal = PriceCalculator.subtotal(tx.invoice);
-    final tax = PriceCalculator.tax(tx.invoice, taxRate: taxRate);
-    final grandTotal = PriceCalculator.grandTotal(tx.invoice, taxRate: taxRate);
+    final tax = PriceCalculator.tax(tx.invoice,
+        taxRate: taxRate, taxInclusive: taxInclusive);
+    final grandTotal = PriceCalculator.grandTotal(tx.invoice,
+        taxRate: taxRate, taxInclusive: taxInclusive);
     final changeDue = _changeDue(tx, grandTotal);
 
     return SingleChildScrollView(
@@ -222,7 +248,11 @@ class _ReceiptBody extends StatelessWidget {
           // Totals
           _ReceiptRow(label: 'Subtotal', value: subtotal.toString()),
           _ReceiptRow(
-            label: taxRate > 0 ? 'Tax ($taxRate%)' : 'Tax',
+            label: taxInclusive
+                ? 'Tax incl. ($taxRate%)'
+                : taxRate > 0
+                    ? 'Tax ($taxRate%)'
+                    : 'Tax',
             value: tax.toString(),
           ),
           _ReceiptRow(
@@ -254,15 +284,8 @@ class _ReceiptBody extends StatelessWidget {
           const SizedBox(height: 24),
           OutlinedButton.icon(
             onPressed: () async {
-              final bytes = await ReceiptPdfBuilder.build(
-                tx,
-                settings,
-                taxRate: taxRate,
-              );
-              await Printing.layoutPdf(
-                name: 'Receipt',
-                onLayout: (_) async => bytes,
-              );
+              await _printReceipt(context, tx, settings, taxRate,
+                  taxInclusive: taxInclusive);
             },
             icon: const Icon(Icons.print_outlined),
             label: const Text('Print Receipt'),
@@ -275,6 +298,7 @@ class _ReceiptBody extends StatelessWidget {
                   tx,
                   settings,
                   taxRate: taxRate,
+                  taxInclusive: taxInclusive,
                 );
                 await sl<ArchiveService>().saveReceiptPdf(bytes, tx);
                 if (context.mounted) {
@@ -300,6 +324,7 @@ class _ReceiptBody extends StatelessWidget {
                 tx,
                 settings,
                 taxRate: taxRate,
+                taxInclusive: taxInclusive,
               );
               await Printing.sharePdf(
                 bytes: bytes,
@@ -330,18 +355,7 @@ class _ReceiptBody extends StatelessWidget {
     return diff > BigInt.zero ? Price(diff) : Price.from(0);
   }
 
-  String _formatDate(DateTime dt) {
-    const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-    ];
-    final local = dt.toLocal();
-    final day = local.day.toString().padLeft(2, '0');
-    final mon = months[local.month - 1];
-    final hr = local.hour.toString().padLeft(2, '0');
-    final min = local.minute.toString().padLeft(2, '0');
-    return '$day $mon ${local.year}  $hr:$min';
-  }
+  String _formatDate(DateTime dt) => Fmt.receiptDate(dt);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -512,6 +526,41 @@ Price? _parseCashAmount(String text) {
   final parsed = double.tryParse(text.trim().replaceAll(',', '.'));
   if (parsed == null || parsed <= 0) return null;
   return Price(BigInt.from((parsed * 100).round()));
+}
+
+/// Prints a receipt: thermal first (if configured), PDF fallback.
+Future<void> _printReceipt(
+  BuildContext context,
+  Transaction tx,
+  AppSettings settings,
+  double taxRate, {
+  bool taxInclusive = false,
+}) async {
+  // Try thermal printer first.
+  final pType = PrinterType.values.byName(settings.printerType);
+  if (pType != PrinterType.none && settings.printerAddress.isNotEmpty) {
+    try {
+      final escBytes = await EscPosReceiptBuilder.build(
+        tx,
+        settings,
+        taxRate: taxRate,
+        taxInclusive: taxInclusive,
+      );
+      await ThermalPrinterService.send(
+        escBytes,
+        type: pType,
+        address: settings.printerAddress,
+      );
+      return; // Thermal print succeeded.
+    } on Exception {
+      // Fall through to PDF printing.
+    }
+  }
+
+  // PDF fallback.
+  final pdfBytes = await ReceiptPdfBuilder.build(tx, settings,
+      taxRate: taxRate, taxInclusive: taxInclusive);
+  await Printing.layoutPdf(name: 'Receipt', onLayout: (_) async => pdfBytes);
 }
 
 

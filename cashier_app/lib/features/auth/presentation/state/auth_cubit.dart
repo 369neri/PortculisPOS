@@ -64,10 +64,27 @@ class AuthCubit extends Cubit<AuthState> {
   /// Attempt login with username + PIN.
   Future<void> login(String username, String pin) async {
     final user = await _repo.findByUsername(username);
-    if (user == null || user.pin != hashPin(pin) || !user.isActive) {
+    if (user == null || !user.isActive) {
       emit(const AuthLocked(error: 'Invalid credentials'));
       return;
     }
+    if (user.isLockedOut) {
+      final secs = user.lockedUntil!.difference(DateTime.now()).inSeconds;
+      emit(AuthLocked(error: 'Account locked. Try again in ${secs}s'));
+      return;
+    }
+    if (user.pin != hashPin(pin, salt: user.salt)) {
+      await _repo.recordFailedAttempt(user.id!);
+      // Re-fetch to get updated lockout state.
+      final updated = await _repo.findByUsername(username);
+      if (updated != null && updated.isLockedOut) {
+        emit(const AuthLocked(error: 'Too many attempts. Locked for 30s'));
+      } else {
+        emit(const AuthLocked(error: 'Invalid credentials'));
+      }
+      return;
+    }
+    await _repo.resetFailedAttempts(user.id!);
     emit(AuthAuthenticated(user));
   }
 

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:cashier_app/core/extensions/format_helpers.dart';
 import 'package:cashier_app/features/checkout/domain/entities/transaction.dart';
 import 'package:csv/csv.dart';
 import 'package:path_provider/path_provider.dart';
@@ -42,9 +43,7 @@ class CsvExporter {
     final csv = const ListToCsvConverter().convert(rows);
     final dir = await getApplicationDocumentsDirectory();
     final now = DateTime.now();
-    final stamp =
-        '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}'
-        '_${now.hour.toString().padLeft(2, '0')}${now.minute.toString().padLeft(2, '0')}';
+    final stamp = Fmt.fileStamp(now);
     final path = '${dir.path}/transactions_$stamp.csv';
     final file = File(path);
     await file.writeAsString(csv);

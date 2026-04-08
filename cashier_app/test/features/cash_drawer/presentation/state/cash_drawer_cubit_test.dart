@@ -88,6 +88,7 @@ void main() {
       'closes session and emits closed state',
       setUp: () {
         when(repo.closeSession(any, any)).thenAnswer((_) async {});
+        when(repo.getMovements(any)).thenAnswer((_) async => []);
       },
       build: () => CashDrawerCubit(repo),
       seed: () => CashDrawerOpen(session),

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:cashier_app/core/extensions/format_helpers.dart';
 import 'package:cashier_app/core/di/service_locator.dart';
 import 'package:cashier_app/features/archive/domain/entities/archive_kind.dart';
 import 'package:cashier_app/features/archive/domain/entities/archived_file.dart';
@@ -199,11 +200,5 @@ class _FileList extends StatelessWidget {
     );
   }
 
-  static String _formatDate(DateTime dt) {
-    final mo = dt.month.toString().padLeft(2, '0');
-    final d = dt.day.toString().padLeft(2, '0');
-    final h = dt.hour.toString().padLeft(2, '0');
-    final mi = dt.minute.toString().padLeft(2, '0');
-    return '${dt.year}-$mo-$d $h:$mi';
-  }
+  static String _formatDate(DateTime dt) => Fmt.dateTime(dt);
 }

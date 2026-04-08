@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:cashier_app/core/di/service_locator.dart';
+import 'package:cashier_app/core/extensions/format_helpers.dart';
 import 'package:cashier_app/features/archive/domain/services/archive_service.dart';
 import 'package:cashier_app/features/cash_drawer/presentation/pages/cash_drawer_page.dart';
 import 'package:cashier_app/features/checkout/domain/entities/payment_method.dart';
@@ -173,12 +174,12 @@ class _StatsGrid extends StatelessWidget {
         ),
         _StatCard(
           label: 'Gross Sales',
-          value: '$symbol${report.grossSales}',
+          value: report.grossSales.fmt(symbol),
           icon: Icons.attach_money,
         ),
         _StatCard(
           label: 'Net Sales',
-          value: '$symbol${report.netSales}',
+          value: report.netSales.fmt(symbol),
           icon: Icons.trending_up,
         ),
       ],
@@ -267,7 +268,7 @@ class _PaymentBreakdown extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(entry.key.name.toUpperCase()),
-                    Text('$currencySymbol${entry.value}'),
+                    Text(entry.value.fmt(currencySymbol)),
                   ],
                 ),
               ),
@@ -416,14 +417,14 @@ class _ReportSheet extends StatelessWidget {
             _Row('Transactions', report.transactionCount.toString()),
             _Row('Voided', report.voidedCount.toString()),
             const Divider(height: 16),
-            _Row('Gross Sales', '${settings.currencySymbol}${report.grossSales}'),
+            _Row('Gross Sales', report.grossSales.fmt(settings.currencySymbol)),
             _Row(
-              'Tax (est.)',
-              '${settings.currencySymbol}${report.taxEstimated}',
+              settings.taxInclusive ? 'Tax incl. (est.)' : 'Tax (est.)',
+              report.taxEstimated.fmt(settings.currencySymbol),
             ),
             _Row(
               'Net Sales',
-              '${settings.currencySymbol}${report.netSales}',
+              report.netSales.fmt(settings.currencySymbol),
               bold: true,
             ),
             const Divider(height: 16),
@@ -436,7 +437,7 @@ class _ReportSheet extends StatelessWidget {
               for (final e in report.paymentBreakdown.entries)
                 _Row(
                   e.key.name.toUpperCase(),
-                  '${settings.currencySymbol}${e.value}',
+                  e.value.fmt(settings.currencySymbol),
                 ),
               const Divider(height: 16),
             ],
@@ -619,7 +620,7 @@ class _TransactionsTab extends StatelessWidget {
                     ),
                     title: Text(label),
                     subtitle: Text(_fmt(tx.createdAt)),
-                    trailing: Text('$currencySymbol${tx.invoice.total}'),
+                    trailing: Text(tx.invoice.total.fmt(currencySymbol)),
                   );
                 },
               ),
@@ -665,11 +666,4 @@ class _ErrorView extends StatelessWidget {
 // Date format helper
 // ---------------------------------------------------------------------------
 
-String _fmt(DateTime dt) {
-  final y = dt.year;
-  final mo = dt.month.toString().padLeft(2, '0');
-  final d = dt.day.toString().padLeft(2, '0');
-  final h = dt.hour.toString().padLeft(2, '0');
-  final mi = dt.minute.toString().padLeft(2, '0');
-  return '$y-$mo-$d $h:$mi';
-}
+String _fmt(DateTime dt) => Fmt.dateTime(dt);

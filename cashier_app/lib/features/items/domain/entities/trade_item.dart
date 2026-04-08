@@ -11,6 +11,7 @@ final class TradeItem extends Item {
     this.stockQuantity = -1,
     this.isFavorite = false,
     this.imagePath,
+    this.itemTaxRate,
   });
 
   @override
@@ -37,8 +38,11 @@ final class TradeItem extends Item {
   final String? imagePath;
 
   @override
+  final double? itemTaxRate;
+
+  @override
   List<Object?> get props =>
-      [sku, label, unitPrice, gtin, category, stockQuantity, isFavorite, imagePath];
+      [sku, label, unitPrice, gtin, category, stockQuantity, isFavorite, imagePath, itemTaxRate];
 
   @override
   ValidationResult validate() {

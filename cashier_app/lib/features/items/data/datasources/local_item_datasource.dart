@@ -41,6 +41,7 @@ class LocalItemDatasource implements ItemRepository {
         stockQuantity: Value(item.stockQuantity),
         isFavorite: Value(item.isFavorite),
         imagePath: Value(item.imagePath),
+        itemTaxRate: Value(item.itemTaxRate),
       ),
     );
   }
@@ -82,6 +83,7 @@ class LocalItemDatasource implements ItemRepository {
           category: row.category,
           isFavorite: row.isFavorite,
           imagePath: row.imagePath,
+          itemTaxRate: row.itemTaxRate,
         ),
       _ => TradeItem(
           sku: row.sku,
@@ -92,6 +94,7 @@ class LocalItemDatasource implements ItemRepository {
           stockQuantity: row.stockQuantity,
           isFavorite: row.isFavorite,
           imagePath: row.imagePath,
+          itemTaxRate: row.itemTaxRate,
         ),
     };
   }

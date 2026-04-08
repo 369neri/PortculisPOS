@@ -20,5 +20,8 @@ sealed class Item extends Equatable {
   bool get isFavorite => false;
   String? get imagePath => null;
 
+  /// Per-item tax rate override (null = use global rate).
+  double? get itemTaxRate => null;
+
   ValidationResult validate();
 }

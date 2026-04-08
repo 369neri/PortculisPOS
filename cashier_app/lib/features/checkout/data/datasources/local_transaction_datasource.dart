@@ -6,6 +6,7 @@ import 'package:cashier_app/features/billing/domain/entities/invoice_item.dart';
 import 'package:cashier_app/features/billing/domain/entities/invoice_status.dart';
 import 'package:cashier_app/features/checkout/domain/entities/payment.dart';
 import 'package:cashier_app/features/checkout/domain/entities/payment_method.dart';
+import 'package:cashier_app/features/checkout/domain/entities/refund_line_item.dart';
 import 'package:cashier_app/features/checkout/domain/entities/transaction.dart';
 import 'package:cashier_app/features/checkout/domain/entities/transaction_status.dart';
 import 'package:cashier_app/features/checkout/domain/repositories/transaction_repository.dart';
@@ -14,9 +15,11 @@ import 'package:cashier_app/features/pricing/domain/entities/price.dart';
 import 'package:drift/drift.dart';
 
 class LocalTransactionDatasource implements TransactionRepository {
-  LocalTransactionDatasource(this._dao);
+  LocalTransactionDatasource(this._dao, {RefundsDao? refundsDao})
+      : _refundsDao = refundsDao;
 
   final TransactionsDao _dao;
+  final RefundsDao? _refundsDao;
 
   @override
   Future<List<Transaction>> getAll() async {
@@ -80,6 +83,58 @@ class LocalTransactionDatasource implements TransactionRepository {
   @override
   Future<void> refundTransaction(int id) =>
       _dao.updateStatus(id, TransactionStatus.refunded.name);
+
+  @override
+  Future<void> partialRefund(int id, List<RefundLineItem> items) async {
+    final dao = _refundsDao;
+    if (dao == null) throw StateError('RefundsDao not configured');
+    final companions = items
+        .map(
+          (r) => RefundsTableCompanion.insert(
+            originalTransactionId: id,
+            lineIndex: r.lineIndex,
+            quantity: r.quantity,
+            amountSubunits: r.amountSubunits,
+            reason: Value(r.reason),
+            createdAt: DateTime.now(),
+          ),
+        )
+        .toList();
+    await dao.insertAll(companions);
+    // Check if every line item is fully refunded → mark as refunded.
+    final tx = await findById(id);
+    if (tx != null) {
+      final allRefunds = await dao.forTransaction(id);
+      final refundedQtyPerLine = <int, int>{};
+      for (final r in allRefunds) {
+        refundedQtyPerLine[r.lineIndex] =
+            (refundedQtyPerLine[r.lineIndex] ?? 0) + r.quantity;
+      }
+      final fullyRefunded = tx.invoice.items.asMap().entries.every(
+            (e) => (refundedQtyPerLine[e.key] ?? 0) >= e.value.quantity,
+          );
+      if (fullyRefunded) {
+        await _dao.updateStatus(id, TransactionStatus.refunded.name);
+      }
+    }
+  }
+
+  @override
+  Future<List<RefundLineItem>> getRefunds(int transactionId) async {
+    final dao = _refundsDao;
+    if (dao == null) return [];
+    final rows = await dao.forTransaction(transactionId);
+    return rows
+        .map(
+          (r) => RefundLineItem(
+            lineIndex: r.lineIndex,
+            quantity: r.quantity,
+            amountSubunits: r.amountSubunits,
+            reason: r.reason,
+          ),
+        )
+        .toList();
+  }
 
   // ---------------------------------------------------------------------------
   // Mapping helpers

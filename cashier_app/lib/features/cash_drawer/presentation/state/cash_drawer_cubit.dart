@@ -1,5 +1,6 @@
 import 'package:cashier_app/core/logging/app_logger.dart';
 import 'package:cashier_app/features/cash_drawer/domain/entities/cash_drawer_session.dart';
+import 'package:cashier_app/features/cash_drawer/domain/entities/cash_movement.dart';
 import 'package:cashier_app/features/cash_drawer/domain/repositories/cash_drawer_repository.dart';
 import 'package:cashier_app/features/cash_drawer/presentation/state/cash_drawer_state.dart';
 import 'package:cashier_app/features/pricing/domain/entities/price.dart';
@@ -65,12 +66,36 @@ class CashDrawerCubit extends Cubit<CashDrawerState> {
         notes: notes,
       );
       await _repository.closeSession(session.id!, closed);
-      emit(CashDrawerClosed(closed));
+      final movements = await _repository.getMovements(session.id!);
+      emit(CashDrawerClosed(closed, movements: movements));
     } on Exception catch (e, st) {
       appLogger.e('Failed to close cash drawer', error: e, stackTrace: st);
       emit(const CashDrawerError('Unable to close cash drawer. Please try again.'));
     }
   }
+
+  /// Record a cash movement against the currently active session.
+  Future<void> recordMovement(CashMovementType type, int amountSubunits,
+      {String note = ''}) async {
+    final current = state;
+    if (current is! CashDrawerOpen) return;
+    final sessionId = current.session.id;
+    if (sessionId == null) return;
+    try {
+      await _repository.addMovement(CashMovement(
+        sessionId: sessionId,
+        type: type,
+        amountSubunits: amountSubunits,
+        note: note,
+        createdAt: DateTime.now(),
+      ));
+    } on Exception catch (e, st) {
+      appLogger.e('Failed to record cash movement', error: e, stackTrace: st);
+    }
+  }
+
+  Future<List<CashMovement>> getMovements(int sessionId) =>
+      _repository.getMovements(sessionId);
 
   Future<void> loadHistory() async {
     emit(const CashDrawerLoading());

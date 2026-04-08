@@ -1,8 +1,12 @@
 
+import 'package:cashier_app/core/extensions/format_helpers.dart';
+import 'package:cashier_app/core/printing/esc_pos_receipt_builder.dart';
+import 'package:cashier_app/core/printing/thermal_printer_service.dart';
 import 'package:cashier_app/core/di/service_locator.dart';
 import 'package:cashier_app/features/archive/domain/services/archive_service.dart';
 import 'package:cashier_app/features/checkout/domain/entities/transaction.dart';
 import 'package:cashier_app/features/checkout/domain/entities/transaction_status.dart';
+import 'package:cashier_app/features/checkout/presentation/pages/refund_page.dart';
 import 'package:cashier_app/features/checkout/presentation/state/transaction_history_cubit.dart';
 import 'package:cashier_app/features/checkout/presentation/state/transaction_history_state.dart';
 import 'package:cashier_app/features/receipts/receipt_pdf_builder.dart';
@@ -345,7 +349,7 @@ class _TransactionTile extends StatelessWidget {
       title: Text(label),
       subtitle: Text('${_fmtDate(transaction.createdAt)}  $methods'),
       trailing: Text(
-        '$currencySymbol$total',
+        total.fmt(currencySymbol),
         style: TextStyle(
           decoration: isInactive ? TextDecoration.lineThrough : null,
           color: isInactive ? Colors.grey : null,
@@ -448,7 +452,7 @@ class _TransactionDetailSheet extends StatelessWidget {
                       Text('\u00d7${item.quantity}  '),
                       Expanded(child: Text(item.item.label ?? 'Item')),
                       Text(
-                        '${settings.currencySymbol}${item.lineTotal}',
+                        item.lineTotal.fmt(settings.currencySymbol),
                       ),
                     ],
                   ),
@@ -460,7 +464,7 @@ class _TransactionDetailSheet extends StatelessWidget {
                 children: [
                   const Text('Total'),
                   Text(
-                    '${settings.currencySymbol}${transaction.invoice.total}',
+                    transaction.invoice.total.fmt(settings.currencySymbol),
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ],
@@ -478,7 +482,7 @@ class _TransactionDetailSheet extends StatelessWidget {
                   child: Row(
                     children: [
                       Expanded(child: Text(p.method.name.toUpperCase())),
-                      Text('${settings.currencySymbol}${p.amount}'),
+                      Text(p.amount.fmt(settings.currencySymbol)),
                     ],
                   ),
                 ),
@@ -489,16 +493,38 @@ class _TransactionDetailSheet extends StatelessWidget {
                   children: [
                     const Text('Change'),
                     Text(
-                      '${settings.currencySymbol}${transaction.changeDue}',
+                      transaction.changeDue.fmt(settings.currencySymbol),
                     ),
                   ],
                 ),
               ],
               OutlinedButton.icon(
                 onPressed: () async {
+                  final pType = PrinterType.values.byName(settings.printerType);
+                  if (pType != PrinterType.none &&
+                      settings.printerAddress.isNotEmpty) {
+                    try {
+                      final escBytes = await EscPosReceiptBuilder.build(
+                        transaction,
+                        settings,
+                        taxRate: settings.taxRate,
+                        taxInclusive: settings.taxInclusive,
+                      );
+                      await ThermalPrinterService.send(
+                        escBytes,
+                        type: pType,
+                        address: settings.printerAddress,
+                      );
+                      return;
+                    } on Exception {
+                      // Fall through to PDF.
+                    }
+                  }
                   final bytes = await ReceiptPdfBuilder.build(
                     transaction,
                     settings,
+                    taxRate: settings.taxRate,
+                    taxInclusive: settings.taxInclusive,
                   );
                   await Printing.layoutPdf(
                     name: 'Receipt',
@@ -515,6 +541,8 @@ class _TransactionDetailSheet extends StatelessWidget {
                     final bytes = await ReceiptPdfBuilder.build(
                       transaction,
                       settings,
+                      taxRate: settings.taxRate,
+                      taxInclusive: settings.taxInclusive,
                     );
                     await sl<ArchiveService>().saveReceiptPdf(
                       bytes,
@@ -544,6 +572,8 @@ class _TransactionDetailSheet extends StatelessWidget {
                   final bytes = await ReceiptPdfBuilder.build(
                     transaction,
                     settings,
+                    taxRate: settings.taxRate,
+                    taxInclusive: settings.taxInclusive,
                   );
                   await Printing.sharePdf(
                     bytes: bytes,
@@ -595,30 +625,29 @@ class _TransactionDetailSheet extends StatelessWidget {
   void _confirmRefund(BuildContext context) {
     final cubit = context.read<TransactionHistoryCubit>();
     final txId = transaction.id;
-    showDialog<void>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Refund Transaction'),
-        content: const Text(
-          'This cannot be undone. Mark this transaction as refunded?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: Colors.orange),
-            onPressed: () {
-              Navigator.of(dialogContext).pop();
-              Navigator.of(context).pop();
-              if (txId != null) {
-                cubit.refundTransaction(txId);
+    if (txId == null) return;
+    // Close the detail sheet first, then navigate to the refund page.
+    Navigator.of(context).pop();
+    Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => BlocProvider.value(
+          value: cubit,
+          child: FutureBuilder(
+            future: cubit.getRefunds(txId),
+            builder: (ctx, snap) {
+              if (!snap.hasData) {
+                return const Scaffold(
+                  body: Center(child: CircularProgressIndicator()),
+                );
               }
+              return RefundPage(
+                transaction: transaction,
+                settings: settings,
+                existingRefunds: snap.data!,
+              );
             },
-            child: const Text('Refund'),
           ),
-        ],
+        ),
       ),
     );
   }
@@ -661,11 +690,4 @@ class _TransactionDetailSheet extends StatelessWidget {
 // Date formatting helper
 // ---------------------------------------------------------------------------
 
-String _fmtDate(DateTime dt) {
-  final y = dt.year;
-  final mo = dt.month.toString().padLeft(2, '0');
-  final d = dt.day.toString().padLeft(2, '0');
-  final h = dt.hour.toString().padLeft(2, '0');
-  final mi = dt.minute.toString().padLeft(2, '0');
-  return '$y-$mo-$d $h:$mi';
-}
+String _fmtDate(DateTime dt) => Fmt.dateTime(dt);

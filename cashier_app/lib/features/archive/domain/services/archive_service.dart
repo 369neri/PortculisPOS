@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:cashier_app/core/extensions/format_helpers.dart';
 import 'package:cashier_app/features/archive/domain/entities/archive_kind.dart';
 import 'package:cashier_app/features/archive/domain/entities/archived_file.dart';
 import 'package:cashier_app/features/checkout/domain/entities/transaction.dart';
@@ -114,16 +115,7 @@ class ArchiveService {
   }
 
   /// Formats a [DateTime] as `YYYYMMdd_HHmmss_SSS`.
-  static String _timestamp(DateTime dt) {
-    final y = dt.year.toString();
-    final mo = dt.month.toString().padLeft(2, '0');
-    final d = dt.day.toString().padLeft(2, '0');
-    final h = dt.hour.toString().padLeft(2, '0');
-    final mi = dt.minute.toString().padLeft(2, '0');
-    final s = dt.second.toString().padLeft(2, '0');
-    final ms = dt.millisecond.toString().padLeft(3, '0');
-    return '$y$mo${d}_$h$mi${s}_$ms';
-  }
+  static String _timestamp(DateTime dt) => Fmt.fileStampMs(dt);
 
   /// Replaces characters that are unsafe in filenames.
   static String _sanitize(String input) =>

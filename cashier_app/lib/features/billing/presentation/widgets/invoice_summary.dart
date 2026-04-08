@@ -11,14 +11,20 @@ class InvoiceSummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocSelector<SettingsCubit, SettingsState, double>(
-      selector: (state) =>
-          state is SettingsReady ? state.settings.taxRate : 0.0,
-      builder: (context, taxRate) {
+    return BlocSelector<SettingsCubit, SettingsState,
+        ({double taxRate, bool taxInclusive})>(
+      selector: (state) => state is SettingsReady
+          ? (
+              taxRate: state.settings.taxRate,
+              taxInclusive: state.settings.taxInclusive,
+            )
+          : (taxRate: 0.0, taxInclusive: false),
+      builder: (context, s) {
         final subtotal = PriceCalculator.subtotal(invoice);
-        final tax = PriceCalculator.tax(invoice, taxRate: taxRate);
-        final grandTotal =
-            PriceCalculator.grandTotal(invoice, taxRate: taxRate);
+        final tax = PriceCalculator.tax(invoice,
+            taxRate: s.taxRate, taxInclusive: s.taxInclusive);
+        final grandTotal = PriceCalculator.grandTotal(invoice,
+            taxRate: s.taxRate, taxInclusive: s.taxInclusive);
         final textTheme = Theme.of(context).textTheme;
 
         return Padding(
@@ -32,7 +38,11 @@ class InvoiceSummary extends StatelessWidget {
                 style: textTheme.bodyLarge,
               ),
               _SummaryRow(
-                label: taxRate > 0 ? 'Tax ($taxRate%)' : 'Tax',
+                label: s.taxInclusive
+                    ? 'Tax incl. (${s.taxRate}%)'
+                    : s.taxRate > 0
+                        ? 'Tax (${s.taxRate}%)'
+                        : 'Tax',
                 value: tax.toString(),
                 style: textTheme.bodyMedium,
               ),

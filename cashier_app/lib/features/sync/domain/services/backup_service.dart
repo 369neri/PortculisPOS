@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:cashier_app/core/extensions/format_helpers.dart';
 import 'package:cashier_app/features/billing/domain/entities/invoice.dart';
 import 'package:cashier_app/features/billing/domain/entities/invoice_item.dart';
 import 'package:cashier_app/features/billing/domain/entities/invoice_status.dart';
@@ -62,9 +63,7 @@ class BackupService {
     final json = const JsonEncoder.withIndent('  ').convert(data);
     final dir = await getApplicationDocumentsDirectory();
     final now = DateTime.now();
-    final stamp =
-        '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}'
-        '_${now.hour.toString().padLeft(2, '0')}${now.minute.toString().padLeft(2, '0')}';
+    final stamp = Fmt.fileStamp(now);
     final path = '${dir.path}/portculis_backup_$stamp.json';
     await File(path).writeAsString(json);
     return path;

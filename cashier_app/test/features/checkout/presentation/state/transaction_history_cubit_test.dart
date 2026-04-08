@@ -3,6 +3,7 @@ import 'package:cashier_app/features/billing/domain/entities/invoice.dart';
 import 'package:cashier_app/features/billing/domain/entities/invoice_item.dart';
 import 'package:cashier_app/features/checkout/domain/entities/payment.dart';
 import 'package:cashier_app/features/checkout/domain/entities/payment_method.dart';
+import 'package:cashier_app/features/checkout/domain/entities/refund_line_item.dart';
 import 'package:cashier_app/features/checkout/domain/entities/transaction.dart';
 import 'package:cashier_app/features/checkout/domain/entities/transaction_status.dart';
 import 'package:cashier_app/features/checkout/domain/repositories/transaction_repository.dart';
@@ -64,6 +65,17 @@ class _FakeRepo implements TransactionRepository {
 
   @override
   Future<void> refundTransaction(int id) async {}
+
+  final _refunds = <int, List<RefundLineItem>>{};
+
+  @override
+  Future<void> partialRefund(int id, List<RefundLineItem> items) async {
+    _refunds.putIfAbsent(id, () => []).addAll(items);
+  }
+
+  @override
+  Future<List<RefundLineItem>> getRefunds(int transactionId) async =>
+      _refunds[transactionId] ?? [];
 }
 
 // ---------------------------------------------------------------------------

@@ -1,3 +1,4 @@
+import 'package:cashier_app/core/network/api_client.dart';
 import 'package:cashier_app/core/persistence/app_database.dart';
 import 'package:cashier_app/features/archive/domain/services/archive_service.dart';
 import 'package:cashier_app/features/archive/presentation/state/archive_cubit.dart';
@@ -25,6 +26,7 @@ import 'package:cashier_app/features/reports/presentation/state/reports_cubit.da
 import 'package:cashier_app/features/settings/data/datasources/local_settings_datasource.dart';
 import 'package:cashier_app/features/settings/domain/repositories/settings_repository.dart';
 import 'package:cashier_app/features/settings/presentation/state/settings_cubit.dart';
+import 'package:cashier_app/features/sync/data/datasources/remote_sync_datasource.dart';
 import 'package:cashier_app/features/sync/domain/services/backup_service.dart';
 import 'package:cashier_app/features/sync/presentation/state/sync_cubit.dart';
 import 'package:get_it/get_it.dart';
@@ -39,7 +41,10 @@ void initServiceLocator() {
       LocalItemDatasource(sl<AppDatabase>()),
     )
     ..registerSingleton<TransactionRepository>(
-      LocalTransactionDatasource(sl<AppDatabase>().transactionsDao),
+      LocalTransactionDatasource(
+        sl<AppDatabase>().transactionsDao,
+        refundsDao: sl<AppDatabase>().refundsDao,
+      ),
     )
     ..registerSingleton<SettingsRepository>(
       LocalSettingsDatasource(sl<AppDatabase>().settingsDao),
@@ -60,26 +65,31 @@ void initServiceLocator() {
         sl<TransactionRepository>(),
         itemRepository: sl<ItemRepository>(),
         syncCubit: sl<SyncCubit>(),
+        cashDrawerRepository: sl<CashDrawerRepository>(),
       ),
     )
     ..registerSingleton<SettingsCubit>(
       SettingsCubit(sl<SettingsRepository>()),
     )
+    // Cash drawer
+    ..registerSingleton<CashDrawerRepository>(
+      LocalCashDrawerDatasource(
+        sl<AppDatabase>().cashDrawerDao,
+        movementsDao: sl<AppDatabase>().cashMovementsDao,
+      ),
+    )
+    ..registerFactory<CashDrawerCubit>(
+      () => CashDrawerCubit(sl<CashDrawerRepository>()),
+    )
     ..registerSingleton<TransactionHistoryCubit>(
       TransactionHistoryCubit(
         sl<TransactionRepository>(),
         itemRepository: sl<ItemRepository>(),
+        cashDrawerRepository: sl<CashDrawerRepository>(),
       ),
     )
     ..registerSingleton<ReportsCubit>(
       ReportsCubit(sl<TransactionRepository>(), sl<SettingsRepository>()),
-    )
-    // Cash drawer
-    ..registerSingleton<CashDrawerRepository>(
-      LocalCashDrawerDatasource(sl<AppDatabase>().cashDrawerDao),
-    )
-    ..registerFactory<CashDrawerCubit>(
-      () => CashDrawerCubit(sl<CashDrawerRepository>()),
     )
     // Customers
     ..registerSingleton<CustomerRepository>(
@@ -112,5 +122,12 @@ void initServiceLocator() {
     // Sync
     ..registerSingleton<SyncCubit>(
       SyncCubit(sl<BackupService>(), sl<SettingsRepository>()),
+    )
+    // Network (registered lazily — only created when server URL is configured)
+    ..registerLazySingleton<ApiClient>(
+      () => ApiClient(baseUrl: 'http://localhost:8080'),
+    )
+    ..registerLazySingleton<RemoteSyncDatasource>(
+      () => RemoteSyncDatasource(sl<ApiClient>()),
     );
 }

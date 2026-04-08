@@ -1,4 +1,5 @@
 import 'package:cashier_app/features/cash_drawer/domain/entities/cash_drawer_session.dart';
+import 'package:cashier_app/features/cash_drawer/domain/entities/cash_movement.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 
@@ -32,12 +33,25 @@ final class CashDrawerOpen extends CashDrawerState {
 
 /// Emitted after a drawer is closed, with the final session data.
 final class CashDrawerClosed extends CashDrawerState {
-  const CashDrawerClosed(this.session);
+  const CashDrawerClosed(this.session, {this.movements = const []});
 
   final CashDrawerSession session;
+  final List<CashMovement> movements;
+
+  int get expectedSubunits {
+    final opening = session.openingBalance.subunits;
+    var delta = 0;
+    for (final m in movements) {
+      delta += m.amountSubunits;
+    }
+    return opening + delta;
+  }
+
+  int get varianceSubunits =>
+      (session.closingBalance?.subunits ?? 0) - expectedSubunits;
 
   @override
-  List<Object?> get props => [session];
+  List<Object?> get props => [session, movements];
 }
 
 final class CashDrawerHistory extends CashDrawerState {

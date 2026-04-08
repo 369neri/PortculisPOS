@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:cashier_app/core/extensions/format_helpers.dart';
+import 'package:cashier_app/core/printing/thermal_printer_service.dart';
 import 'package:cashier_app/features/settings/domain/entities/app_settings.dart';
 import 'package:cashier_app/features/settings/presentation/state/settings_cubit.dart';
 import 'package:cashier_app/features/sync/domain/services/backup_service.dart';
@@ -24,9 +26,12 @@ class _SettingsPageState extends State<SettingsPage> {
   final _taxRateCtrl = TextEditingController();
   final _currencyCtrl = TextEditingController();
   final _footerCtrl = TextEditingController();
+  final _printerAddressCtrl = TextEditingController();
   String _themeMode = 'system';
   bool _autoBackup = false;
+  bool _taxInclusive = false;
   String? _logoPath;
+  String _printerType = 'none';
   bool _populated = false;
 
   @override
@@ -44,6 +49,7 @@ class _SettingsPageState extends State<SettingsPage> {
     _taxRateCtrl.dispose();
     _currencyCtrl.dispose();
     _footerCtrl.dispose();
+    _printerAddressCtrl.dispose();
     super.dispose();
   }
 
@@ -58,7 +64,10 @@ class _SettingsPageState extends State<SettingsPage> {
     _footerCtrl.text = s.receiptFooter;
     _themeMode = s.themeMode;
     _autoBackup = s.autoBackupEnabled;
+    _taxInclusive = s.taxInclusive;
     _logoPath = s.logoPath;
+    _printerType = s.printerType;
+    _printerAddressCtrl.text = s.printerAddress;
   }
 
   void _save() {
@@ -69,11 +78,14 @@ class _SettingsPageState extends State<SettingsPage> {
           AppSettings(
             businessName: _businessNameCtrl.text.trim(),
             taxRate: taxRate,
+            taxInclusive: _taxInclusive,
             currencySymbol: _currencyCtrl.text.trim(),
             receiptFooter: _footerCtrl.text.trim(),
             themeMode: _themeMode,
             logoPath: _logoPath,
             autoBackupEnabled: _autoBackup,
+            printerType: _printerType,
+            printerAddress: _printerAddressCtrl.text.trim(),
           ),
         );
     ScaffoldMessenger.of(context)
@@ -92,7 +104,7 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> _importBackup() async {
-    final result = await FilePicker.platform.pickFiles(
+    final result = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['json'],
     );
@@ -116,7 +128,7 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> _pickLogo() async {
-    final result = await FilePicker.platform.pickFiles(type: FileType.image);
+    final result = await FilePicker.pickFiles(type: FileType.image);
     if (result == null || result.files.isEmpty) return;
     final picked = result.files.first;
     if (picked.path == null) return;
@@ -129,6 +141,29 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   void _removeLogo() => setState(() => _logoPath = null);
+
+  Future<void> _testPrint() async {
+    final type = PrinterType.values.byName(_printerType);
+    final address = _printerAddressCtrl.text.trim();
+    if (address.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Enter a printer address first')),
+      );
+      return;
+    }
+    try {
+      await ThermalPrinterService.testPrint(type: type, address: address);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Test page sent')),
+      );
+    } on Exception catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Print failed: $e')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -176,6 +211,15 @@ class _SettingsPageState extends State<SettingsPage> {
                     return null;
                   },
                 ),
+                SwitchListTile(
+                  title: const Text('Prices include tax'),
+                  subtitle: const Text(
+                    'Enable if item prices already contain tax',
+                  ),
+                  value: _taxInclusive,
+                  onChanged: (v) => setState(() => _taxInclusive = v),
+                  contentPadding: EdgeInsets.zero,
+                ),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _currencyCtrl,
@@ -200,7 +244,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
                 // -- Logo picker --
                 Text('Receipt logo',
-                    style: Theme.of(context).textTheme.titleSmall),
+                    style: Theme.of(context).textTheme.titleSmall,),
                 const SizedBox(height: 8),
                 if (_logoPath != null && File(_logoPath!).existsSync())
                   Stack(
@@ -236,6 +280,55 @@ class _SettingsPageState extends State<SettingsPage> {
                   value: _themeMode,
                   onChanged: (mode) => setState(() => _themeMode = mode),
                 ),
+                const SizedBox(height: 24),
+
+                // -- Printer settings --
+                const Divider(),
+                const SizedBox(height: 16),
+                Text('Thermal Printer',
+                    style: Theme.of(context).textTheme.titleSmall,),
+                const SizedBox(height: 12),
+                SegmentedButton<String>(
+                  segments: const [
+                    ButtonSegment(
+                      value: 'none',
+                      icon: Icon(Icons.print_disabled),
+                      label: Text('None'),
+                    ),
+                    ButtonSegment(
+                      value: 'network',
+                      icon: Icon(Icons.wifi),
+                      label: Text('Network'),
+                    ),
+                    ButtonSegment(
+                      value: 'usb',
+                      icon: Icon(Icons.usb),
+                      label: Text('USB'),
+                    ),
+                  ],
+                  selected: {_printerType},
+                  onSelectionChanged: (s) =>
+                      setState(() => _printerType = s.first),
+                ),
+                if (_printerType != 'none') ...[
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: _printerAddressCtrl,
+                    decoration: InputDecoration(
+                      labelText: _printerType == 'network'
+                          ? 'IP:Port (e.g. 192.168.1.100:9100)'
+                          : 'Device path (e.g. /dev/usb/lp0)',
+                      prefixIcon: const Icon(Icons.print),
+                      border: const OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  OutlinedButton.icon(
+                    onPressed: _testPrint,
+                    icon: const Icon(Icons.print),
+                    label: const Text('Test Print'),
+                  ),
+                ],
                 const SizedBox(height: 24),
                 FilledButton(
                   onPressed: _save,
@@ -327,13 +420,7 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 }
 
-String _fmtDateTime(DateTime dt) {
-  final mo = dt.month.toString().padLeft(2, '0');
-  final d = dt.day.toString().padLeft(2, '0');
-  final h = dt.hour.toString().padLeft(2, '0');
-  final mi = dt.minute.toString().padLeft(2, '0');
-  return '${dt.year}-$mo-$d $h:$mi';
-}
+String _fmtDateTime(DateTime dt) => Fmt.dateTime(dt);
 
 class _ThemeModeSelector extends StatelessWidget {
   const _ThemeModeSelector({

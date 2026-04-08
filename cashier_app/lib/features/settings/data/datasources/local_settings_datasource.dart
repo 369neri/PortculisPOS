@@ -25,6 +25,9 @@ class LocalSettingsDatasource implements SettingsRepository {
       lastBackupAt: row.lastBackupAt != null
           ? DateTime.tryParse(row.lastBackupAt!)
           : null,
+      printerType: row.printerType,
+      printerAddress: row.printerAddress,
+      taxInclusive: row.taxInclusive,
     );
   }
 
@@ -41,6 +44,9 @@ class LocalSettingsDatasource implements SettingsRepository {
           logoPath: Value(settings.logoPath),
           autoBackupEnabled: Value(settings.autoBackupEnabled),
           lastBackupAt: Value(settings.lastBackupAt?.toIso8601String()),
+          printerType: Value(settings.printerType),
+          printerAddress: Value(settings.printerAddress),
+          taxInclusive: Value(settings.taxInclusive),
         ),
       );
 }

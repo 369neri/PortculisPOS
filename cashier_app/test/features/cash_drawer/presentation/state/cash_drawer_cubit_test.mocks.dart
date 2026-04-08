@@ -7,6 +7,8 @@ import 'dart:async' as _i3;
 
 import 'package:cashier_app/features/cash_drawer/domain/entities/cash_drawer_session.dart'
     as _i4;
+import 'package:cashier_app/features/cash_drawer/domain/entities/cash_movement.dart'
+    as _i5;
 import 'package:cashier_app/features/cash_drawer/domain/repositories/cash_drawer_repository.dart'
     as _i2;
 import 'package:mockito/mockito.dart' as _i1;
@@ -82,4 +84,28 @@ class MockCashDrawerRepository extends _i1.Mock
             _i3.Future<List<_i4.CashDrawerSession>>.value(
                 <_i4.CashDrawerSession>[]),
       ) as _i3.Future<List<_i4.CashDrawerSession>>);
+
+  @override
+  _i3.Future<void> addMovement(_i5.CashMovement? movement) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #addMovement,
+          [movement],
+        ),
+        returnValue: _i3.Future<void>.value(),
+        returnValueForMissingStub: _i3.Future<void>.value(),
+      ) as _i3.Future<void>);
+
+  @override
+  _i3.Future<List<_i5.CashMovement>> getMovements(int? sessionId) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getMovements,
+          [sessionId],
+        ),
+        returnValue:
+            _i3.Future<List<_i5.CashMovement>>.value(<_i5.CashMovement>[]),
+        returnValueForMissingStub:
+            _i3.Future<List<_i5.CashMovement>>.value(<_i5.CashMovement>[]),
+      ) as _i3.Future<List<_i5.CashMovement>>);
 }

@@ -15,9 +15,15 @@ import 'package:drift/native.dart';
 class TestDeps {
   TestDeps() : db = AppDatabase(NativeDatabase.memory()) {
     itemRepo = LocalItemDatasource(db);
-    txRepo = LocalTransactionDatasource(db.transactionsDao);
+    txRepo = LocalTransactionDatasource(
+      db.transactionsDao,
+      refundsDao: db.refundsDao,
+    );
     settingsRepo = LocalSettingsDatasource(db.settingsDao);
-    cashDrawerRepo = LocalCashDrawerDatasource(db.cashDrawerDao);
+    cashDrawerRepo = LocalCashDrawerDatasource(
+      db.cashDrawerDao,
+      movementsDao: db.cashMovementsDao,
+    );
     customerRepo = LocalCustomerDatasource(db.customersDao);
   }
 

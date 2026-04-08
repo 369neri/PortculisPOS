@@ -9,6 +9,9 @@ class User extends Equatable {
     required this.pin,
     required this.role,
     this.id,
+    this.salt = '',
+    this.failedAttempts = 0,
+    this.lockedUntil,
     this.isActive = true,
   });
 
@@ -16,11 +19,20 @@ class User extends Equatable {
   final String username;
   final String displayName;
   final String pin;
+  final String salt;
   final String role; // 'admin', 'cashier'
   final bool isActive;
+  final int failedAttempts;
+  final DateTime? lockedUntil;
 
   bool get isAdmin => role == 'admin';
 
+  bool get isLockedOut =>
+      lockedUntil != null && DateTime.now().isBefore(lockedUntil!);
+
   @override
-  List<Object?> get props => [id, username, displayName, pin, role, isActive];
+  List<Object?> get props => [
+        id, username, displayName, pin, salt, role, isActive,
+        failedAttempts, lockedUntil,
+      ];
 }

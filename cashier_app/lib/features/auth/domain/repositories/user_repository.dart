@@ -6,4 +6,6 @@ abstract class UserRepository {
   Future<void> save(User user);
   Future<void> delete(int id);
   Future<bool> hasAnyUsers();
+  Future<void> recordFailedAttempt(int userId);
+  Future<void> resetFailedAttempts(int userId);
 }

@@ -32,7 +32,7 @@ class _CsvImportPageState extends State<CsvImportPage> {
   int? _typeCol;
 
   Future<void> _pickFile() async {
-    final result = await FilePicker.platform.pickFiles(
+    final result = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['csv', 'txt'],
     );
@@ -71,7 +71,7 @@ class _CsvImportPageState extends State<CsvImportPage> {
   void _autoMapColumns(List<String> headers) {
     _skuCol = _labelCol = _priceCol = _categoryCol = _stockCol = _typeCol = null;
 
-    for (int i = 0; i < headers.length; i++) {
+    for (var i = 0; i < headers.length; i++) {
       final h = headers[i].toLowerCase();
       if (h.contains('sku') || h.contains('barcode') || h.contains('code')) {
         _skuCol ??= i;
@@ -181,7 +181,7 @@ class _CsvImportPageState extends State<CsvImportPage> {
 
               // Column mapping
               Text('Column mapping',
-                  style: Theme.of(context).textTheme.titleSmall),
+                  style: Theme.of(context).textTheme.titleSmall,),
               const SizedBox(height: 8),
               _ColumnMapper(
                 headers: _headers,
@@ -224,7 +224,7 @@ class _CsvImportPageState extends State<CsvImportPage> {
                     : const Icon(Icons.upload),
                 label: Text(_importing
                     ? 'Importing\u2026'
-                    : 'Import ${_rows!.length} items'),
+                    : 'Import ${_rows!.length} items',),
               ),
             ],
           ],
@@ -253,7 +253,7 @@ class _CsvImportPageState extends State<CsvImportPage> {
                     DataCell(Text(
                       i < row.length ? row[i].toString() : '',
                       overflow: TextOverflow.ellipsis,
-                    )),
+                    ),),
                 ],
               ),
           ],
@@ -322,7 +322,7 @@ class _ColumnMapper extends StatelessWidget {
         ),
         initialValue: value,
         items: [
-          const DropdownMenuItem<int?>(value: null, child: Text('—')),
+          const DropdownMenuItem<int?>(child: Text('—')),
           for (int i = 0; i < headers.length; i++)
             DropdownMenuItem(value: i, child: Text(headers[i])),
         ],

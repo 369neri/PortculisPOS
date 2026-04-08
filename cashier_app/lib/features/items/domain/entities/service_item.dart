@@ -9,6 +9,7 @@ final class ServiceItem extends Item {
     this.category = '',
     this.isFavorite = false,
     this.imagePath,
+    this.itemTaxRate,
   });
 
   @override
@@ -31,7 +32,10 @@ final class ServiceItem extends Item {
   final String? imagePath;
 
   @override
-  List<Object?> get props => [sku, label, unitPrice, category, isFavorite, imagePath];
+  final double? itemTaxRate;
+
+  @override
+  List<Object?> get props => [sku, label, unitPrice, category, isFavorite, imagePath, itemTaxRate];
 
   @override
   ValidationResult validate() {

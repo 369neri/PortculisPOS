@@ -29,6 +29,7 @@ class ItemsTable extends Table {
   BoolColumn get isFavorite =>
       boolean().withDefault(const Constant(false))();
   TextColumn get imagePath => text().nullable()();
+  RealColumn get itemTaxRate => real().nullable()();
 }
 
 // ---------------------------------------------------------------------------
@@ -96,6 +97,12 @@ class SettingsTable extends Table {
   BoolColumn get autoBackupEnabled =>
       boolean().withDefault(const Constant(false))();
   TextColumn get lastBackupAt => text().nullable()();
+  TextColumn get printerType =>
+      text().withDefault(const Constant('none'))();
+  TextColumn get printerAddress =>
+      text().withDefault(const Constant(''))();
+  BoolColumn get taxInclusive =>
+      boolean().withDefault(const Constant(false))();
 
   @override
   Set<Column<Object>> get primaryKey => {id};
@@ -130,6 +137,41 @@ class CustomersTable extends Table {
   TextColumn get phone => text().withDefault(const Constant(''))();
   TextColumn get email => text().withDefault(const Constant(''))();
   TextColumn get notes => text().withDefault(const Constant(''))();
+  DateTimeColumn get createdAt => dateTime()();
+}
+
+// ---------------------------------------------------------------------------
+// Refunds table
+// ---------------------------------------------------------------------------
+
+class RefundsTable extends Table {
+  @override
+  String get tableName => 'refunds';
+
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get originalTransactionId =>
+      integer().references(TransactionsTable, #id)();
+  IntColumn get lineIndex => integer()();
+  IntColumn get quantity => integer()();
+  IntColumn get amountSubunits => integer()();
+  TextColumn get reason => text().withDefault(const Constant(''))();
+  DateTimeColumn get createdAt => dateTime()();
+}
+
+// ---------------------------------------------------------------------------
+// Cash Movements Table
+// ---------------------------------------------------------------------------
+
+class CashMovementsTable extends Table {
+  @override
+  String get tableName => 'cash_movements';
+
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get sessionId =>
+      integer().references(CashDrawerSessionsTable, #id)();
+  TextColumn get type => text()(); // sale, refund, voidTx, adjustment
+  IntColumn get amountSubunits => integer()();
+  TextColumn get note => text().withDefault(const Constant(''))();
   DateTimeColumn get createdAt => dateTime()();
 }
 
@@ -362,8 +404,12 @@ class UsersTable extends Table {
   TextColumn get username => text().unique()();
   TextColumn get displayName => text()();
   TextColumn get pin => text()(); // hashed PIN
+  TextColumn get salt => text().withDefault(const Constant(''))();
   TextColumn get role => text().withDefault(const Constant('cashier'))(); // admin | manager | cashier
   BoolColumn get isActive => boolean().withDefault(const Constant(true))();
+  IntColumn get failedAttempts =>
+      integer().withDefault(const Constant(0))();
+  DateTimeColumn get lockedUntil => dateTime().nullable()();
   DateTimeColumn get createdAt => dateTime()();
 }
 
@@ -392,6 +438,63 @@ class UsersDao extends DatabaseAccessor<AppDatabase> with _$UsersDaoMixin {
 
   Future<int> deleteUser(int id) =>
       (delete(usersTable)..where((t) => t.id.equals(id))).go();
+
+  Future<void> incrementFailedAttempts(int id, {DateTime? lockUntil}) async {
+    final row = await (select(usersTable)..where((t) => t.id.equals(id)))
+        .getSingle();
+    await (update(usersTable)..where((t) => t.id.equals(id))).write(
+      UsersTableCompanion(
+        failedAttempts: Value(row.failedAttempts + 1),
+        lockedUntil: Value(lockUntil),
+      ),
+    );
+  }
+
+  Future<void> resetFailedAttempts(int id) =>
+      (update(usersTable)..where((t) => t.id.equals(id))).write(
+        const UsersTableCompanion(
+          failedAttempts: Value(0),
+          lockedUntil: Value(null),
+        ),
+      );
+}
+
+// ---------------------------------------------------------------------------
+// Refunds DAO
+// ---------------------------------------------------------------------------
+
+@DriftAccessor(tables: [RefundsTable])
+class RefundsDao extends DatabaseAccessor<AppDatabase> with _$RefundsDaoMixin {
+  RefundsDao(super.db);
+
+  Future<List<RefundsTableData>> forTransaction(int txId) =>
+      (select(refundsTable)
+            ..where((t) => t.originalTransactionId.equals(txId)))
+          .get();
+
+  Future<void> insertAll(List<RefundsTableCompanion> items) async {
+    for (final item in items) {
+      await into(refundsTable).insert(item);
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Cash Movements DAO
+// ---------------------------------------------------------------------------
+
+@DriftAccessor(tables: [CashMovementsTable])
+class CashMovementsDao extends DatabaseAccessor<AppDatabase>
+    with _$CashMovementsDaoMixin {
+  CashMovementsDao(super.db);
+
+  Future<void> insert(CashMovementsTableCompanion entry) =>
+      into(cashMovementsTable).insert(entry);
+
+  Future<List<CashMovementsTableData>> forSession(int sessionId) =>
+      (select(cashMovementsTable)
+            ..where((t) => t.sessionId.equals(sessionId)))
+          .get();
 }
 
 // ---------------------------------------------------------------------------
@@ -407,14 +510,25 @@ class UsersDao extends DatabaseAccessor<AppDatabase> with _$UsersDaoMixin {
     CashDrawerSessionsTable,
     CustomersTable,
     UsersTable,
+    RefundsTable,
+    CashMovementsTable,
   ],
-  daos: [ItemsDao, TransactionsDao, SettingsDao, CashDrawerDao, CustomersDao, UsersDao],
+  daos: [
+    ItemsDao,
+    TransactionsDao,
+    SettingsDao,
+    CashDrawerDao,
+    CustomersDao,
+    UsersDao,
+    RefundsDao,
+    CashMovementsDao,
+  ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 11;
+  int get schemaVersion => 17;
 
   @override
   MigrationStrategy get migration {
@@ -469,6 +583,33 @@ class AppDatabase extends _$AppDatabase {
             settingsTable.autoBackupEnabled,
           );
           await m.addColumn(settingsTable, settingsTable.lastBackupAt);
+        }
+        if (from < 12) {
+          await m.addColumn(usersTable, usersTable.salt);
+          await m.addColumn(usersTable, usersTable.failedAttempts);
+          await m.addColumn(usersTable, usersTable.lockedUntil);
+        }
+        if (from < 13) {
+          await m.createTable(refundsTable);
+        }
+        if (from < 14) {
+          await m.createTable(cashMovementsTable);
+        }
+        if (from < 15) {
+          await m.addColumn(settingsTable, settingsTable.printerType);
+          await m.addColumn(
+            settingsTable,
+            settingsTable.printerAddress,
+          );
+        }
+        if (from < 16) {
+          await m.addColumn(
+            settingsTable,
+            settingsTable.taxInclusive,
+          );
+        }
+        if (from < 17) {
+          await m.addColumn(itemsTable, itemsTable.itemTaxRate);
         }
       },
     );

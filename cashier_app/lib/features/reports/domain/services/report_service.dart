@@ -12,6 +12,7 @@ class ReportService {
     List<Transaction> transactions, {
     DateTime? from,
     double taxRate = 0,
+    bool taxInclusive = false,
   }) {
     final now = DateTime.now();
 
@@ -37,11 +38,21 @@ class ReportService {
       }
     }
 
-    // Tax estimate: grossSales * taxRate / 100 (integer maths via ×100 scale)
-    final taxSubunits = taxRate > 0
-        ? (grossSales.value * BigInt.from((taxRate * 100).round())) ~/
-            BigInt.from(10000)
-        : BigInt.zero;
+    // Tax estimate: depends on whether prices include tax.
+    final BigInt taxSubunits;
+    if (taxRate <= 0) {
+      taxSubunits = BigInt.zero;
+    } else {
+      final rateBP = BigInt.from((taxRate * 100).round());
+      if (taxInclusive) {
+        // Back-calculate: tax = gross × rate / (100 + rate)
+        final divisor = BigInt.from(10000) + rateBP;
+        taxSubunits = (grossSales.value * rateBP) ~/ divisor;
+      } else {
+        taxSubunits =
+            (grossSales.value * rateBP) ~/ BigInt.from(10000);
+      }
+    }
 
     return SalesReport(
       periodStart: from,

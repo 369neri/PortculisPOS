@@ -11,6 +11,8 @@ import 'package:test/test.dart';
 
 class _FakeUserRepo implements UserRepository {
   List<User> users = [];
+  final Map<int, int> _failedAttempts = {};
+  final Map<int, DateTime?> _lockedUntil = {};
 
   @override
   Future<List<User>> getAll() async => List.unmodifiable(users);
@@ -18,7 +20,19 @@ class _FakeUserRepo implements UserRepository {
   @override
   Future<User?> findByUsername(String username) async {
     for (final u in users) {
-      if (u.username == username) return u;
+      if (u.username == username) {
+        return User(
+          id: u.id,
+          username: u.username,
+          displayName: u.displayName,
+          pin: u.pin,
+          salt: u.salt,
+          role: u.role,
+          isActive: u.isActive,
+          failedAttempts: _failedAttempts[u.id] ?? u.failedAttempts,
+          lockedUntil: _lockedUntil[u.id] ?? u.lockedUntil,
+        );
+      }
     }
     return null;
   }
@@ -31,6 +45,21 @@ class _FakeUserRepo implements UserRepository {
 
   @override
   Future<bool> hasAnyUsers() async => users.isNotEmpty;
+
+  @override
+  Future<void> recordFailedAttempt(int userId) async {
+    final count = (_failedAttempts[userId] ?? 0) + 1;
+    _failedAttempts[userId] = count;
+    if (count >= 3) {
+      _lockedUntil[userId] = DateTime.now().add(const Duration(seconds: 30));
+    }
+  }
+
+  @override
+  Future<void> resetFailedAttempts(int userId) async {
+    _failedAttempts[userId] = 0;
+    _lockedUntil[userId] = null;
+  }
 }
 
 // ---------------------------------------------------------------------------

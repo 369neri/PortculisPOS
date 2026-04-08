@@ -78,7 +78,7 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
           : MobileScanner(
               controller: _controller,
               onDetect: _onDetect,
-              errorBuilder: (context, error, child) {
+              errorBuilder: (context, error) {
                 if (error.errorCode == MobileScannerErrorCode.permissionDenied) {
                   WidgetsBinding.instance.addPostFrameCallback((_) {
                     if (mounted && !_permissionDenied) {

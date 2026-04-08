@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:cashier_app/core/extensions/format_helpers.dart';
 import 'package:cashier_app/features/reports/domain/entities/sales_report.dart';
 import 'package:cashier_app/features/settings/domain/entities/app_settings.dart';
 import 'package:pdf/pdf.dart';
@@ -70,11 +71,14 @@ class ReportPdfBuilder {
             _row('Transactions', report.transactionCount.toString()),
             _row('Voided', report.voidedCount.toString()),
             pw.Divider(height: 16),
-            _row('Gross Sales', '$sym${report.grossSales}'),
-            _row('Tax (est.)', '$sym${report.taxEstimated}'),
+            _row('Gross Sales', report.grossSales.fmt(sym)),
+            _row(
+              settings.taxInclusive ? 'Tax incl. (est.)' : 'Tax (est.)',
+              report.taxEstimated.fmt(sym),
+            ),
             _row(
               'Net Sales',
-              '$sym${report.netSales}',
+              report.netSales.fmt(sym),
               bold: true,
             ),
             if (report.paymentBreakdown.isNotEmpty) ...[
@@ -90,7 +94,7 @@ class ReportPdfBuilder {
               ...report.paymentBreakdown.entries.map(
                 (e) => _row(
                   e.key.name.toUpperCase(),
-                  '$sym${e.value}',
+                  e.value.fmt(sym),
                 ),
               ),
             ],
@@ -134,11 +138,5 @@ class ReportPdfBuilder {
     return 'All time → $end';
   }
 
-  static String _fmtDate(DateTime dt) {
-    final mo = dt.month.toString().padLeft(2, '0');
-    final d = dt.day.toString().padLeft(2, '0');
-    final h = dt.hour.toString().padLeft(2, '0');
-    final mi = dt.minute.toString().padLeft(2, '0');
-    return '${dt.year}-$mo-$d $h:$mi';
-  }
+  static String _fmtDate(DateTime dt) => Fmt.dateTime(dt);
 }

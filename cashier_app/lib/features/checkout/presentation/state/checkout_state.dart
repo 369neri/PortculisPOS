@@ -23,6 +23,7 @@ final class CheckoutCollecting extends CheckoutState {
     required this.invoice,
     this.payments = const [],
     this.taxRate = 0.0,
+    this.taxInclusive = false,
     this.customerId,
     this.customerName,
   });
@@ -33,11 +34,15 @@ final class CheckoutCollecting extends CheckoutState {
   /// Tax rate as a percentage (e.g. 10.0 = 10 %).
   final double taxRate;
 
+  /// Whether prices already include tax.
+  final bool taxInclusive;
+
   /// Optional associated customer.
   final int? customerId;
   final String? customerName;
 
-  Price get totalDue => PriceCalculator.grandTotal(invoice, taxRate: taxRate);
+  Price get totalDue => PriceCalculator.grandTotal(invoice,
+      taxRate: taxRate, taxInclusive: taxInclusive);
 
   Price get totalPaid => payments.fold(
         Price.from(0),
@@ -58,19 +63,23 @@ final class CheckoutCollecting extends CheckoutState {
 
   @override
   List<Object?> get props =>
-      [invoice, payments, taxRate, customerId, customerName];
+      [invoice, payments, taxRate, taxInclusive, customerId, customerName];
 }
 
 final class CheckoutCompleted extends CheckoutState {
-  const CheckoutCompleted(this.transaction, {this.taxRate = 0.0});
+  const CheckoutCompleted(this.transaction,
+      {this.taxRate = 0.0, this.taxInclusive = false});
 
   final Transaction transaction;
 
   /// Tax rate used during this sale (percentage).
   final double taxRate;
 
+  /// Whether prices already include tax.
+  final bool taxInclusive;
+
   @override
-  List<Object?> get props => [transaction, taxRate];
+  List<Object?> get props => [transaction, taxRate, taxInclusive];
 }
 
 final class CheckoutError extends CheckoutState {

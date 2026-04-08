@@ -21,6 +21,7 @@ class ReportsCubit extends Cubit<ReportsState> {
         allTx,
         from: settings.lastZReportAt,
         taxRate: settings.taxRate,
+        taxInclusive: settings.taxInclusive,
       );
       emit(ReportsReady(report: report, lastZAt: settings.lastZReportAt));
     } on Exception catch (e, st) {
