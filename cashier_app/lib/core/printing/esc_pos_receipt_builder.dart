@@ -26,9 +26,9 @@ class EscPosReceiptBuilder {
     final label = transaction.invoiceNumber ?? '#${transaction.id ?? 0}';
     final subtotal = PriceCalculator.subtotal(transaction.invoice);
     final tax = PriceCalculator.tax(transaction.invoice,
-        taxRate: taxRate, taxInclusive: taxInclusive);
+        taxRate: taxRate, taxInclusive: taxInclusive,);
     final grandTotal = PriceCalculator.grandTotal(transaction.invoice,
-        taxRate: taxRate, taxInclusive: taxInclusive);
+        taxRate: taxRate, taxInclusive: taxInclusive,);
 
     // Initialize printer.
     buf.add(_init);

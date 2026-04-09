@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "com.example" "\0"
-            VALUE "FileDescription", "cashier_app" "\0"
+            VALUE "CompanyName", "Menabrea Labs" "\0"
+            VALUE "FileDescription", "Portculis POS" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "cashier_app" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2023 com.example. All rights reserved." "\0"
-            VALUE "OriginalFilename", "cashier_app.exe" "\0"
-            VALUE "ProductName", "cashier_app" "\0"
+            VALUE "InternalName", "portculis_pos" "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2024 Menabrea Labs. All rights reserved." "\0"
+            VALUE "OriginalFilename", "portculis_pos.exe" "\0"
+            VALUE "ProductName", "Portculis POS" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

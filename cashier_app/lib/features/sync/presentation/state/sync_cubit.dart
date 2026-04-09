@@ -72,7 +72,7 @@ class SyncCubit extends Cubit<SyncState> {
       emit(SyncError(
         'Backup failed: $e',
         lastBackupAt: settings.lastBackupAt,
-      ));
+      ),);
     }
   }
 

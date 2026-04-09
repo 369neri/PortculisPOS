@@ -1,11 +1,11 @@
 {
-    "name": "cashier_app",
-    "short_name": "cashier_app",
+    "name": "Portculis POS",
+    "short_name": "Portculis POS",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "Portculis POS — Point of Sale by Menabrea Labs",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

@@ -85,7 +85,7 @@ class _RefundPageState extends State<RefundPage> {
           quantity: _refundQty[i],
           amountSubunits: _lineRefundSubunits(items[i], _refundQty[i]).toInt(),
           reason: reason,
-        ));
+        ),);
       }
     }
     final txId = widget.transaction.id;
@@ -120,7 +120,7 @@ class _RefundPageState extends State<RefundPage> {
                 return Card(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 8),
+                        horizontal: 12, vertical: 8,),
                     child: Row(
                       children: [
                         Expanded(
@@ -150,7 +150,7 @@ class _RefundPageState extends State<RefundPage> {
                           IconButton(
                             onPressed: _refundQty[index] > 0
                                 ? () => setState(
-                                    () => _refundQty[index]--)
+                                    () => _refundQty[index]--,)
                                 : null,
                             icon: const Icon(Icons.remove_circle_outline),
                           ),
@@ -160,13 +160,13 @@ class _RefundPageState extends State<RefundPage> {
                               '${_refundQty[index]}',
                               textAlign: TextAlign.center,
                               style: const TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 16),
+                                  fontWeight: FontWeight.bold, fontSize: 16,),
                             ),
                           ),
                           IconButton(
                             onPressed: _refundQty[index] < maxQty
                                 ? () => setState(
-                                    () => _refundQty[index]++)
+                                    () => _refundQty[index]++,)
                                 : null,
                             icon: const Icon(Icons.add_circle_outline),
                           ),
