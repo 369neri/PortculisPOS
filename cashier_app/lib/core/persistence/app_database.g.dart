@@ -1742,6 +1742,20 @@ class $SettingsTableTable extends SettingsTable
       defaultConstraints: GeneratedColumn.constraintIsAlways(
           'CHECK ("tax_inclusive" IN (0, 1))'),
       defaultValue: const Constant(false));
+  static const VerificationMeta _lastSyncedAtMeta =
+      const VerificationMeta('lastSyncedAt');
+  @override
+  late final GeneratedColumn<String> lastSyncedAt = GeneratedColumn<String>(
+      'last_synced_at', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _serverUrlMeta =
+      const VerificationMeta('serverUrl');
+  @override
+  late final GeneratedColumn<String> serverUrl = GeneratedColumn<String>(
+      'server_url', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(''));
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -1756,7 +1770,9 @@ class $SettingsTableTable extends SettingsTable
         lastBackupAt,
         printerType,
         printerAddress,
-        taxInclusive
+        taxInclusive,
+        lastSyncedAt,
+        serverUrl
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1837,6 +1853,16 @@ class $SettingsTableTable extends SettingsTable
           taxInclusive.isAcceptableOrUnknown(
               data['tax_inclusive']!, _taxInclusiveMeta));
     }
+    if (data.containsKey('last_synced_at')) {
+      context.handle(
+          _lastSyncedAtMeta,
+          lastSyncedAt.isAcceptableOrUnknown(
+              data['last_synced_at']!, _lastSyncedAtMeta));
+    }
+    if (data.containsKey('server_url')) {
+      context.handle(_serverUrlMeta,
+          serverUrl.isAcceptableOrUnknown(data['server_url']!, _serverUrlMeta));
+    }
     return context;
   }
 
@@ -1872,6 +1898,10 @@ class $SettingsTableTable extends SettingsTable
           DriftSqlType.string, data['${effectivePrefix}printer_address'])!,
       taxInclusive: attachedDatabase.typeMapping
           .read(DriftSqlType.bool, data['${effectivePrefix}tax_inclusive'])!,
+      lastSyncedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}last_synced_at']),
+      serverUrl: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}server_url'])!,
     );
   }
 
@@ -1896,6 +1926,8 @@ class SettingsTableData extends DataClass
   final String printerType;
   final String printerAddress;
   final bool taxInclusive;
+  final String? lastSyncedAt;
+  final String serverUrl;
   const SettingsTableData(
       {required this.id,
       required this.businessName,
@@ -1909,7 +1941,9 @@ class SettingsTableData extends DataClass
       this.lastBackupAt,
       required this.printerType,
       required this.printerAddress,
-      required this.taxInclusive});
+      required this.taxInclusive,
+      this.lastSyncedAt,
+      required this.serverUrl});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -1932,6 +1966,10 @@ class SettingsTableData extends DataClass
     map['printer_type'] = Variable<String>(printerType);
     map['printer_address'] = Variable<String>(printerAddress);
     map['tax_inclusive'] = Variable<bool>(taxInclusive);
+    if (!nullToAbsent || lastSyncedAt != null) {
+      map['last_synced_at'] = Variable<String>(lastSyncedAt);
+    }
+    map['server_url'] = Variable<String>(serverUrl);
     return map;
   }
 
@@ -1956,6 +1994,10 @@ class SettingsTableData extends DataClass
       printerType: Value(printerType),
       printerAddress: Value(printerAddress),
       taxInclusive: Value(taxInclusive),
+      lastSyncedAt: lastSyncedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastSyncedAt),
+      serverUrl: Value(serverUrl),
     );
   }
 
@@ -1976,6 +2018,8 @@ class SettingsTableData extends DataClass
       printerType: serializer.fromJson<String>(json['printerType']),
       printerAddress: serializer.fromJson<String>(json['printerAddress']),
       taxInclusive: serializer.fromJson<bool>(json['taxInclusive']),
+      lastSyncedAt: serializer.fromJson<String?>(json['lastSyncedAt']),
+      serverUrl: serializer.fromJson<String>(json['serverUrl']),
     );
   }
   @override
@@ -1995,6 +2039,8 @@ class SettingsTableData extends DataClass
       'printerType': serializer.toJson<String>(printerType),
       'printerAddress': serializer.toJson<String>(printerAddress),
       'taxInclusive': serializer.toJson<bool>(taxInclusive),
+      'lastSyncedAt': serializer.toJson<String?>(lastSyncedAt),
+      'serverUrl': serializer.toJson<String>(serverUrl),
     };
   }
 
@@ -2011,7 +2057,9 @@ class SettingsTableData extends DataClass
           Value<String?> lastBackupAt = const Value.absent(),
           String? printerType,
           String? printerAddress,
-          bool? taxInclusive}) =>
+          bool? taxInclusive,
+          Value<String?> lastSyncedAt = const Value.absent(),
+          String? serverUrl}) =>
       SettingsTableData(
         id: id ?? this.id,
         businessName: businessName ?? this.businessName,
@@ -2028,6 +2076,9 @@ class SettingsTableData extends DataClass
         printerType: printerType ?? this.printerType,
         printerAddress: printerAddress ?? this.printerAddress,
         taxInclusive: taxInclusive ?? this.taxInclusive,
+        lastSyncedAt:
+            lastSyncedAt.present ? lastSyncedAt.value : this.lastSyncedAt,
+        serverUrl: serverUrl ?? this.serverUrl,
       );
   SettingsTableData copyWithCompanion(SettingsTableCompanion data) {
     return SettingsTableData(
@@ -2061,6 +2112,10 @@ class SettingsTableData extends DataClass
       taxInclusive: data.taxInclusive.present
           ? data.taxInclusive.value
           : this.taxInclusive,
+      lastSyncedAt: data.lastSyncedAt.present
+          ? data.lastSyncedAt.value
+          : this.lastSyncedAt,
+      serverUrl: data.serverUrl.present ? data.serverUrl.value : this.serverUrl,
     );
   }
 
@@ -2079,7 +2134,9 @@ class SettingsTableData extends DataClass
           ..write('lastBackupAt: $lastBackupAt, ')
           ..write('printerType: $printerType, ')
           ..write('printerAddress: $printerAddress, ')
-          ..write('taxInclusive: $taxInclusive')
+          ..write('taxInclusive: $taxInclusive, ')
+          ..write('lastSyncedAt: $lastSyncedAt, ')
+          ..write('serverUrl: $serverUrl')
           ..write(')'))
         .toString();
   }
@@ -2098,7 +2155,9 @@ class SettingsTableData extends DataClass
       lastBackupAt,
       printerType,
       printerAddress,
-      taxInclusive);
+      taxInclusive,
+      lastSyncedAt,
+      serverUrl);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -2115,7 +2174,9 @@ class SettingsTableData extends DataClass
           other.lastBackupAt == this.lastBackupAt &&
           other.printerType == this.printerType &&
           other.printerAddress == this.printerAddress &&
-          other.taxInclusive == this.taxInclusive);
+          other.taxInclusive == this.taxInclusive &&
+          other.lastSyncedAt == this.lastSyncedAt &&
+          other.serverUrl == this.serverUrl);
 }
 
 class SettingsTableCompanion extends UpdateCompanion<SettingsTableData> {
@@ -2132,6 +2193,8 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsTableData> {
   final Value<String> printerType;
   final Value<String> printerAddress;
   final Value<bool> taxInclusive;
+  final Value<String?> lastSyncedAt;
+  final Value<String> serverUrl;
   const SettingsTableCompanion({
     this.id = const Value.absent(),
     this.businessName = const Value.absent(),
@@ -2146,6 +2209,8 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsTableData> {
     this.printerType = const Value.absent(),
     this.printerAddress = const Value.absent(),
     this.taxInclusive = const Value.absent(),
+    this.lastSyncedAt = const Value.absent(),
+    this.serverUrl = const Value.absent(),
   });
   SettingsTableCompanion.insert({
     this.id = const Value.absent(),
@@ -2161,6 +2226,8 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsTableData> {
     this.printerType = const Value.absent(),
     this.printerAddress = const Value.absent(),
     this.taxInclusive = const Value.absent(),
+    this.lastSyncedAt = const Value.absent(),
+    this.serverUrl = const Value.absent(),
   });
   static Insertable<SettingsTableData> custom({
     Expression<int>? id,
@@ -2176,6 +2243,8 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsTableData> {
     Expression<String>? printerType,
     Expression<String>? printerAddress,
     Expression<bool>? taxInclusive,
+    Expression<String>? lastSyncedAt,
+    Expression<String>? serverUrl,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -2191,6 +2260,8 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsTableData> {
       if (printerType != null) 'printer_type': printerType,
       if (printerAddress != null) 'printer_address': printerAddress,
       if (taxInclusive != null) 'tax_inclusive': taxInclusive,
+      if (lastSyncedAt != null) 'last_synced_at': lastSyncedAt,
+      if (serverUrl != null) 'server_url': serverUrl,
     });
   }
 
@@ -2207,7 +2278,9 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsTableData> {
       Value<String?>? lastBackupAt,
       Value<String>? printerType,
       Value<String>? printerAddress,
-      Value<bool>? taxInclusive}) {
+      Value<bool>? taxInclusive,
+      Value<String?>? lastSyncedAt,
+      Value<String>? serverUrl}) {
     return SettingsTableCompanion(
       id: id ?? this.id,
       businessName: businessName ?? this.businessName,
@@ -2222,6 +2295,8 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsTableData> {
       printerType: printerType ?? this.printerType,
       printerAddress: printerAddress ?? this.printerAddress,
       taxInclusive: taxInclusive ?? this.taxInclusive,
+      lastSyncedAt: lastSyncedAt ?? this.lastSyncedAt,
+      serverUrl: serverUrl ?? this.serverUrl,
     );
   }
 
@@ -2267,6 +2342,12 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsTableData> {
     if (taxInclusive.present) {
       map['tax_inclusive'] = Variable<bool>(taxInclusive.value);
     }
+    if (lastSyncedAt.present) {
+      map['last_synced_at'] = Variable<String>(lastSyncedAt.value);
+    }
+    if (serverUrl.present) {
+      map['server_url'] = Variable<String>(serverUrl.value);
+    }
     return map;
   }
 
@@ -2285,7 +2366,9 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsTableData> {
           ..write('lastBackupAt: $lastBackupAt, ')
           ..write('printerType: $printerType, ')
           ..write('printerAddress: $printerAddress, ')
-          ..write('taxInclusive: $taxInclusive')
+          ..write('taxInclusive: $taxInclusive, ')
+          ..write('lastSyncedAt: $lastSyncedAt, ')
+          ..write('serverUrl: $serverUrl')
           ..write(')'))
         .toString();
   }
@@ -5189,6 +5272,8 @@ typedef $$SettingsTableTableCreateCompanionBuilder = SettingsTableCompanion
   Value<String> printerType,
   Value<String> printerAddress,
   Value<bool> taxInclusive,
+  Value<String?> lastSyncedAt,
+  Value<String> serverUrl,
 });
 typedef $$SettingsTableTableUpdateCompanionBuilder = SettingsTableCompanion
     Function({
@@ -5205,6 +5290,8 @@ typedef $$SettingsTableTableUpdateCompanionBuilder = SettingsTableCompanion
   Value<String> printerType,
   Value<String> printerAddress,
   Value<bool> taxInclusive,
+  Value<String?> lastSyncedAt,
+  Value<String> serverUrl,
 });
 
 class $$SettingsTableTableFilterComposer
@@ -5257,6 +5344,12 @@ class $$SettingsTableTableFilterComposer
 
   ColumnFilters<bool> get taxInclusive => $composableBuilder(
       column: $table.taxInclusive, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get lastSyncedAt => $composableBuilder(
+      column: $table.lastSyncedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get serverUrl => $composableBuilder(
+      column: $table.serverUrl, builder: (column) => ColumnFilters(column));
 }
 
 class $$SettingsTableTableOrderingComposer
@@ -5314,6 +5407,13 @@ class $$SettingsTableTableOrderingComposer
   ColumnOrderings<bool> get taxInclusive => $composableBuilder(
       column: $table.taxInclusive,
       builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get lastSyncedAt => $composableBuilder(
+      column: $table.lastSyncedAt,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get serverUrl => $composableBuilder(
+      column: $table.serverUrl, builder: (column) => ColumnOrderings(column));
 }
 
 class $$SettingsTableTableAnnotationComposer
@@ -5363,6 +5463,12 @@ class $$SettingsTableTableAnnotationComposer
 
   GeneratedColumn<bool> get taxInclusive => $composableBuilder(
       column: $table.taxInclusive, builder: (column) => column);
+
+  GeneratedColumn<String> get lastSyncedAt => $composableBuilder(
+      column: $table.lastSyncedAt, builder: (column) => column);
+
+  GeneratedColumn<String> get serverUrl =>
+      $composableBuilder(column: $table.serverUrl, builder: (column) => column);
 }
 
 class $$SettingsTableTableTableManager extends RootTableManager<
@@ -5404,6 +5510,8 @@ class $$SettingsTableTableTableManager extends RootTableManager<
             Value<String> printerType = const Value.absent(),
             Value<String> printerAddress = const Value.absent(),
             Value<bool> taxInclusive = const Value.absent(),
+            Value<String?> lastSyncedAt = const Value.absent(),
+            Value<String> serverUrl = const Value.absent(),
           }) =>
               SettingsTableCompanion(
             id: id,
@@ -5419,6 +5527,8 @@ class $$SettingsTableTableTableManager extends RootTableManager<
             printerType: printerType,
             printerAddress: printerAddress,
             taxInclusive: taxInclusive,
+            lastSyncedAt: lastSyncedAt,
+            serverUrl: serverUrl,
           ),
           createCompanionCallback: ({
             Value<int> id = const Value.absent(),
@@ -5434,6 +5544,8 @@ class $$SettingsTableTableTableManager extends RootTableManager<
             Value<String> printerType = const Value.absent(),
             Value<String> printerAddress = const Value.absent(),
             Value<bool> taxInclusive = const Value.absent(),
+            Value<String?> lastSyncedAt = const Value.absent(),
+            Value<String> serverUrl = const Value.absent(),
           }) =>
               SettingsTableCompanion.insert(
             id: id,
@@ -5449,6 +5561,8 @@ class $$SettingsTableTableTableManager extends RootTableManager<
             printerType: printerType,
             printerAddress: printerAddress,
             taxInclusive: taxInclusive,
+            lastSyncedAt: lastSyncedAt,
+            serverUrl: serverUrl,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))

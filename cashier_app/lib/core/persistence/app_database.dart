@@ -103,6 +103,9 @@ class SettingsTable extends Table {
       text().withDefault(const Constant(''))();
   BoolColumn get taxInclusive =>
       boolean().withDefault(const Constant(false))();
+  TextColumn get lastSyncedAt => text().nullable()();
+  TextColumn get serverUrl =>
+      text().withDefault(const Constant(''))();
 
   @override
   Set<Column<Object>> get primaryKey => {id};
@@ -528,7 +531,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 17;
+  int get schemaVersion => 18;
 
   @override
   MigrationStrategy get migration {
@@ -610,6 +613,13 @@ class AppDatabase extends _$AppDatabase {
         }
         if (from < 17) {
           await m.addColumn(itemsTable, itemsTable.itemTaxRate);
+        }
+        if (from < 18) {
+          await m.addColumn(
+            settingsTable,
+            settingsTable.lastSyncedAt,
+          );
+          await m.addColumn(settingsTable, settingsTable.serverUrl);
         }
       },
     );

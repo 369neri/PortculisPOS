@@ -27,6 +27,8 @@ import 'package:cashier_app/features/settings/data/datasources/local_settings_da
 import 'package:cashier_app/features/settings/domain/repositories/settings_repository.dart';
 import 'package:cashier_app/features/settings/presentation/state/settings_cubit.dart';
 import 'package:cashier_app/features/sync/data/datasources/remote_sync_datasource.dart';
+import 'package:cashier_app/features/sync/data/sync_repository_impl.dart';
+import 'package:cashier_app/features/sync/domain/repositories/sync_repository.dart';
 import 'package:cashier_app/features/sync/domain/services/backup_service.dart';
 import 'package:cashier_app/features/sync/presentation/state/sync_cubit.dart';
 import 'package:get_it/get_it.dart';
@@ -119,15 +121,27 @@ void initServiceLocator() {
         sl<SettingsRepository>(),
       ),
     )
-    // Sync
-    ..registerSingleton<SyncCubit>(
-      SyncCubit(sl<BackupService>(), sl<SettingsRepository>()),
-    )
     // Network (registered lazily — only created when server URL is configured)
     ..registerLazySingleton<ApiClient>(
       () => ApiClient(baseUrl: 'http://localhost:8080'),
     )
     ..registerLazySingleton<RemoteSyncDatasource>(
       () => RemoteSyncDatasource(sl<ApiClient>()),
+    )
+    ..registerLazySingleton<SyncRepository>(
+      () => SyncRepositoryImpl(
+        sl<RemoteSyncDatasource>(),
+        itemRepository: sl<ItemRepository>(),
+        customerRepository: sl<CustomerRepository>(),
+        settingsRepository: sl<SettingsRepository>(),
+      ),
+    )
+    // Sync
+    ..registerSingleton<SyncCubit>(
+      SyncCubit(
+        sl<BackupService>(),
+        sl<SettingsRepository>(),
+        syncRepository: sl<SyncRepository>(),
+      ),
     );
 }

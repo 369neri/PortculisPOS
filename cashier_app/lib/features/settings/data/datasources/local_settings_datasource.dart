@@ -28,6 +28,10 @@ class LocalSettingsDatasource implements SettingsRepository {
       printerType: row.printerType,
       printerAddress: row.printerAddress,
       taxInclusive: row.taxInclusive,
+      lastSyncedAt: row.lastSyncedAt != null
+          ? DateTime.tryParse(row.lastSyncedAt!)
+          : null,
+      serverUrl: row.serverUrl,
     );
   }
 
@@ -47,6 +51,8 @@ class LocalSettingsDatasource implements SettingsRepository {
           printerType: Value(settings.printerType),
           printerAddress: Value(settings.printerAddress),
           taxInclusive: Value(settings.taxInclusive),
+          lastSyncedAt: Value(settings.lastSyncedAt?.toIso8601String()),
+          serverUrl: Value(settings.serverUrl),
         ),
       );
 }

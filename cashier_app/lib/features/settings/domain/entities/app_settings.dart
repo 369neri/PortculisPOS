@@ -16,6 +16,8 @@ class AppSettings extends Equatable {
     this.printerType = 'none',
     this.printerAddress = '',
     this.taxInclusive = false,
+    this.lastSyncedAt,
+    this.serverUrl = '',
   });
 
   final String businessName;
@@ -50,6 +52,12 @@ class AppSettings extends Equatable {
   /// Whether displayed prices already include tax.
   final bool taxInclusive;
 
+  /// When the last server sync completed.
+  final DateTime? lastSyncedAt;
+
+  /// Remote server URL for sync (empty = sync disabled).
+  final String serverUrl;
+
   AppSettings copyWith({
     String? businessName,
     double? taxRate,
@@ -66,6 +74,9 @@ class AppSettings extends Equatable {
     String? printerType,
     String? printerAddress,
     bool? taxInclusive,
+    DateTime? lastSyncedAt,
+    bool clearLastSyncedAt = false,
+    String? serverUrl,
   }) =>
       AppSettings(
         businessName: businessName ?? this.businessName,
@@ -82,6 +93,9 @@ class AppSettings extends Equatable {
         printerType: printerType ?? this.printerType,
         printerAddress: printerAddress ?? this.printerAddress,
         taxInclusive: taxInclusive ?? this.taxInclusive,
+        lastSyncedAt:
+            clearLastSyncedAt ? null : (lastSyncedAt ?? this.lastSyncedAt),
+        serverUrl: serverUrl ?? this.serverUrl,
       );
 
   @override
@@ -98,5 +112,7 @@ class AppSettings extends Equatable {
         printerType,
         printerAddress,
         taxInclusive,
+        lastSyncedAt,
+        serverUrl,
       ];
 }
