@@ -1,3 +1,4 @@
+import 'package:cashier_app/core/logging/app_logger.dart';
 import 'package:cashier_app/features/cash_drawer/domain/entities/cash_movement.dart';
 import 'package:cashier_app/features/cash_drawer/domain/repositories/cash_drawer_repository.dart';
 import 'package:cashier_app/features/checkout/domain/entities/payment_method.dart';
@@ -8,7 +9,6 @@ import 'package:cashier_app/features/checkout/domain/repositories/transaction_re
 import 'package:cashier_app/features/checkout/presentation/state/transaction_history_state.dart';
 import 'package:cashier_app/features/items/domain/entities/item.dart';
 import 'package:cashier_app/features/items/domain/repositories/item_repository.dart';
-import 'package:cashier_app/core/logging/app_logger.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class TransactionHistoryCubit extends Cubit<TransactionHistoryState> {
@@ -33,7 +33,7 @@ class TransactionHistoryCubit extends Cubit<TransactionHistoryState> {
       emit(TransactionHistoryLoaded(page, hasMore: page.length == _pageSize));
     } on Exception catch (e, st) {
       appLogger.e('Failed to load transactions', error: e, stackTrace: st);
-      emit(TransactionHistoryError('Unable to load transactions.'));
+      emit(const TransactionHistoryError('Unable to load transactions.'));
     }
   }
 
@@ -61,7 +61,7 @@ class TransactionHistoryCubit extends Cubit<TransactionHistoryState> {
       await load();
     } on Exception catch (e, st) {
       appLogger.e('Failed to void transaction $id', error: e, stackTrace: st);
-      emit(TransactionHistoryError('Unable to void transaction.'));
+      emit(const TransactionHistoryError('Unable to void transaction.'));
     }
   }
 
@@ -76,7 +76,7 @@ class TransactionHistoryCubit extends Cubit<TransactionHistoryState> {
       await load();
     } on Exception catch (e, st) {
       appLogger.e('Failed to refund transaction $id', error: e, stackTrace: st);
-      emit(TransactionHistoryError('Unable to refund transaction.'));
+      emit(const TransactionHistoryError('Unable to refund transaction.'));
     }
   }
 
@@ -113,8 +113,8 @@ class TransactionHistoryCubit extends Cubit<TransactionHistoryState> {
       await load();
     } on Exception catch (e, st) {
       appLogger.e('Failed to partial-refund transaction $id',
-          error: e, stackTrace: st);
-      emit(TransactionHistoryError('Unable to process refund.'));
+          error: e, stackTrace: st,);
+      emit(const TransactionHistoryError('Unable to process refund.'));
     }
   }
 
@@ -148,7 +148,7 @@ class TransactionHistoryCubit extends Cubit<TransactionHistoryState> {
         .where((p) => p.method == PaymentMethod.cash)
         .fold<int>(0, (sum, p) => sum + p.amount.subunits);
     await _recordCashMovementRaw(type, -cashSubunits,
-        note: '${type.name} #${tx.id}');
+        note: '${type.name} #${tx.id}',);
   }
 
   Future<void> _recordCashMovementRaw(
@@ -166,10 +166,10 @@ class TransactionHistoryCubit extends Cubit<TransactionHistoryState> {
         amountSubunits: amountSubunits,
         note: note,
         createdAt: DateTime.now(),
-      ));
+      ),);
     } on Exception catch (e, st) {
       appLogger.e('Failed to record cash movement',
-          error: e, stackTrace: st);
+          error: e, stackTrace: st,);
     }
   }
 }

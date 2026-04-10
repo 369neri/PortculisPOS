@@ -7,7 +7,7 @@ import 'package:cashier_app/features/pricing/domain/entities/price.dart';
 /// (back-calculated from prices that already contain tax) modes.
 /// Rate is expressed as a percentage: 0.0 = no tax, 10.0 = 10 %.
 ///
-/// When items carry their own [itemTaxRate], tax is computed per line
+/// When items carry their own tax rate override, tax is computed per line
 /// item using that rate (falling back to the global rate for items
 /// without an override).
 class TaxCalculator {
@@ -27,7 +27,7 @@ class TaxCalculator {
   ///
   /// Uses integer arithmetic via basis-points to avoid floating-point drift.
   static Price calculate(Invoice invoice, double rate,
-      {bool inclusive = false}) {
+      {bool inclusive = false,}) {
     final hasPerItem =
         invoice.items.any((i) => i.item.itemTaxRate != null);
     if (hasPerItem) {
@@ -38,7 +38,7 @@ class TaxCalculator {
 
   /// Compute tax on a single amount at the given rate.
   static Price _calculateFlat(BigInt amount, double rate,
-      {bool inclusive = false}) {
+      {bool inclusive = false,}) {
     if (rate <= 0) return Price.from(0);
     final rateBP = BigInt.from((rate * 100).round());
     if (inclusive) {
@@ -50,7 +50,7 @@ class TaxCalculator {
 
   /// Sum tax computed per line item, each using its own rate (or global).
   static Price _calculatePerItem(Invoice invoice, double globalRate,
-      {bool inclusive = false}) {
+      {bool inclusive = false,}) {
     var total = BigInt.zero;
     for (final li in invoice.items) {
       final rate = li.item.itemTaxRate ?? globalRate;

@@ -24,7 +24,7 @@ class ReceiptPdfBuilder {
     final label = transaction.invoiceNumber ?? '#${transaction.id ?? 0}';
     final subtotal = PriceCalculator.subtotal(transaction.invoice);
     final tax = PriceCalculator.tax(transaction.invoice,
-        taxRate: taxRate, taxInclusive: taxInclusive);
+        taxRate: taxRate, taxInclusive: taxInclusive,);
 
     // Attempt to load logo if configured.
     pw.MemoryImage? logoImage;
@@ -117,7 +117,7 @@ class ReceiptPdfBuilder {
                 ),
                 pw.Text(
                   PriceCalculator.grandTotal(transaction.invoice,
-                          taxRate: taxRate, taxInclusive: taxInclusive)
+                          taxRate: taxRate, taxInclusive: taxInclusive,)
                       .fmt(sym),
                   style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
                 ),

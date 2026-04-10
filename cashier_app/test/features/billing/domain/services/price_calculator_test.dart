@@ -88,7 +88,7 @@ void main() {
     test('grandTotal equals subtotal when taxInclusive', () {
       final invoice = Invoice(items: [InvoiceItem(item: _item)]);
       final grand = PriceCalculator.grandTotal(invoice,
-          taxRate: 10, taxInclusive: true);
+          taxRate: 10, taxInclusive: true,);
       expect(grand.value, BigInt.from(1000)); // no additional tax
     });
 
@@ -96,7 +96,7 @@ void main() {
       // 1100 subunits with 10% inclusive tax → tax = 100
       final invoice = _makeInvoice(1100);
       final tax = PriceCalculator.tax(invoice,
-          taxRate: 10, taxInclusive: true);
+          taxRate: 10, taxInclusive: true,);
       expect(tax.value, BigInt.from(100));
     });
 
@@ -105,11 +105,11 @@ void main() {
       // Item B: $10.00 with global 10 % → tax 100
       // Grand total = 2000 + 150 = 2150
       final itemA = TradeItem(
-        sku: 'A', label: 'A', unitPrice: Price.from(1000), itemTaxRate: 5.0);
+        sku: 'A', label: 'A', unitPrice: Price.from(1000), itemTaxRate: 5,);
       final itemB = TradeItem(
-        sku: 'B', label: 'B', unitPrice: Price.from(1000));
+        sku: 'B', label: 'B', unitPrice: Price.from(1000),);
       final invoice = Invoice(
-        items: [InvoiceItem(item: itemA), InvoiceItem(item: itemB)]);
+        items: [InvoiceItem(item: itemA), InvoiceItem(item: itemB)],);
       expect(
         PriceCalculator.grandTotal(invoice, taxRate: 10).value,
         BigInt.from(2150),

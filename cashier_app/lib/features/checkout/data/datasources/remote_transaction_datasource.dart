@@ -52,7 +52,7 @@ class RemoteTransactionDatasource implements TransactionRepository {
           .map((p) => {
                 'method': p.method.name,
                 'amountSubunits': p.amount.value.toInt(),
-              })
+              },)
           .toList(),
       'customerId': transaction.customerId,
     });
@@ -74,7 +74,7 @@ class RemoteTransactionDatasource implements TransactionRepository {
             'quantity': e.value.quantity,
             'amountSubunits': e.value.lineTotal.value.toInt(),
             'reason': 'Full refund',
-          }).toList(),
+          },).toList(),
     });
   }
 
@@ -87,7 +87,7 @@ class RemoteTransactionDatasource implements TransactionRepository {
                   'quantity': r.quantity,
                   'amountSubunits': r.amountSubunits,
                   'reason': r.reason,
-                })
+                },)
             .toList(),
       });
 
@@ -153,7 +153,7 @@ class RemoteTransactionDatasource implements TransactionRepository {
           .map((li) => {
                 'quantity': li.quantity,
                 'item': _encodeItem(li.item),
-              })
+              },)
           .toList(),
     });
   }

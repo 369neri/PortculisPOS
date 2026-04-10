@@ -1,7 +1,7 @@
 import 'dart:io';
 
-import 'package:cashier_app/core/extensions/format_helpers.dart';
 import 'package:cashier_app/core/di/service_locator.dart';
+import 'package:cashier_app/core/extensions/format_helpers.dart';
 import 'package:cashier_app/features/archive/domain/entities/archive_kind.dart';
 import 'package:cashier_app/features/archive/domain/entities/archived_file.dart';
 import 'package:cashier_app/features/archive/presentation/state/archive_cubit.dart';

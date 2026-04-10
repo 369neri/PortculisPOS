@@ -222,7 +222,7 @@ class _ClosedDrawerView extends StatelessWidget {
     final isOver = varianceSubunits > 0;
     final isShort = varianceSubunits < 0;
 
-    String _subunitsStr(int s) {
+    String subunitsStr(int s) {
       final abs = s.abs();
       final sign = s < 0 ? '-' : '';
       return '$sign${Price(BigInt.from(abs)).fmt(sym)}';
@@ -259,19 +259,19 @@ class _ClosedDrawerView extends StatelessWidget {
                     if (salesSubunits > 0)
                       _InfoRow(
                         label: '+ Cash Sales',
-                        value: _subunitsStr(salesSubunits),
+                        value: subunitsStr(salesSubunits),
                         valueColor: Colors.green,
                       ),
                     if (refundsSubunits > 0)
                       _InfoRow(
                         label: '- Cash Refunds',
-                        value: _subunitsStr(-refundsSubunits),
+                        value: subunitsStr(-refundsSubunits),
                         valueColor: Colors.red,
                       ),
                     if (voidsSubunits > 0)
                       _InfoRow(
                         label: '- Voids',
-                        value: _subunitsStr(-voidsSubunits),
+                        value: subunitsStr(-voidsSubunits),
                         valueColor: Colors.red,
                       ),
                     if (adjustSubunits != 0)
@@ -279,14 +279,14 @@ class _ClosedDrawerView extends StatelessWidget {
                         label: adjustSubunits > 0
                             ? '+ Paid In'
                             : '- Paid Out',
-                        value: _subunitsStr(adjustSubunits),
+                        value: subunitsStr(adjustSubunits),
                         valueColor:
                             adjustSubunits > 0 ? Colors.green : Colors.red,
                       ),
                     const Divider(height: 16),
                     _InfoRow(
                       label: 'Expected Cash',
-                      value: _subunitsStr(expectedSubunits),
+                      value: subunitsStr(expectedSubunits),
                     ),
                     _InfoRow(
                       label: 'Counted Cash',
@@ -299,7 +299,7 @@ class _ClosedDrawerView extends StatelessWidget {
                           : isShort
                               ? 'Short'
                               : 'Balanced',
-                      value: _subunitsStr(varianceSubunits),
+                      value: subunitsStr(varianceSubunits),
                       valueColor: isOver
                           ? Colors.green
                           : isShort

@@ -22,9 +22,9 @@ class InvoiceSummary extends StatelessWidget {
       builder: (context, s) {
         final subtotal = PriceCalculator.subtotal(invoice);
         final tax = PriceCalculator.tax(invoice,
-            taxRate: s.taxRate, taxInclusive: s.taxInclusive);
+            taxRate: s.taxRate, taxInclusive: s.taxInclusive,);
         final grandTotal = PriceCalculator.grandTotal(invoice,
-            taxRate: s.taxRate, taxInclusive: s.taxInclusive);
+            taxRate: s.taxRate, taxInclusive: s.taxInclusive,);
         final textTheme = Theme.of(context).textTheme;
 
         return Padding(

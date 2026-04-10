@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:cashier_app/core/logging/app_logger.dart';
 import 'package:cashier_app/features/billing/domain/entities/invoice.dart';
 import 'package:cashier_app/features/cash_drawer/domain/entities/cash_movement.dart';
 import 'package:cashier_app/features/cash_drawer/domain/repositories/cash_drawer_repository.dart';
@@ -13,7 +14,6 @@ import 'package:cashier_app/features/items/domain/entities/item.dart';
 import 'package:cashier_app/features/items/domain/repositories/item_repository.dart';
 import 'package:cashier_app/features/pricing/domain/entities/price.dart';
 import 'package:cashier_app/features/sync/presentation/state/sync_cubit.dart';
-import 'package:cashier_app/core/logging/app_logger.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class CheckoutCubit extends Cubit<CheckoutState> {
@@ -33,10 +33,10 @@ class CheckoutCubit extends Cubit<CheckoutState> {
   final CashDrawerRepository? _cashDrawerRepository;
 
   void startCheckout(Invoice invoice,
-      {double taxRate = 0.0, bool taxInclusive = false}) {
+      {double taxRate = 0.0, bool taxInclusive = false,}) {
     if (invoice.items.isEmpty) return;
     emit(CheckoutCollecting(
-        invoice: invoice, taxRate: taxRate, taxInclusive: taxInclusive));
+        invoice: invoice, taxRate: taxRate, taxInclusive: taxInclusive,),);
   }
 
   void setCustomer({int? id, String? name}) {
@@ -140,7 +140,7 @@ class CheckoutCubit extends Cubit<CheckoutState> {
       unawaited(_recordCashSaleMovement(current.payments));
     } on Exception catch (e, st) {
       appLogger.e('Checkout failed', error: e, stackTrace: st);
-      emit(CheckoutError('Unable to complete sale. Please try again.'));
+      emit(const CheckoutError('Unable to complete sale. Please try again.'));
     }
   }
 
@@ -159,12 +159,11 @@ class CheckoutCubit extends Cubit<CheckoutState> {
         sessionId: session!.id!,
         type: CashMovementType.sale,
         amountSubunits: cashSubunits,
-        note: '',
         createdAt: DateTime.now(),
-      ));
+      ),);
     } on Exception catch (e, st) {
       appLogger.e('Failed to record cash sale movement',
-          error: e, stackTrace: st);
+          error: e, stackTrace: st,);
     }
   }
 }

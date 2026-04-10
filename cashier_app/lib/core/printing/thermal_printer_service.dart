@@ -28,8 +28,8 @@ class ThermalPrinterService {
 
     Socket? socket;
     try {
-      socket = await Socket.connect(host, port, timeout: timeout);
-      socket.add(bytes);
+      socket = await Socket.connect(host, port, timeout: timeout)
+        ..add(bytes);
       await socket.flush();
     } finally {
       await socket?.close();

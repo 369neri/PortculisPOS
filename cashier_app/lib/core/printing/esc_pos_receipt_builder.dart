@@ -31,19 +31,20 @@ class EscPosReceiptBuilder {
         taxRate: taxRate, taxInclusive: taxInclusive,);
 
     // Initialize printer.
-    buf.add(_init);
+    buf
+      ..add(_init)
 
-    // ---- Header ----
-    buf.add(_centerAlign);
-    buf.add(_boldOn);
-    buf.add(_doubleHeight);
-    buf.add(_text(settings.businessName));
-    buf.add(_normalSize);
-    buf.add(_boldOff);
-    buf.add(_text(_fmtDate(transaction.createdAt)));
-    buf.add(_text(label));
-    buf.add(_leftAlign);
-    buf.add(_separator());
+      // ---- Header ----
+      ..add(_centerAlign)
+      ..add(_boldOn)
+      ..add(_doubleHeight)
+      ..add(_text(settings.businessName))
+      ..add(_normalSize)
+      ..add(_boldOff)
+      ..add(_text(_fmtDate(transaction.createdAt)))
+      ..add(_text(label))
+      ..add(_leftAlign)
+      ..add(_separator());
 
     // ---- Line items ----
     for (final item in transaction.invoice.items) {
@@ -51,19 +52,19 @@ class EscPosReceiptBuilder {
       final price = item.lineTotal.fmt(sym);
       buf.add(_twoColumn(desc, price));
     }
-    buf.add(_separator());
-
-    // ---- Totals ----
-    buf.add(_twoColumn('Subtotal', subtotal.fmt(sym)));
+    buf
+      ..add(_separator())
+      ..add(_twoColumn('Subtotal', subtotal.fmt(sym)));
     if (taxRate > 0) {
       final taxLabel =
           taxInclusive ? 'Tax incl. ($taxRate%)' : 'Tax ($taxRate%)';
       buf.add(_twoColumn(taxLabel, tax.fmt(sym)));
     }
-    buf.add(_boldOn);
-    buf.add(_twoColumn('TOTAL', grandTotal.fmt(sym)));
-    buf.add(_boldOff);
-    buf.add(_feed(1));
+    buf
+      ..add(_boldOn)
+      ..add(_twoColumn('TOTAL', grandTotal.fmt(sym)))
+      ..add(_boldOff)
+      ..add(_feed(1));
 
     // ---- Payments ----
     for (final p in transaction.payments) {
@@ -72,15 +73,16 @@ class EscPosReceiptBuilder {
     if (transaction.changeDue.value > BigInt.zero) {
       buf.add(_twoColumn('CHANGE', transaction.changeDue.fmt(sym)));
     }
-    buf.add(_separator());
+    buf
+      ..add(_separator())
 
-    // ---- Footer ----
-    buf.add(_centerAlign);
-    buf.add(_text(settings.receiptFooter));
-    buf.add(_feed(4));
+      // ---- Footer ----
+      ..add(_centerAlign)
+      ..add(_text(settings.receiptFooter))
+      ..add(_feed(4))
 
-    // ---- Cut ----
-    buf.add(_cut);
+      // ---- Cut ----
+      ..add(_cut);
 
     return buf.toBytes();
   }

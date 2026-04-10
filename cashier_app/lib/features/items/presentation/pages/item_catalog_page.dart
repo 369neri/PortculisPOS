@@ -99,7 +99,7 @@ class _ItemCatalogViewState extends State<_ItemCatalogView> {
                 context,
                 MaterialPageRoute(builder: (_) => const CsvImportPage()),
               );
-              if (context.mounted) cubit.load();
+              if (context.mounted) await cubit.load();
             },
           ),
         ],

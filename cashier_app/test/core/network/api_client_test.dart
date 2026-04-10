@@ -128,8 +128,8 @@ void main() {
           expect(req.headers['authorization'], 'Bearer my-jwt-token');
           return http.Response(jsonEncode({}), 200);
         }),
-      );
-      api.token = 'my-jwt-token';
+      )
+        ..token = 'my-jwt-token';
       await api.get('/api/items/');
     });
 

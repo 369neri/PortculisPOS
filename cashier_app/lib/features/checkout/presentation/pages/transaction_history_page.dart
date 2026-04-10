@@ -1,8 +1,8 @@
 
+import 'package:cashier_app/core/di/service_locator.dart';
 import 'package:cashier_app/core/extensions/format_helpers.dart';
 import 'package:cashier_app/core/printing/esc_pos_receipt_builder.dart';
 import 'package:cashier_app/core/printing/thermal_printer_service.dart';
-import 'package:cashier_app/core/di/service_locator.dart';
 import 'package:cashier_app/features/archive/domain/services/archive_service.dart';
 import 'package:cashier_app/features/checkout/domain/entities/transaction.dart';
 import 'package:cashier_app/features/checkout/domain/entities/transaction_status.dart';

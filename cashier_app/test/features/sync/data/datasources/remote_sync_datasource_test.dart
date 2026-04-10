@@ -1,11 +1,11 @@
 import 'dart:convert';
 
 import 'package:cashier_app/core/network/api_client.dart';
-import 'package:cashier_app/features/sync/data/datasources/remote_sync_datasource.dart';
-import 'package:cashier_app/features/items/domain/entities/item.dart';
 import 'package:cashier_app/features/customers/domain/entities/customer.dart';
+import 'package:cashier_app/features/items/domain/entities/item.dart';
 import 'package:cashier_app/features/pricing/domain/entities/price.dart';
 import 'package:cashier_app/features/settings/domain/entities/app_settings.dart';
+import 'package:cashier_app/features/sync/data/datasources/remote_sync_datasource.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:test/test.dart';
@@ -42,14 +42,14 @@ void main() {
           ),
         ],
         customers: [
-          Customer(name: 'Alice'),
+          const Customer(name: 'Alice'),
         ],
       );
 
       expect(syncedAt, DateTime.utc(2025, 6, 1, 12));
       expect(sentBody!['deviceId'], 'dev-1');
-      expect((sentBody!['items'] as List), hasLength(1));
-      expect((sentBody!['customers'] as List), hasLength(1));
+      expect(sentBody!['items'] as List, hasLength(1));
+      expect(sentBody!['customers'] as List, hasLength(1));
     });
 
     test('push includes settings when provided', () async {
@@ -57,7 +57,7 @@ void main() {
       final api = _fakeApi((req) async {
         sentBody = jsonDecode(req.body) as Map<String, dynamic>;
         return http.Response(
-          jsonEncode({'synced': {}, 'syncedAt': '2025-06-01T12:00:00.000Z'}),
+          jsonEncode({'synced': <String, dynamic>{}, 'syncedAt': '2025-06-01T12:00:00.000Z'}),
           200,
         );
       });
@@ -65,12 +65,12 @@ void main() {
       final ds = RemoteSyncDatasource(api);
       await ds.push(
         deviceId: 'dev-1',
-        settings: const AppSettings(businessName: 'TestBiz', taxRate: 10.0),
+        settings: const AppSettings(businessName: 'TestBiz', taxRate: 10),
       );
 
       expect(sentBody!['settings'], isNotNull);
-      expect(sentBody!['settings']['businessName'], 'TestBiz');
-      expect(sentBody!['settings']['taxRate'], 10.0);
+      expect((sentBody!['settings'] as Map)['businessName'], 'TestBiz');
+      expect((sentBody!['settings'] as Map)['taxRate'], 10.0);
     });
 
     test('pull returns parsed items, customers, settings', () async {
@@ -97,7 +97,7 @@ void main() {
                 'notes': '',
               },
             ],
-            'transactions': [],
+            'transactions': <dynamic>[],
             'settings': {
               'businessName': 'Remote Biz',
               'taxRate': 5.0,
@@ -106,7 +106,7 @@ void main() {
               'themeMode': 'dark',
               'taxInclusive': true,
             },
-            'users': [],
+            'users': <dynamic>[],
             'syncedAt': '2025-06-01T12:00:00.000Z',
           }),
           200,
@@ -137,11 +137,11 @@ void main() {
         sentBody = jsonDecode(req.body) as Map<String, dynamic>;
         return http.Response(
           jsonEncode({
-            'items': [],
-            'customers': [],
-            'transactions': [],
+            'items': <dynamic>[],
+            'customers': <dynamic>[],
+            'transactions': <dynamic>[],
             'settings': null,
-            'users': [],
+            'users': <dynamic>[],
             'syncedAt': '2025-06-01T12:00:00.000Z',
           }),
           200,
@@ -151,7 +151,7 @@ void main() {
       final ds = RemoteSyncDatasource(api);
       await ds.pull(
         deviceId: 'dev-1',
-        since: DateTime.utc(2025, 5, 1),
+        since: DateTime.utc(2025, 5),
       );
 
       expect(sentBody!['since'], '2025-05-01T00:00:00.000Z');
@@ -163,11 +163,11 @@ void main() {
         sentBody = jsonDecode(req.body) as Map<String, dynamic>;
         return http.Response(
           jsonEncode({
-            'items': [],
-            'customers': [],
-            'transactions': [],
+            'items': <dynamic>[],
+            'customers': <dynamic>[],
+            'transactions': <dynamic>[],
             'settings': null,
-            'users': [],
+            'users': <dynamic>[],
             'syncedAt': '2025-06-01T12:00:00.000Z',
           }),
           200,
@@ -184,8 +184,8 @@ void main() {
       final api = _fakeApi(
         (req) async => http.Response(
           jsonEncode({
-            'items': [],
-            'customers': [],
+            'items': <dynamic>[],
+            'customers': <dynamic>[],
             'transactions': [
               {
                 'id': 1,
@@ -201,7 +201,7 @@ void main() {
               },
             ],
             'settings': null,
-            'users': [],
+            'users': <dynamic>[],
             'syncedAt': '2025-06-01T12:00:00.000Z',
           }),
           200,

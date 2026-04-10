@@ -356,9 +356,7 @@ class _InvoicePanel extends StatelessWidget {
                         final taxRate = settingsState is SettingsReady
                             ? settingsState.settings.taxRate
                             : 0.0;
-                        final taxInclusive = settingsState is SettingsReady
-                            ? settingsState.settings.taxInclusive
-                            : false;
+                        final taxInclusive = settingsState is SettingsReady && settingsState.settings.taxInclusive;
                         final completed = await showCheckoutSheet(
                           context,
                           state.invoice,

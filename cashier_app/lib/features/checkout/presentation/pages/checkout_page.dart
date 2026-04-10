@@ -185,7 +185,7 @@ class _ReceiptBodyState extends State<_ReceiptBody> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _printReceipt(context, widget.state.transaction, settings,
             widget.state.taxRate,
-            taxInclusive: widget.state.taxInclusive);
+            taxInclusive: widget.state.taxInclusive,);
       });
     }
 
@@ -194,9 +194,9 @@ class _ReceiptBodyState extends State<_ReceiptBody> {
     final taxInclusive = widget.state.taxInclusive;
     final subtotal = PriceCalculator.subtotal(tx.invoice);
     final tax = PriceCalculator.tax(tx.invoice,
-        taxRate: taxRate, taxInclusive: taxInclusive);
+        taxRate: taxRate, taxInclusive: taxInclusive,);
     final grandTotal = PriceCalculator.grandTotal(tx.invoice,
-        taxRate: taxRate, taxInclusive: taxInclusive);
+        taxRate: taxRate, taxInclusive: taxInclusive,);
     final changeDue = _changeDue(tx, grandTotal);
 
     return SingleChildScrollView(
@@ -285,7 +285,7 @@ class _ReceiptBodyState extends State<_ReceiptBody> {
           OutlinedButton.icon(
             onPressed: () async {
               await _printReceipt(context, tx, settings, taxRate,
-                  taxInclusive: taxInclusive);
+                  taxInclusive: taxInclusive,);
             },
             icon: const Icon(Icons.print_outlined),
             label: const Text('Print Receipt'),
@@ -559,7 +559,7 @@ Future<void> _printReceipt(
 
   // PDF fallback.
   final pdfBytes = await ReceiptPdfBuilder.build(tx, settings,
-      taxRate: taxRate, taxInclusive: taxInclusive);
+      taxRate: taxRate, taxInclusive: taxInclusive,);
   await Printing.layoutPdf(name: 'Receipt', onLayout: (_) async => pdfBytes);
 }
 

@@ -30,14 +30,11 @@ class ApiClient {
   final String _baseUrl;
   final http.Client _http;
 
-  String? _token;
-
-  /// Set the JWT auth token (after login/register).
-  set token(String? value) => _token = value;
-  String? get token => _token;
+  /// The JWT auth token (set after login/register).
+  String? token;
 
   /// Whether a token is currently set.
-  bool get isAuthenticated => _token != null;
+  bool get isAuthenticated => token != null;
 
   // ---------------------------------------------------------------------------
   // HTTP verbs
@@ -104,8 +101,8 @@ class ApiClient {
       HttpHeaders.contentTypeHeader: 'application/json',
       HttpHeaders.acceptHeader: 'application/json',
     };
-    if (_token != null) {
-      h[HttpHeaders.authorizationHeader] = 'Bearer $_token';
+    if (token != null) {
+      h[HttpHeaders.authorizationHeader] = 'Bearer $token';
     }
     return h;
   }

@@ -188,7 +188,7 @@ class RemoteSyncDatasource {
             .map((p) => {
                   'method': p.method.name,
                   'amountSubunits': p.amount.value.toInt(),
-                })
+                },)
             .toList(),
       };
 
@@ -199,7 +199,7 @@ class RemoteSyncDatasource {
             .map((li) => {
                   'quantity': li.quantity,
                   'item': _encodeInvoiceItem(li.item),
-                })
+                },)
             .toList(),
       });
 

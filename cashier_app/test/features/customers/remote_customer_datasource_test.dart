@@ -98,7 +98,7 @@ void main() {
       String? requestedUrl;
       final api = _fakeApi((req) async {
         requestedUrl = req.url.toString();
-        return http.Response(jsonEncode({'customers': []}), 200);
+        return http.Response(jsonEncode({'customers': <dynamic>[]}), 200);
       });
       final ds = RemoteCustomerDatasource(api);
       await ds.search('alice');

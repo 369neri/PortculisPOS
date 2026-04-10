@@ -76,7 +76,7 @@ class CashDrawerCubit extends Cubit<CashDrawerState> {
 
   /// Record a cash movement against the currently active session.
   Future<void> recordMovement(CashMovementType type, int amountSubunits,
-      {String note = ''}) async {
+      {String note = '',}) async {
     final current = state;
     if (current is! CashDrawerOpen) return;
     final sessionId = current.session.id;
@@ -88,7 +88,7 @@ class CashDrawerCubit extends Cubit<CashDrawerState> {
         amountSubunits: amountSubunits,
         note: note,
         createdAt: DateTime.now(),
-      ));
+      ),);
     } on Exception catch (e, st) {
       appLogger.e('Failed to record cash movement', error: e, stackTrace: st);
     }

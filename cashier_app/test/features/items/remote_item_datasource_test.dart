@@ -99,7 +99,8 @@ void main() {
 
     test('findBySku returns null when not found', () async {
       final api = _fakeApi(
-        (req) async => http.Response(jsonEncode({'items': []}), 200),
+        (req) async =>
+            http.Response(jsonEncode({'items': <dynamic>[]}), 200),
       );
       final ds = RemoteItemDatasource(api);
       expect(await ds.findBySku('MISSING'), isNull);
@@ -112,7 +113,7 @@ void main() {
           sentBody = jsonDecode(req.body) as Map<String, dynamic>;
           return http.Response(jsonEncode({'id': 1}), 201);
         }
-        return http.Response(jsonEncode({'items': []}), 200);
+        return http.Response(jsonEncode({'items': <dynamic>[]}), 200);
       });
       final ds = RemoteItemDatasource(api);
       await ds.save(

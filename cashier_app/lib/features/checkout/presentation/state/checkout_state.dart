@@ -42,7 +42,7 @@ final class CheckoutCollecting extends CheckoutState {
   final String? customerName;
 
   Price get totalDue => PriceCalculator.grandTotal(invoice,
-      taxRate: taxRate, taxInclusive: taxInclusive);
+      taxRate: taxRate, taxInclusive: taxInclusive,);
 
   Price get totalPaid => payments.fold(
         Price.from(0),
@@ -68,7 +68,7 @@ final class CheckoutCollecting extends CheckoutState {
 
 final class CheckoutCompleted extends CheckoutState {
   const CheckoutCompleted(this.transaction,
-      {this.taxRate = 0.0, this.taxInclusive = false});
+      {this.taxRate = 0.0, this.taxInclusive = false,});
 
   final Transaction transaction;
 

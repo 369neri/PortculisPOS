@@ -90,7 +90,7 @@ void main() {
         sku: 'A',
         label: 'A',
         unitPrice: Price.from(1000),
-        itemTaxRate: 5.0,
+        itemTaxRate: 5,
       );
       final itemB = TradeItem(
         sku: 'B',
@@ -110,7 +110,7 @@ void main() {
         sku: 'EX',
         label: 'Exempt',
         unitPrice: Price.from(1000),
-        itemTaxRate: 0.0,
+        itemTaxRate: 0,
       );
       final taxed = TradeItem(
         sku: 'TX',
@@ -133,13 +133,13 @@ void main() {
         sku: 'A',
         label: 'A',
         unitPrice: Price.from(1100),
-        itemTaxRate: 10.0,
+        itemTaxRate: 10,
       );
       final itemB = TradeItem(
         sku: 'B',
         label: 'B',
         unitPrice: Price.from(1200),
-        itemTaxRate: 20.0,
+        itemTaxRate: 20,
       );
       final invoice = Invoice(
         items: [InvoiceItem(item: itemA), InvoiceItem(item: itemB)],

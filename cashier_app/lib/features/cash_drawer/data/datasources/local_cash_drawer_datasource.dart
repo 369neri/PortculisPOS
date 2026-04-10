@@ -59,7 +59,7 @@ class LocalCashDrawerDatasource implements CashDrawerRepository {
       amountSubunits: movement.amountSubunits,
       note: Value(movement.note),
       createdAt: movement.createdAt,
-    ));
+    ),);
   }
 
   @override
@@ -75,7 +75,7 @@ class LocalCashDrawerDatasource implements CashDrawerRepository {
               amountSubunits: r.amountSubunits,
               note: r.note,
               createdAt: r.createdAt,
-            ))
+            ),)
         .toList();
   }
 }
