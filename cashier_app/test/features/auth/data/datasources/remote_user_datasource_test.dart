@@ -97,7 +97,7 @@ void main() {
         displayName: 'New User',
         pin: '1234',
         role: 'cashier',
-      ));
+      ),);
 
       expect(captured, isNotNull);
       expect(captured!.url.path, '/api/auth/users');

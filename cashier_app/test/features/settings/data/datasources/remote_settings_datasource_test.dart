@@ -67,7 +67,7 @@ void main() {
         businessName: 'Test Biz',
         taxRate: 10,
         currencySymbol: '£',
-      ));
+      ),);
 
       expect(captured, isNotNull);
       expect(captured!.method, 'PUT');

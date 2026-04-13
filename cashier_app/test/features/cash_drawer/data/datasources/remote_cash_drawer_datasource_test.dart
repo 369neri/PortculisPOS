@@ -135,7 +135,7 @@ void main() {
         amountSubunits: 1500,
         createdAt: DateTime(2025),
         note: 'Cash sale',
-      ));
+      ),);
 
       expect(
         captured!.url.path,
