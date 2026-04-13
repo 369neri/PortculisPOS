@@ -211,6 +211,10 @@ void main() {
     group('syncWithServer', () {
       blocTest<SyncCubit, SyncState>(
         'emits InProgress then Idle with syncedAt',
+        setUp: () {
+          settingsRepo.settings =
+              const AppSettings(deviceId: 'dev-1');
+        },
         build: () => SyncCubit(
           backupService,
           settingsRepo,
@@ -218,7 +222,7 @@ void main() {
         ),
         act: (cubit) async {
           await Future<void>.delayed(Duration.zero);
-          await cubit.syncWithServer('dev-1');
+          await cubit.syncWithServer();
         },
         expect: () => [
           const SyncIdle(),
@@ -229,6 +233,10 @@ void main() {
 
       blocTest<SyncCubit, SyncState>(
         'persists lastSyncedAt to settings',
+        setUp: () {
+          settingsRepo.settings =
+              const AppSettings(deviceId: 'dev-1');
+        },
         build: () => SyncCubit(
           backupService,
           settingsRepo,
@@ -236,7 +244,7 @@ void main() {
         ),
         act: (cubit) async {
           await Future<void>.delayed(Duration.zero);
-          await cubit.syncWithServer('dev-1');
+          await cubit.syncWithServer();
         },
         verify: (_) {
           expect(
@@ -248,7 +256,11 @@ void main() {
 
       blocTest<SyncCubit, SyncState>(
         'emits SyncError when sync fails',
-        setUp: () => syncRepo.shouldThrow = true,
+        setUp: () {
+          syncRepo.shouldThrow = true;
+          settingsRepo.settings =
+              const AppSettings(deviceId: 'dev-1');
+        },
         build: () => SyncCubit(
           backupService,
           settingsRepo,
@@ -256,7 +268,7 @@ void main() {
         ),
         act: (cubit) async {
           await Future<void>.delayed(Duration.zero);
-          await cubit.syncWithServer('dev-1');
+          await cubit.syncWithServer();
         },
         expect: () => [
           const SyncIdle(),
@@ -274,7 +286,7 @@ void main() {
         build: () => SyncCubit(backupService, settingsRepo),
         act: (cubit) async {
           await Future<void>.delayed(Duration.zero);
-          await cubit.syncWithServer('dev-1');
+          await cubit.syncWithServer();
         },
         expect: () => [const SyncIdle()],
       );

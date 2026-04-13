@@ -5,6 +5,7 @@ import 'package:cashier_app/features/sync/domain/services/backup_service.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:uuid/uuid.dart';
 
 // ---------------------------------------------------------------------------
 // State
@@ -58,7 +59,14 @@ class SyncCubit extends Cubit<SyncState> {
   final SyncRepository? _syncRepository;
 
   Future<void> _init() async {
-    final settings = await _settingsRepo.getSettings();
+    var settings = await _settingsRepo.getSettings();
+
+    // Auto-generate a device ID on first launch.
+    if (settings.deviceId.isEmpty) {
+      settings = settings.copyWith(deviceId: const Uuid().v4());
+      await _settingsRepo.saveSettings(settings);
+    }
+
     emit(SyncIdle(
       lastBackupAt: settings.lastBackupAt,
       lastSyncedAt: settings.lastSyncedAt,
@@ -79,6 +87,7 @@ class SyncCubit extends Cubit<SyncState> {
         lastBackupAt: now,
         lastSyncedAt: settings.lastSyncedAt,
       ),);
+
     } on Exception catch (e, st) {
       appLogger.e('Auto-backup failed', error: e, stackTrace: st);
       final settings = await _settingsRepo.getSettings();
@@ -87,22 +96,23 @@ class SyncCubit extends Cubit<SyncState> {
         lastBackupAt: settings.lastBackupAt,
         lastSyncedAt: settings.lastSyncedAt,
       ),);
+
     }
   }
 
   /// Sync local data with the remote server (push then pull).
-  ///
-  /// The [deviceId] identifies this device for the server.
-  Future<void> syncWithServer(String deviceId) async {
+  Future<void> syncWithServer() async {
     final syncRepository = _syncRepository;
     if (syncRepository == null) return;
     emit(const SyncInProgress());
     try {
+      final settings = await _settingsRepo.getSettings();
+      final deviceId = settings.deviceId;
+
       // Push local changes first.
       await syncRepository.pushChanges(deviceId: deviceId);
 
       // Then pull remote changes (delta since last sync).
-      final settings = await _settingsRepo.getSettings();
       final payload = await syncRepository.pullAndMerge(
         deviceId: deviceId,
         since: settings.lastSyncedAt,
@@ -118,6 +128,7 @@ class SyncCubit extends Cubit<SyncState> {
         lastBackupAt: settings.lastBackupAt,
         lastSyncedAt: syncedAt,
       ),);
+
     } on Exception catch (e, st) {
       appLogger.e('Server sync failed', error: e, stackTrace: st);
       final settings = await _settingsRepo.getSettings();
@@ -126,6 +137,7 @@ class SyncCubit extends Cubit<SyncState> {
         lastBackupAt: settings.lastBackupAt,
         lastSyncedAt: settings.lastSyncedAt,
       ),);
+
     }
   }
 

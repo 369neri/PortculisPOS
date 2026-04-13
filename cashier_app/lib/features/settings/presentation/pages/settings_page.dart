@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:cashier_app/core/extensions/format_helpers.dart';
+import 'package:cashier_app/core/network/api_client.dart';
 import 'package:cashier_app/core/printing/thermal_printer_service.dart';
 import 'package:cashier_app/features/settings/domain/entities/app_settings.dart';
 import 'package:cashier_app/features/settings/presentation/state/settings_cubit.dart';
@@ -27,6 +28,7 @@ class _SettingsPageState extends State<SettingsPage> {
   final _currencyCtrl = TextEditingController();
   final _footerCtrl = TextEditingController();
   final _printerAddressCtrl = TextEditingController();
+  final _serverUrlCtrl = TextEditingController();
   String _themeMode = 'system';
   bool _autoBackup = false;
   bool _taxInclusive = false;
@@ -50,6 +52,7 @@ class _SettingsPageState extends State<SettingsPage> {
     _currencyCtrl.dispose();
     _footerCtrl.dispose();
     _printerAddressCtrl.dispose();
+    _serverUrlCtrl.dispose();
     super.dispose();
   }
 
@@ -68,12 +71,14 @@ class _SettingsPageState extends State<SettingsPage> {
     _logoPath = s.logoPath;
     _printerType = s.printerType;
     _printerAddressCtrl.text = s.printerAddress;
+    _serverUrlCtrl.text = s.serverUrl;
   }
 
   void _save() {
     if (!_formKey.currentState!.validate()) return;
     final rawRate = _taxRateCtrl.text.trim().replaceAll(',', '.');
     final taxRate = (double.tryParse(rawRate) ?? 0.0).clamp(0.0, 100.0);
+    final serverUrl = _serverUrlCtrl.text.trim();
     context.read<SettingsCubit>().update(
           AppSettings(
             businessName: _businessNameCtrl.text.trim(),
@@ -86,8 +91,13 @@ class _SettingsPageState extends State<SettingsPage> {
             autoBackupEnabled: _autoBackup,
             printerType: _printerType,
             printerAddress: _printerAddressCtrl.text.trim(),
+            serverUrl: serverUrl,
           ),
         );
+    // Update the ApiClient base URL if configured.
+    if (serverUrl.isNotEmpty) {
+      GetIt.instance<ApiClient>().baseUrl = serverUrl;
+    }
     ScaffoldMessenger.of(context)
         .showSnackBar(const SnackBar(content: Text('Settings saved')));
   }
@@ -333,6 +343,86 @@ class _SettingsPageState extends State<SettingsPage> {
                 FilledButton(
                   onPressed: _save,
                   child: const Text('Save settings'),
+                ),
+                const SizedBox(height: 32),
+
+                // -- Cloud Sync --
+                const Divider(),
+                const SizedBox(height: 16),
+                Text(
+                  'Cloud Sync',
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: _serverUrlCtrl,
+                  decoration: const InputDecoration(
+                    labelText: 'Server URL',
+                    hintText: 'https://pos.example.com',
+                    prefixIcon: Icon(Icons.cloud),
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.url,
+                ),
+                const SizedBox(height: 12),
+                BlocBuilder<SyncCubit, SyncState>(
+                  builder: (context, syncState) {
+                    final lastSynced = switch (syncState) {
+                      SyncIdle(lastSyncedAt: final dt) => dt,
+                      SyncError(lastSyncedAt: final dt) => dt,
+                      _ => null,
+                    };
+                    final isSyncing = syncState is SyncInProgress;
+                    final serverUrl = _serverUrlCtrl.text.trim();
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        if (lastSynced != null)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: Text(
+                              'Last synced: ${_fmtDateTime(lastSynced)}',
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                          ),
+                        if (syncState is SyncError &&
+                            syncState.message.contains('Sync'))
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: Text(
+                              syncState.message,
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.error,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                        FilledButton.icon(
+                          onPressed: isSyncing || serverUrl.isEmpty
+                              ? null
+                              : () {
+                                  // Ensure ApiClient has the latest URL.
+                                  GetIt.instance<ApiClient>().baseUrl =
+                                      serverUrl;
+                                  context.read<SyncCubit>().syncWithServer();
+                                },
+                          icon: isSyncing
+                              ? const SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : const Icon(Icons.sync),
+                          label: Text(
+                            isSyncing ? 'Syncing\u2026' : 'Sync now',
+                          ),
+                        ),
+                      ],
+                    );
+                  },
                 ),
                 const SizedBox(height: 32),
                 const Divider(),

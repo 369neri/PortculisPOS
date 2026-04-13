@@ -27,8 +27,13 @@ class ApiClient {
   })  : _baseUrl = baseUrl.endsWith('/') ? baseUrl.substring(0, baseUrl.length - 1) : baseUrl,
         _http = httpClient ?? http.Client();
 
-  final String _baseUrl;
+  String _baseUrl;
   final http.Client _http;
+
+  /// Update the base URL (e.g. when the user changes the server URL).
+  String get baseUrl => _baseUrl;
+  set baseUrl(String url) =>
+      _baseUrl = url.endsWith('/') ? url.substring(0, url.length - 1) : url;
 
   /// The JWT auth token (set after login/register).
   String? token;

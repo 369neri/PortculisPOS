@@ -18,6 +18,7 @@ class AppSettings extends Equatable {
     this.taxInclusive = false,
     this.lastSyncedAt,
     this.serverUrl = '',
+    this.deviceId = '',
   });
 
   final String businessName;
@@ -58,6 +59,9 @@ class AppSettings extends Equatable {
   /// Remote server URL for sync (empty = sync disabled).
   final String serverUrl;
 
+  /// Unique device identifier for sync (auto-generated on first launch).
+  final String deviceId;
+
   AppSettings copyWith({
     String? businessName,
     double? taxRate,
@@ -77,6 +81,7 @@ class AppSettings extends Equatable {
     DateTime? lastSyncedAt,
     bool clearLastSyncedAt = false,
     String? serverUrl,
+    String? deviceId,
   }) =>
       AppSettings(
         businessName: businessName ?? this.businessName,
@@ -96,6 +101,7 @@ class AppSettings extends Equatable {
         lastSyncedAt:
             clearLastSyncedAt ? null : (lastSyncedAt ?? this.lastSyncedAt),
         serverUrl: serverUrl ?? this.serverUrl,
+        deviceId: deviceId ?? this.deviceId,
       );
 
   @override
@@ -114,5 +120,6 @@ class AppSettings extends Equatable {
         taxInclusive,
         lastSyncedAt,
         serverUrl,
+        deviceId,
       ];
 }

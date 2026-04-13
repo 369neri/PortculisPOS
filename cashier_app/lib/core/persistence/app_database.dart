@@ -106,6 +106,8 @@ class SettingsTable extends Table {
   TextColumn get lastSyncedAt => text().nullable()();
   TextColumn get serverUrl =>
       text().withDefault(const Constant(''))();
+  TextColumn get deviceId =>
+      text().withDefault(const Constant(''))();
 
   @override
   Set<Column<Object>> get primaryKey => {id};
@@ -531,7 +533,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 18;
+  int get schemaVersion => 19;
 
   @override
   MigrationStrategy get migration {
@@ -620,6 +622,9 @@ class AppDatabase extends _$AppDatabase {
             settingsTable.lastSyncedAt,
           );
           await m.addColumn(settingsTable, settingsTable.serverUrl);
+        }
+        if (from < 19) {
+          await m.addColumn(settingsTable, settingsTable.deviceId);
         }
       },
     );

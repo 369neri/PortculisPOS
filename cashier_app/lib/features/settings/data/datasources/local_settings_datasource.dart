@@ -32,6 +32,7 @@ class LocalSettingsDatasource implements SettingsRepository {
           ? DateTime.tryParse(row.lastSyncedAt!)
           : null,
       serverUrl: row.serverUrl,
+      deviceId: row.deviceId,
     );
   }
 
@@ -53,6 +54,7 @@ class LocalSettingsDatasource implements SettingsRepository {
           taxInclusive: Value(settings.taxInclusive),
           lastSyncedAt: Value(settings.lastSyncedAt?.toIso8601String()),
           serverUrl: Value(settings.serverUrl),
+          deviceId: Value(settings.deviceId),
         ),
       );
 }
